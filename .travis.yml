@@ -5,6 +5,6 @@ python:
   - "3.5"
   - "3.6"
 install:
-  - python scripts/dev_setup.py
+  - pip install -e .
 script:
-  - ./scripts/build.sh
+  - ./scripts/ci.sh
