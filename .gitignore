@@ -1,0 +1,43 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+env/
+env27/
+
+# Build results
+obj/
+dist/
+MANIFEST
+
+# Result of running python setup.py install/pip install -e
+RECORD.txt
+build/
+*.egg-info/
+
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
+.vs/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Mac desktop service store files
+.DS_Store
+
+.idea
+.vscode/settings.json
+.vscode/.ropeproject/
+.vscode/cSpell.json
+.project
+.pydevproject
