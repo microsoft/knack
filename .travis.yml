@@ -5,7 +5,7 @@ python:
   - "3.5"
   - "3.6"
 install:
-  - pip install requirements.txt
+  - pip install --requirement requirements.txt
   - pip install -e .
 script:
   - ./scripts/ci.sh
