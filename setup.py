@@ -12,8 +12,9 @@ from setuptools import setup, find_packages
 VERSION = "0.0.1"
 
 DEPENDENCIES = [
-    'jmespath',
     'argcomplete',
+    'colorama',
+    'jmespath',
     'six',
 ]
 
