@@ -9,11 +9,18 @@ import sys
 import platform
 
 from .completion import get_completion_args
-from .cli_logging import CLILogging, get_logger
+from .log import CLILogging, get_logger
+from .util import CLIError
 
 logger = get_logger(__name__)
 
-class CLI(object):
+
+def _default_exception_handler(ex):
+    logger.exception(ex)
+    return 1
+
+
+class CLI(object):  # pylint: disable=too-many-instance-attributes
 
     _DEFAULT_CONFIG = {
         'supports_telemetry': True
@@ -31,14 +38,13 @@ class CLI(object):
         self.config = config or CLI._DEFAULT_CONFIG
         self.on_pre_execute = on_pre_execute or (lambda: None)
         self.on_post_execute = on_post_execute or (lambda: None)
-        self.on_execute_exception = on_execute_exception or (lambda _: 1)
+        self.on_execute_exception = on_execute_exception or _default_exception_handler
         self.on_get_version = on_get_version or (lambda: None)
         self.out_file = out_file
         self.logging = CLILogging(self.cli_name)
 
-    def _execute(self, args):
+    def _execute(self, args):  # pylint: disable=no-self-use
         print(args)
-        return
         # APPLICATION.initialize(Configuration())
         # cmd_result = APPLICATION.execute(args)
         # if cmd_result and cmd_result.result is not None:
@@ -46,7 +52,8 @@ class CLI(object):
         #     formatter = OutputProducer.get_formatter(APPLICATION.configuration.output_format)
         #     OutputProducer(formatter=formatter, file=file).out(cmd_result)
 
-    def _should_show_version(self, args):
+    @staticmethod
+    def _should_show_version(args):
         return args and (args[0] == '--version' or args[0] == '-v')
 
     def _show_version_info(self):
@@ -60,7 +67,7 @@ class CLI(object):
 
     @staticmethod
     def _remove_logger_flags(args):
-        return filter(lambda x: x not in (CLILogging.VERBOSE_FLAG, CLILogging.DEBUG_FLAG), args)
+        return [x for x in args if x not in (CLILogging.VERBOSE_FLAG, CLILogging.DEBUG_FLAG)]
 
     def run(self, args):
         """ Run the CLI and return the exit code """
@@ -70,23 +77,22 @@ class CLI(object):
             self.logging.configure(args)
             args = CLI._remove_logger_flags(args)
             logger.debug('Command arguments %s', args)
- 
+
             # TODO Add telemetry support
             self.on_pre_execute()
-            if self._should_show_version(args):
+            if CLI._should_show_version(args):
                 self._show_version_info()
             else:
                 self._execute(args)
             self.on_post_execute()
             exit_code = 0
+        except CLIError as ex:
+            logger.error(ex)
+            exit_code = 1
         except KeyboardInterrupt:
             exit_code = 1
         except Exception as ex:  # pylint: disable=broad-except
-            # logger.exception(ex)
-            # TODO Remove this
-            print(ex)
             exit_code = self.on_execute_exception(ex)
         finally:
             pass
         return exit_code
-

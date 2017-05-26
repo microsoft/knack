@@ -9,13 +9,15 @@ import logging
 
 import colorama
 
+
 # TODO MOVE THESE HELPER METHODS
 def get_config_dir():
     return os.getenv('AZURE_CONFIG_DIR', None) or os.path.expanduser(os.path.join('~', '.azure'))
-
 # END-TODO MOVE THESE HELPER METHODS
 
+
 CLI_LOGGER_NAME = 'cli'
+
 
 def get_logger(module_name=None):
     if module_name:
@@ -24,9 +26,10 @@ def get_logger(module_name=None):
         logger_name = CLI_LOGGER_NAME
     return logging.getLogger(logger_name)
 
+
 class CustomStreamHandler(logging.StreamHandler):
 
-    def _color_wrapper(color_marker):
+    def _color_wrapper(color_marker):  # pylint: disable=no-self-argument
         def wrap_msg_with_color(msg):
             return color_marker + msg + colorama.Style.RESET_ALL
         return wrap_msg_with_color
@@ -38,7 +41,6 @@ class CustomStreamHandler(logging.StreamHandler):
         logging.INFO: _color_wrapper(colorama.Fore.GREEN),
         logging.DEBUG: _color_wrapper(colorama.Fore.CYAN)
     }
-
 
     def _should_enable_color(self):
         try:
@@ -73,8 +75,7 @@ class CLILogging(object):
     VERBOSE_FLAG = '--verbose'
 
     def __init__(self, cli_name):
-        self.cli_name = cli_name
-        self.logfile_name = '{}-cli.log'.format(self.cli_name)
+        self.logfile_name = '{}-cli.log'.format(cli_name)
         self.file_log_enabled = CLILogging._is_file_log_enabled()
         self.log_dir = CLILogging._get_log_dir()
         self.console_log_configs = CLILogging._get_console_log_configs()
@@ -96,7 +97,7 @@ class CLILogging(object):
         self._init_console_handlers(root_logger, cli_logger, log_level_config)
         if self.file_log_enabled:
             self._init_logfile_handlers(root_logger, cli_logger)
-            get_az_logger(__name__).debug("File logging enabled - Writing logs to '%s'.", self.log_dir)
+            get_logger(__name__).debug("File logging enabled - Writing logs to '%s'.", self.log_dir)
 
     def _determine_verbose_level(self, args):
         """ Get verbose level by reading the arguments.
@@ -113,15 +114,15 @@ class CLILogging(object):
 
     def _init_console_handlers(self, root_logger, cli_logger, log_level_config):
         root_logger.addHandler(CustomStreamHandler(log_level_config['root'],
-                                                self.console_log_format['root']))
+                                                   self.console_log_format['root']))
         cli_logger.addHandler(CustomStreamHandler(log_level_config[CLI_LOGGER_NAME],
-                                                self.console_log_format[CLI_LOGGER_NAME]))
+                                                  self.console_log_format[CLI_LOGGER_NAME]))
 
     def _init_logfile_handlers(self, root_logger, cli_logger):
         if not os.path.isdir(self.log_dir):
             os.makedirs(self.log_dir)
         log_file_path = os.path.join(self.log_dir, self.logfile_name)
-        logfile_handler = RotatingFileHandler(log_file_path, maxBytes=10 * 1024 * 1024, backupCount=5)
+        logfile_handler = logging.handlers.RotatingFileHandler(log_file_path, maxBytes=10 * 1024 * 1024, backupCount=5)
         lfmt = logging.Formatter('%(process)d : %(asctime)s : %(levelname)s : %(name)s : %(message)s')
         logfile_handler.setFormatter(lfmt)
         logfile_handler.setLevel(logging.DEBUG)
@@ -174,4 +175,3 @@ class CLILogging(object):
                 False: '%(levelname)s: %(name)s : %(message)s',
             }
         }
-

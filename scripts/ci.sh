@@ -11,7 +11,7 @@ scripts_root=$(cd $(dirname $0); pwd)
 
 python -m pylint clicore --rcfile=.pylintrc -r n -d I0013
 
-flake8 --statistics --append-config=.flake8
+flake8 --statistics --append-config=.flake8 clicore
 
 python $scripts_root/license_verify.py
 
