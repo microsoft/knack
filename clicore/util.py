@@ -3,6 +3,8 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
+import os
+
 
 class CLIError(Exception):
     """Base class for exceptions that occur during
@@ -11,3 +13,9 @@ class CLIError(Exception):
     """
     def __init__(self, message):  # pylint: disable=useless-super-delegation
         super(CLIError, self).__init__(message)
+
+
+def ensure_dir(d):
+    """ Create a directory if it doesn't exist """
+    if not os.path.isdir(d):
+        os.makedirs(d)

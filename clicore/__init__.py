@@ -3,6 +3,6 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from .main import CLI
+from .main import CLIApp
 
-__all__ = ['CLI']
+__all__ = ['CLIApp']

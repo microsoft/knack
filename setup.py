@@ -23,6 +23,7 @@ with open('README.rst', 'r', encoding='utf-8') as f:
 with open('HISTORY.rst', 'r', encoding='utf-8') as f:
     HISTORY = f.read()
 
+# TODO Decide on a name and url
 setup(
     name='contoso-cli-core',
     version=VERSION,

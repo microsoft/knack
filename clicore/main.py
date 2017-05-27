@@ -11,6 +11,7 @@ import platform
 from .completion import get_completion_args
 from .log import CLILogging, get_logger
 from .util import CLIError
+from .config import CLIConfig
 
 logger = get_logger(__name__)
 
@@ -20,28 +21,32 @@ def _default_exception_handler(ex):
     return 1
 
 
-class CLI(object):  # pylint: disable=too-many-instance-attributes
+class CLIContext(object):
 
-    _DEFAULT_CONFIG = {
-        'supports_telemetry': True
-    }
+    def __init__(self):
+        self.config = None
+
+
+class CLIApp(object):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self,
-                 name,
-                 config=None,
+                 app_name,
+                 config_name,
+                 out_file=sys.stdout,
                  on_pre_execute=None,
                  on_post_execute=None,
                  on_execute_exception=None,
-                 on_get_version=None,
-                 out_file=sys.stdout):
-        self.cli_name = name
-        self.config = config or CLI._DEFAULT_CONFIG
-        self.on_pre_execute = on_pre_execute or (lambda: None)
-        self.on_post_execute = on_post_execute or (lambda: None)
+                 on_get_version=None):
+        self.app_name = app_name
+        self.on_pre_execute = on_pre_execute or (lambda _: None)
+        self.on_post_execute = on_post_execute or (lambda _: None)
         self.on_execute_exception = on_execute_exception or _default_exception_handler
         self.on_get_version = on_get_version or (lambda: None)
         self.out_file = out_file
-        self.logging = CLILogging(self.cli_name)
+        self.ctx = CLIContext()
+        self.config = CLIConfig(config_name)
+        self.ctx.config = self.config
+        self.logging = CLILogging(self.app_name, ctx=self.ctx)
 
     def _execute(self, args):  # pylint: disable=no-self-use
         print(args)
@@ -72,19 +77,20 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
     def run(self, args):
         """ Run the CLI and return the exit code """
         try:
+
             args = get_completion_args() or args
 
             self.logging.configure(args)
-            args = CLI._remove_logger_flags(args)
+            args = CLIApp._remove_logger_flags(args)
             logger.debug('Command arguments %s', args)
 
             # TODO Add telemetry support
-            self.on_pre_execute()
-            if CLI._should_show_version(args):
+            self.on_pre_execute(self.ctx)
+            if CLIApp._should_show_version(args):
                 self._show_version_info()
             else:
                 self._execute(args)
-            self.on_post_execute()
+            self.on_post_execute(self.ctx)
             exit_code = 0
         except CLIError as ex:
             logger.error(ex)

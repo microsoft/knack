@@ -6,14 +6,11 @@
 import os
 import platform
 import logging
+from logging.handlers import RotatingFileHandler
 
 import colorama
 
-
-# TODO MOVE THESE HELPER METHODS
-def get_config_dir():
-    return os.getenv('AZURE_CONFIG_DIR', None) or os.path.expanduser(os.path.join('~', '.azure'))
-# END-TODO MOVE THESE HELPER METHODS
+from .util import ensure_dir
 
 
 CLI_LOGGER_NAME = 'cli'
@@ -74,12 +71,13 @@ class CLILogging(object):
     DEBUG_FLAG = '--debug'
     VERBOSE_FLAG = '--verbose'
 
-    def __init__(self, cli_name):
-        self.logfile_name = '{}-cli.log'.format(cli_name)
-        self.file_log_enabled = CLILogging._is_file_log_enabled()
-        self.log_dir = CLILogging._get_log_dir()
+    def __init__(self, name, ctx=None):
+        self.logfile_name = '{}-cli.log'.format(name)
+        self.file_log_enabled = CLILogging._is_file_log_enabled(ctx)
+        self.log_dir = CLILogging._get_log_dir(ctx)
         self.console_log_configs = CLILogging._get_console_log_configs()
         self.console_log_format = CLILogging._get_console_log_format()
+        self.ctx = ctx
 
     def configure(self, args):
         verbose_level = self._determine_verbose_level(args)
@@ -97,7 +95,7 @@ class CLILogging(object):
         self._init_console_handlers(root_logger, cli_logger, log_level_config)
         if self.file_log_enabled:
             self._init_logfile_handlers(root_logger, cli_logger)
-            get_logger(__name__).debug("File logging enabled - Writing logs to '%s'.", self.log_dir)
+            get_logger(__name__).debug("File logging enabled - writing logs to '%s'.", self.log_dir)
 
     def _determine_verbose_level(self, args):
         """ Get verbose level by reading the arguments.
@@ -119,10 +117,9 @@ class CLILogging(object):
                                                   self.console_log_format[CLI_LOGGER_NAME]))
 
     def _init_logfile_handlers(self, root_logger, cli_logger):
-        if not os.path.isdir(self.log_dir):
-            os.makedirs(self.log_dir)
+        ensure_dir(self.log_dir)
         log_file_path = os.path.join(self.log_dir, self.logfile_name)
-        logfile_handler = logging.handlers.RotatingFileHandler(log_file_path, maxBytes=10 * 1024 * 1024, backupCount=5)
+        logfile_handler = RotatingFileHandler(log_file_path, maxBytes=10 * 1024 * 1024, backupCount=5)
         lfmt = logging.Formatter('%(process)d : %(asctime)s : %(levelname)s : %(name)s : %(message)s')
         logfile_handler.setFormatter(lfmt)
         logfile_handler.setLevel(logging.DEBUG)
@@ -130,15 +127,13 @@ class CLILogging(object):
         cli_logger.addHandler(logfile_handler)
 
     @staticmethod
-    def _is_file_log_enabled():
-        return False
-        # return config.getboolean('logging', 'enable_log_file', fallback=False)
+    def _is_file_log_enabled(ctx):
+        return ctx.config.getboolean('logging', 'enable_log_file', fallback=False)
 
     @staticmethod
-    def _get_log_dir():
-        default_dir = (os.path.join(get_config_dir(), 'logs'))
-        return default_dir
-        # return os.path.expanduser(config.get('logging', 'log_dir', fallback=default_dir))
+    def _get_log_dir(ctx):
+        default_dir = (os.path.join(ctx.config.config_dir, 'logs'))
+        return os.path.expanduser(ctx.config.get('logging', 'log_dir', fallback=default_dir))
 
     @staticmethod
     def _get_console_log_configs():
