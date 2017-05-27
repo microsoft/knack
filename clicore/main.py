@@ -12,6 +12,7 @@ from .completion import get_completion_args
 from .log import CLILogging, get_logger
 from .util import CLIError
 from .config import CLIConfig
+from .output import OutputProducer, CommandResultItem
 
 logger = get_logger(__name__)
 
@@ -48,14 +49,16 @@ class CLIApp(object):  # pylint: disable=too-many-instance-attributes
         self.ctx.config = self.config
         self.logging = CLILogging(self.app_name, ctx=self.ctx)
 
-    def _execute(self, args):  # pylint: disable=no-self-use
+    def _execute(self, args):
         print(args)
+        # TODO Use the application instead of my temp values
         # APPLICATION.initialize(Configuration())
         # cmd_result = APPLICATION.execute(args)
-        # if cmd_result and cmd_result.result is not None:
-        #     from azure.cli.core._output import OutputProducer
-        #     formatter = OutputProducer.get_formatter(APPLICATION.configuration.output_format)
-        #     OutputProducer(formatter=formatter, file=file).out(cmd_result)
+        cmd_result = CommandResultItem([{'a': 1, 'b': 2}, {'a': 3, 'b': 4}])
+        output_type = 'json'
+        if cmd_result and cmd_result.result is not None:
+            formatter = OutputProducer.get_formatter(output_type)
+            OutputProducer(formatter=formatter, out_file=self.out_file).out(cmd_result)
 
     @staticmethod
     def _should_show_version(args):

@@ -15,7 +15,9 @@ DEPENDENCIES = [
     'argcomplete',
     'colorama',
     'jmespath',
+    'pygments',
     'six',
+    'tabulate'
 ]
 
 with open('README.rst', 'r', encoding='utf-8') as f:

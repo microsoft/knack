@@ -24,7 +24,7 @@ def get_logger(module_name=None):
     return logging.getLogger(logger_name)
 
 
-class CustomStreamHandler(logging.StreamHandler):
+class _CustomStreamHandler(logging.StreamHandler):
 
     def _color_wrapper(color_marker):  # pylint: disable=no-self-argument
         def wrap_msg_with_color(msg):
@@ -60,7 +60,7 @@ class CustomStreamHandler(logging.StreamHandler):
         msg = logging.StreamHandler.format(self, record)
         if self.enable_color:
             try:
-                msg = CustomStreamHandler.COLOR_MAP[record.levelno](msg)
+                msg = _CustomStreamHandler.COLOR_MAP[record.levelno](msg)
             except KeyError:
                 pass
         return msg
@@ -111,10 +111,10 @@ class CLILogging(object):
         return min(verbose_level, len(self.console_log_configs) - 1)
 
     def _init_console_handlers(self, root_logger, cli_logger, log_level_config):
-        root_logger.addHandler(CustomStreamHandler(log_level_config['root'],
-                                                   self.console_log_format['root']))
-        cli_logger.addHandler(CustomStreamHandler(log_level_config[CLI_LOGGER_NAME],
-                                                  self.console_log_format[CLI_LOGGER_NAME]))
+        root_logger.addHandler(_CustomStreamHandler(log_level_config['root'],
+                                                    self.console_log_format['root']))
+        cli_logger.addHandler(_CustomStreamHandler(log_level_config[CLI_LOGGER_NAME],
+                                                   self.console_log_format[CLI_LOGGER_NAME]))
 
     def _init_logfile_handlers(self, root_logger, cli_logger):
         ensure_dir(self.log_dir)
