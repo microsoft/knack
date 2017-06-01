@@ -21,10 +21,11 @@ class CLIConfig(object):
     _BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                        '0': False, 'no': False, 'false': False, 'off': False}
 
-    def __init__(self, config_name):
+    def __init__(self, config_dir_name, config_env_var_name):
+        config_env_var_name = config_env_var_name or config_dir_name
         self.config_parser = get_config_parser()
-        env_var_prefix = '{}_'.format(config_name.upper())
-        default_config_dir = os.path.expanduser(os.path.join('~', '.{}'.format(config_name.lower())))
+        env_var_prefix = '{}_'.format(config_env_var_name.upper())
+        default_config_dir = os.path.expanduser(os.path.join('~', '.{}'.format(config_dir_name.lower())))
         self.config_dir = os.environ.get('{}CONFIG_DIR'.format(env_var_prefix), default_config_dir)
         self.config_path = os.path.join(self.config_dir, _CONFIG_FILE_NAME)
         self._env_var_format = env_var_prefix + '{section}_{option}'

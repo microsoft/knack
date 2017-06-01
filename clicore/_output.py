@@ -12,7 +12,7 @@ import traceback
 from collections import OrderedDict
 from six import StringIO, text_type, u, string_types
 
-from .util import CLIError
+from .util import CLIError, CommandResultItem
 from .log import get_logger
 
 logger = get_logger(__name__)
@@ -67,14 +67,6 @@ def _format_tsv(obj):
     return _TsvOutput.dump(result_list)
 
 
-class CommandResultItem(object):  # pylint: disable=too-few-public-methods
-
-    def __init__(self, result, table_transformer=None, is_query_active=False):
-        self.result = result
-        self.table_transformer = table_transformer
-        self.is_query_active = is_query_active
-
-
 class OutputProducer(object):
 
     _FORMAT_DICT = {
@@ -108,7 +100,10 @@ class OutputProducer(object):
 
     @staticmethod
     def get_formatter(format_type):
-        return OutputProducer._FORMAT_DICT.get(format_type)
+        try:
+            return OutputProducer._FORMAT_DICT[format_type]
+        except KeyError:
+            raise ValueError("Unknown format '{}'".format(format_type))
 
 
 class _TableOutput(object):  # pylint: disable=too-few-public-methods

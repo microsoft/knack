@@ -72,7 +72,7 @@ class CLILogging(object):
     VERBOSE_FLAG = '--verbose'
 
     def __init__(self, name, ctx=None):
-        self.logfile_name = '{}-cli.log'.format(name)
+        self.logfile_name = '{}.log'.format(name)
         self.file_log_enabled = CLILogging._is_file_log_enabled(ctx)
         self.log_dir = CLILogging._get_log_dir(ctx)
         self.console_log_configs = CLILogging._get_console_log_configs()
