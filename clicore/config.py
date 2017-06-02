@@ -25,6 +25,7 @@ class CLIConfig(object):
         config_env_var_name = config_env_var_name or config_dir_name
         self.config_parser = get_config_parser()
         env_var_prefix = '{}_'.format(config_env_var_name.upper())
+        # TODO The default config dir should be configurable instead of using config_dir_name
         default_config_dir = os.path.expanduser(os.path.join('~', '.{}'.format(config_dir_name.lower())))
         self.config_dir = os.environ.get('{}CONFIG_DIR'.format(env_var_prefix), default_config_dir)
         self.config_path = os.path.join(self.config_dir, _CONFIG_FILE_NAME)

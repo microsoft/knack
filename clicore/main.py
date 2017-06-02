@@ -9,19 +9,20 @@ import platform
 from collections import defaultdict
 
 from ._application import Application
-from ._completion import get_completion_args
+from ._completion import CLICompletion
 from ._output import OutputProducer
 from .log import CLILogging, get_logger
 from .util import CLIError
 from .config import CLIConfig
+from .query import CLIQuery
 
 logger = get_logger(__name__)
 
+EVENT_PRE_EXECUTE = 'Cli.PreExecute'
+EVENT_POST_EXECUTE = 'Cli.PostExecute'
+
 
 class CLI(object):  # pylint: disable=too-many-instance-attributes
-
-    EVENT_PRE_EXECUTE = 'Cli.PreExecute'
-    EVENT_POST_EXECUTE = 'Cli.PostExecute'
 
     def __init__(self,
                  cli_name='cli',
@@ -31,7 +32,9 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
                  config_cls=CLIConfig,
                  logging_cls=CLILogging,
                  application_cls=Application,
-                 output_cls=OutputProducer):
+                 output_cls=OutputProducer,
+                 completion_cls=CLICompletion,
+                 query_cls=CLIQuery):
         self.name = cli_name
         self.out_file = out_file
         self.config_cls = config_cls
@@ -45,15 +48,18 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         self.cli_data = defaultdict(lambda: None)
         # In memory collection of key-value data for this current invocation This does not persist between invocations.
         self.invocation_data = defaultdict(lambda: None)
+        self.completion = completion_cls(ctx=self)
         self.logging = logging_cls(self.name, ctx=self)
+        self.output = self.output_cls(ctx=self)
+        self.query = query_cls(ctx=self)
 
-    def _execute(self, args):
+    def execute(self, args):
         application = self.application_cls(ctx=self)
         cmd_result = application.execute(args)
         output_type = self.invocation_data['output']
         if cmd_result and cmd_result.result is not None:
-            formatter = self.output_cls.get_formatter(output_type)
-            self.output_cls(formatter=formatter, out_file=self.out_file).out(cmd_result)
+            formatter = self.output.get_formatter(output_type)
+            self.output.out(cmd_result, formatter=formatter, out_file=self.out_file)
 
     @staticmethod
     def _should_show_version(args):
@@ -75,9 +81,6 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         version_info += self.get_runtime_version()
         print(version_info, file=self.out_file)
 
-    def _remove_logger_flags(self, args):
-        return [x for x in args if x not in (self.logging_cls.VERBOSE_FLAG, self.logging_cls.DEBUG_FLAG)]
-
     def register_event(self, event_name, handler):
         """ Register a callable that will be called when event is raised.
             A handler will only be registered once. """
@@ -92,7 +95,9 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
 
     def raise_event(self, event_name, **kwargs):
         """ Raise an event. """
-        for func in list(self._event_handlers[event_name]):
+        handlers = list(self._event_handlers[event_name])
+        logger.debug('Application event: %s %s', event_name, handlers)
+        for func in handlers:
             func(self, **kwargs)
 
     def exception_handler(self, ex):  # pylint: disable=no-self-use
@@ -104,18 +109,18 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         # Reset invocation data
         self.invocation_data = defaultdict(lambda: None)
         try:
-            args = get_completion_args() or args
+            args = self.completion.get_completion_args() or args
 
             self.logging.configure(args)
-            args = self._remove_logger_flags(args)
             logger.debug('Command arguments %s', args)
+            args = self.logging.remove_logger_flags(args)
 
-            self.raise_event(CLI.EVENT_PRE_EXECUTE)
+            self.raise_event(EVENT_PRE_EXECUTE)
             if CLI._should_show_version(args):
                 self.show_version()
             else:
-                self._execute(args)
-            self.raise_event(CLI.EVENT_POST_EXECUTE)
+                self.execute(args)
+            self.raise_event(EVENT_POST_EXECUTE)
             exit_code = 0
         except CLIError as ex:
             logger.error(ex)

@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 import colorama
 
 from .util import ensure_dir
-
+from ._parser import EVENT_PARSER_GLOBAL_CREATE
 
 CLI_LOGGER_NAME = 'cli'
 
@@ -71,6 +71,15 @@ class CLILogging(object):
     DEBUG_FLAG = '--debug'
     VERBOSE_FLAG = '--verbose'
 
+    @staticmethod
+    def on_global_arguments(_, **kwargs):
+        arg_group = kwargs.get('arg_group')
+        # The arguments for verbosity don't get parsed by argparse but we add it here for help.
+        arg_group.add_argument(CLILogging.VERBOSE_FLAG, dest='_log_verbosity_verbose', action='store_true',
+                               help='Increase logging verbosity. Use --debug for full debug logs.')
+        arg_group.add_argument(CLILogging.DEBUG_FLAG, dest='_log_verbosity_debug', action='store_true',
+                               help='Increase logging verbosity to show all debug logs.')
+
     def __init__(self, name, ctx=None):
         self.logfile_name = '{}.log'.format(name)
         self.file_log_enabled = CLILogging._is_file_log_enabled(ctx)
@@ -78,6 +87,10 @@ class CLILogging(object):
         self.console_log_configs = CLILogging._get_console_log_configs()
         self.console_log_format = CLILogging._get_console_log_format()
         self.ctx = ctx
+        self.ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, CLILogging.on_global_arguments)
+
+    def remove_logger_flags(self, args):  # pylint: disable=no-self-use
+        return [x for x in args if x not in (CLILogging.VERBOSE_FLAG, CLILogging.DEBUG_FLAG)]
 
     def configure(self, args):
         verbose_level = self._determine_verbose_level(args)

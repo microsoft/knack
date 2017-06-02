@@ -13,6 +13,8 @@ from collections import OrderedDict
 from six import StringIO, text_type, u, string_types
 
 from .util import CLIError, CommandResultItem
+from ._parser import EVENT_PARSER_GLOBAL_CREATE
+from ._application import EVENT_APPLICATION_POST_PARSE_ARGS
 from .log import get_logger
 
 logger = get_logger(__name__)
@@ -69,6 +71,8 @@ def _format_tsv(obj):
 
 class OutputProducer(object):
 
+    ARG_DEST = '_output_format'
+
     _FORMAT_DICT = {
         'json': _format_json,
         'jsonc': _format_json_color,
@@ -76,19 +80,37 @@ class OutputProducer(object):
         'tsv': _format_tsv,
     }
 
-    def __init__(self, formatter, out_file):
-        self.formatter = formatter
-        self.file = out_file
+    @staticmethod
+    def on_global_arguments(ctx, **kwargs):
+        arg_group = kwargs.get('arg_group')
+        arg_group.add_argument('--output', '-o', dest=OutputProducer.ARG_DEST,
+                               choices=list(OutputProducer._FORMAT_DICT),
+                               default=ctx.config.get('core', 'output', fallback='json'),
+                               help='Output format',
+                               type=str.lower)
 
-    def out(self, obj):
+    @staticmethod
+    def handle_output_argument(ctx, **kwargs):
+        args = kwargs.get('args')
+        # Set the output type for this invocation
+        ctx.invocation_data['output'] = getattr(args, OutputProducer.ARG_DEST)
+        # We've handled the argument so remove it
+        delattr(args, OutputProducer.ARG_DEST)
+
+    def __init__(self, ctx=None):
+        self.ctx = ctx
+        self.ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, OutputProducer.on_global_arguments)
+        self.ctx.register_event(EVENT_APPLICATION_POST_PARSE_ARGS, OutputProducer.handle_output_argument)
+
+    def out(self, obj, formatter=None, out_file=None):  # pylint: disable=no-self-use
         if not isinstance(obj, CommandResultItem):
             raise TypeError('Expected {} got {}'.format(CommandResultItem.__name__, type(obj)))
         import colorama
         if platform.system() == 'Windows':
-            self.file = colorama.AnsiToWin32(self.file).stream
-        output = self.formatter(obj)
+            out_file = colorama.AnsiToWin32(out_file).stream
+        output = formatter(obj)
         try:
-            print(output, file=self.file, end='')
+            print(output, file=out_file, end='')
         except IOError as ex:
             if ex.errno == errno.EPIPE:
                 pass
@@ -96,14 +118,10 @@ class OutputProducer(object):
                 raise
         except UnicodeEncodeError:
             print(output.encode('ascii', 'ignore').decode('utf-8', 'ignore'),
-                  file=self.file, end='')
+                  file=out_file, end='')
 
-    @staticmethod
-    def get_formatter(format_type):
-        try:
-            return OutputProducer._FORMAT_DICT[format_type]
-        except KeyError:
-            raise ValueError("Unknown format '{}'".format(format_type))
+    def get_formatter(self, format_type):  # pylint: disable=no-self-use
+        return OutputProducer._FORMAT_DICT[format_type]
 
 
 class _TableOutput(object):  # pylint: disable=too-few-public-methods
