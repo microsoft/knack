@@ -3,7 +3,7 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from ._parser import EVENT_PARSER_GLOBAL_CREATE
+from ._events import EVENT_PARSER_GLOBAL_CREATE
 
 
 class CLIQuery(object):

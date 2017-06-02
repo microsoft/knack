@@ -15,11 +15,9 @@ from .log import CLILogging, get_logger
 from .util import CLIError
 from .config import CLIConfig
 from .query import CLIQuery
+from ._events import EVENT_CLI_PRE_EXECUTE, EVENT_CLI_POST_EXECUTE
 
 logger = get_logger(__name__)
-
-EVENT_PRE_EXECUTE = 'Cli.PreExecute'
-EVENT_POST_EXECUTE = 'Cli.PostExecute'
 
 
 class CLI(object):  # pylint: disable=too-many-instance-attributes
@@ -90,7 +88,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         """ Unregister a callable that will be called when event is raised. """
         try:
             self._event_handlers[event_name].remove(handler)
-        except KeyError:
+        except ValueError:
             pass
 
     def raise_event(self, event_name, **kwargs):
@@ -112,15 +110,14 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             args = self.completion.get_completion_args() or args
 
             self.logging.configure(args)
-            logger.debug('Command arguments %s', args)
-            args = self.logging.remove_logger_flags(args)
+            logger.debug('Command arguments: %s', args)
 
-            self.raise_event(EVENT_PRE_EXECUTE)
+            self.raise_event(EVENT_CLI_PRE_EXECUTE)
             if CLI._should_show_version(args):
                 self.show_version()
             else:
                 self.execute(args)
-            self.raise_event(EVENT_POST_EXECUTE)
+            self.raise_event(EVENT_CLI_POST_EXECUTE)
             exit_code = 0
         except CLIError as ex:
             logger.error(ex)

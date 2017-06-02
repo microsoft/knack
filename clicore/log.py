@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 import colorama
 
 from .util import ensure_dir
-from ._parser import EVENT_PARSER_GLOBAL_CREATE
+from ._events import EVENT_APPLICATION_PRE_CMD_TBL_CREATE, EVENT_PARSER_GLOBAL_CREATE
 
 CLI_LOGGER_NAME = 'cli'
 
@@ -80,6 +80,18 @@ class CLILogging(object):
         arg_group.add_argument(CLILogging.DEBUG_FLAG, dest='_log_verbosity_debug', action='store_true',
                                help='Increase logging verbosity to show all debug logs.')
 
+    @staticmethod
+    def remove_logger_flags(_, **kwargs):
+        args = kwargs.get('args')
+        try:
+            args.remove(CLILogging.VERBOSE_FLAG)
+        except ValueError:
+            pass
+        try:
+            args.remove(CLILogging.DEBUG_FLAG)
+        except ValueError:
+            pass
+
     def __init__(self, name, ctx=None):
         self.logfile_name = '{}.log'.format(name)
         self.file_log_enabled = CLILogging._is_file_log_enabled(ctx)
@@ -88,9 +100,7 @@ class CLILogging(object):
         self.console_log_format = CLILogging._get_console_log_format()
         self.ctx = ctx
         self.ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, CLILogging.on_global_arguments)
-
-    def remove_logger_flags(self, args):  # pylint: disable=no-self-use
-        return [x for x in args if x not in (CLILogging.VERBOSE_FLAG, CLILogging.DEBUG_FLAG)]
+        self.ctx.register_event(EVENT_APPLICATION_PRE_CMD_TBL_CREATE, CLILogging.remove_logger_flags)
 
     def configure(self, args):
         verbose_level = self._determine_verbose_level(args)

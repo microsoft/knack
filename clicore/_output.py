@@ -13,8 +13,7 @@ from collections import OrderedDict
 from six import StringIO, text_type, u, string_types
 
 from .util import CLIError, CommandResultItem
-from ._parser import EVENT_PARSER_GLOBAL_CREATE
-from ._application import EVENT_APPLICATION_POST_PARSE_ARGS
+from ._events import EVENT_APPLICATION_POST_PARSE_ARGS, EVENT_PARSER_GLOBAL_CREATE
 from .log import get_logger
 
 logger = get_logger(__name__)
