@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 
 
 # TODO DELETE THIS
-def a_test_command_handler():
+def a_test_command_handler(_):
     return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
 
 

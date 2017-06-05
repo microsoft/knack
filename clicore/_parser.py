@@ -97,7 +97,7 @@ class CLICommandParser(argparse.ArgumentParser):
 
                 # Due to http://bugs.python.org/issue9253, we have to give the subparser
                 # a destination and set it to required in order to get a meaningful error
-                parent_subparser = new_parser.add_subparsers(dest='subcommand')
+                parent_subparser = new_parser.add_subparsers(dest='_subcommand')
                 parent_subparser.required = True
                 self.subparsers[tuple(path[0:length])] = parent_subparser
         return parent_subparser

@@ -8,7 +8,8 @@ from ._parser import CLICommandParser
 from .commands import CLICommandsLoader
 from ._events import (EVENT_APPLICATION_PRE_CMD_TBL_CREATE, EVENT_APPLICATION_POST_CMD_TBL_CREATE,
                       EVENT_APPLICATION_CMD_TBL_LOADED, EVENT_APPLICATION_PRE_PARSE_ARGS,
-                      EVENT_APPLICATION_POST_PARSE_ARGS)
+                      EVENT_APPLICATION_POST_PARSE_ARGS, EVENT_APPLICATION_TRANSFORM_RESULT,
+                      EVENT_APPLICATION_FILTER_RESULT)
 
 
 class Application(object):
@@ -23,6 +24,16 @@ class Application(object):
         self.parser = parser_cls(ctx=self.ctx, prog=self.ctx.name, parents=[self._global_parser])
         self.commands_loader = commands_loader_cls(ctx=self.ctx)
 
+    def _filter_params(self, args):  # pylint: disable=no-self-use
+        # Consider - we are using any args that start with an underscore (_) as 'private'
+        # arguments and remove them from the arguments that we pass to the actual function.
+        params = dict([(key, value)
+                       for key, value in args.__dict__.items()
+                       if not key.startswith('_')])
+        params.pop('func', None)
+        params.pop('command', None)
+        return params
+
     def execute(self, args):
         self.ctx.raise_event(EVENT_APPLICATION_PRE_CMD_TBL_CREATE, args=args)
         cmd_tbl = self.commands_loader.generate_command_table(args)
@@ -36,10 +47,14 @@ class Application(object):
 
         self.ctx.invocation_data['command'] = parsed_args.command
 
-        # TODO should pass in the args here to func.
-        cmd_result = parsed_args.func()
+        params = self._filter_params(parsed_args)
 
-        # self.raise_event(self.TRANSFORM_RESULT, cmd_result=cmd_result)
-        # self.raise_event(self.FILTER_RESULT, cmd_result=cmd_result)
+        cmd_result = parsed_args.func(params)
 
-        return CommandResultItem(cmd_result)
+        event_data = {'result': cmd_result}
+        self.ctx.raise_event(EVENT_APPLICATION_TRANSFORM_RESULT, event_data=event_data)
+        self.ctx.raise_event(EVENT_APPLICATION_FILTER_RESULT, event_data=event_data)
+
+        return CommandResultItem(event_data['result'],
+                                 table_transformer=cmd_tbl[parsed_args.command].table_transformer,
+                                 is_query_active=self.ctx.invocation_data['query_active'])
