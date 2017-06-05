@@ -9,7 +9,6 @@ from six.moves import configparser
 
 from .util import ensure_dir
 
-_CONFIG_FILE_NAME = 'config'
 _UNSET = object()
 
 
@@ -21,14 +20,18 @@ class CLIConfig(object):
     _BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                        '0': False, 'no': False, 'false': False, 'off': False}
 
-    def __init__(self, config_dir_name, config_env_var_name):
-        config_env_var_name = config_env_var_name or config_dir_name
+    _DEFAULT_CONFIG_ENV_VAR_PREFIX = 'CLI'
+    _DEFAULT_CONFIG_DIR = os.path.join('~', '.{}'.format('cli'))
+    _CONFIG_FILE_NAME = 'config'
+
+    def __init__(self, config_dir=None, config_env_var_prefix=None):
+        config_dir = config_dir or CLIConfig._DEFAULT_CONFIG_DIR
+        config_env_var_prefix = config_env_var_prefix or CLIConfig._DEFAULT_CONFIG_ENV_VAR_PREFIX
         self.config_parser = get_config_parser()
-        env_var_prefix = '{}_'.format(config_env_var_name.upper())
-        # TODO The default config dir should be configurable instead of using config_dir_name
-        default_config_dir = os.path.expanduser(os.path.join('~', '.{}'.format(config_dir_name.lower())))
+        env_var_prefix = '{}_'.format(config_env_var_prefix.upper())
+        default_config_dir = os.path.expanduser(config_dir)
         self.config_dir = os.environ.get('{}CONFIG_DIR'.format(env_var_prefix), default_config_dir)
-        self.config_path = os.path.join(self.config_dir, _CONFIG_FILE_NAME)
+        self.config_path = os.path.join(self.config_dir, CLIConfig._CONFIG_FILE_NAME)
         self._env_var_format = env_var_prefix + '{section}_{option}'
         self.config_parser.read(self.config_path)
 

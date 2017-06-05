@@ -24,8 +24,8 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self,
                  cli_name='cli',
-                 config_dir_name='cli',
-                 config_env_var_name=None,
+                 config_dir=None,
+                 config_env_var_prefix=None,
                  out_file=sys.stdout,
                  config_cls=CLIConfig,
                  logging_cls=CLILogging,
@@ -41,7 +41,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         self.application_cls = application_cls
         self._event_handlers = defaultdict(lambda: [])
         # Data that's typically backed to persistent storage
-        self.config = config_cls(config_dir_name, config_env_var_name)
+        self.config = config_cls(config_dir=config_dir, config_env_var_prefix=config_env_var_prefix)
         # In memory collection of key-value data for this current cli. This persists between invocations.
         self.cli_data = defaultdict(lambda: None)
         # In memory collection of key-value data for this current invocation This does not persist between invocations.
