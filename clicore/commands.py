@@ -10,11 +10,6 @@ from .log import get_logger
 logger = get_logger(__name__)
 
 
-# TODO DELETE THIS
-def a_test_command_handler(_):
-    return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
-
-
 class CliCommand(object):  # pylint:disable=too-many-instance-attributes
 
     def __init__(self, name, handler, description=None, table_transformer=None,
@@ -59,7 +54,4 @@ class CLICommandsLoader(object):
         self.command_table = dict()
 
     def generate_command_table(self, args):  # pylint: disable=unused-argument
-        # TODO Generate the command table appropriately
-        cmd_name = 'abc xyz'
-        self.command_table[cmd_name] = CliCommand(cmd_name, a_test_command_handler)
         return OrderedDict(self.command_table)

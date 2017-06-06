@@ -2,8 +2,29 @@
 
 import os
 import sys
-from clicore import CLI
+from collections import OrderedDict
 
-mycli = CLI(cli_name='exapp1', config_dir=os.path.join('~', '.exapp1'))
+from clicore import CLI
+from clicore.commands import CLICommandsLoader, CliCommand
+from clicore._application import Application
+
+def a_test_command_handler(_):
+    return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
+
+class MyCommandsLoader(CLICommandsLoader):
+
+    def generate_command_table(self, args):
+        self.command_table['abc xyz'] = CliCommand('abc xyz', a_test_command_handler)
+        return OrderedDict(self.command_table)
+
+
+class MyApplication(Application):
+
+    def __init__(self, ctx=None, **kwargs):
+        super(MyApplication, self).__init__(ctx=ctx, commands_loader_cls=MyCommandsLoader)
+
+
+mycli = CLI(cli_name='exapp1', config_dir=os.path.join('~', '.exapp1'),
+            application_cls=MyApplication)
 exit_code = mycli.run(sys.argv[1:])
 sys.exit(exit_code)

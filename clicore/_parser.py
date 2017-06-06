@@ -29,6 +29,8 @@ class CLICommandParser(argparse.ArgumentParser):
         super(CLICommandParser, self).__init__(**kwargs)
 
     def load_command_table(self, cmd_tbl):
+        if not cmd_tbl:
+            raise ValueError('The command table is empty. At least one command is required.')
         # If we haven't already added a subparser, we
         # better do it.
         if not self.subparsers:
