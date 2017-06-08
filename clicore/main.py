@@ -8,7 +8,7 @@ import sys
 import platform
 from collections import defaultdict
 
-from ._application import Application
+from .invocation import CommandInvoker
 from ._completion import CLICompletion
 from ._output import OutputProducer
 from .log import CLILogging, get_logger
@@ -16,6 +16,8 @@ from .util import CLIError
 from .config import CLIConfig
 from .query import CLIQuery
 from ._events import EVENT_CLI_PRE_EXECUTE, EVENT_CLI_POST_EXECUTE
+from ._parser import CLICommandParser
+from .commands import CLICommandsLoader
 
 logger = get_logger(__name__)
 
@@ -29,35 +31,30 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
                  out_file=sys.stdout,
                  config_cls=CLIConfig,
                  logging_cls=CLILogging,
-                 application_cls=Application,
+                 invocation_cls=CommandInvoker,
                  output_cls=OutputProducer,
                  completion_cls=CLICompletion,
-                 query_cls=CLIQuery):
+                 query_cls=CLIQuery,
+                 parser_cls=CLICommandParser,
+                 commands_loader_cls=CLICommandsLoader):
         self.name = cli_name
         self.out_file = out_file
         self.config_cls = config_cls
         self.logging_cls = logging_cls
         self.output_cls = output_cls
-        self.application_cls = application_cls
+        self.parser_cls = parser_cls
+        self.commands_loader_cls = commands_loader_cls
+        self.invocation_cls = invocation_cls
+        self.invocation = None
         self._event_handlers = defaultdict(lambda: [])
         # Data that's typically backed to persistent storage
         self.config = config_cls(config_dir=config_dir, config_env_var_prefix=config_env_var_prefix)
         # In memory collection of key-value data for this current cli. This persists between invocations.
-        self.cli_data = defaultdict(lambda: None)
-        # In memory collection of key-value data for this current invocation This does not persist between invocations.
-        self.invocation_data = defaultdict(lambda: None)
+        self.data = defaultdict(lambda: None)
         self.completion = completion_cls(ctx=self)
         self.logging = logging_cls(self.name, ctx=self)
         self.output = self.output_cls(ctx=self)
         self.query = query_cls(ctx=self)
-
-    def execute(self, args):
-        application = self.application_cls(ctx=self)
-        cmd_result = application.execute(args)
-        output_type = self.invocation_data['output']
-        if cmd_result and cmd_result.result is not None:
-            formatter = self.output.get_formatter(output_type)
-            self.output.out(cmd_result, formatter=formatter, out_file=self.out_file)
 
     @staticmethod
     def _should_show_version(args):
@@ -94,7 +91,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
     def raise_event(self, event_name, **kwargs):
         """ Raise an event. """
         handlers = list(self._event_handlers[event_name])
-        logger.debug('Application event: %s %s', event_name, handlers)
+        logger.debug('Event: %s %s', event_name, handlers)
         for func in handlers:
             func(self, **kwargs)
 
@@ -102,10 +99,8 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         logger.exception(ex)
         return 1
 
-    def run(self, args):
-        """ Run the CLI and return the exit code """
-        # Reset invocation data
-        self.invocation_data = defaultdict(lambda: None)
+    def invoke(self, args, initial_invocation_data=None):
+        """ Invoke a command. """
         try:
             args = self.completion.get_completion_args() or args
 
@@ -116,7 +111,15 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             if CLI._should_show_version(args):
                 self.show_version()
             else:
-                self.execute(args)
+                self.invocation = self.invocation_cls(ctx=self,
+                                                      parser_cls=self.parser_cls,
+                                                      commands_loader_cls=self.commands_loader_cls,
+                                                      initial_data=initial_invocation_data)
+                cmd_result = self.invocation.execute(args)
+                output_type = self.invocation.data['output']
+                if cmd_result and cmd_result.result is not None:
+                    formatter = self.output.get_formatter(output_type)
+                    self.output.out(cmd_result, formatter=formatter, out_file=self.out_file)
             self.raise_event(EVENT_CLI_POST_EXECUTE)
             exit_code = 0
         except CLIError as ex:

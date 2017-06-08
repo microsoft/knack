@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 import colorama
 
 from .util import ensure_dir
-from ._events import EVENT_APPLICATION_PRE_CMD_TBL_CREATE, EVENT_PARSER_GLOBAL_CREATE
+from ._events import EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_PARSER_GLOBAL_CREATE
 
 CLI_LOGGER_NAME = 'cli'
 
@@ -100,7 +100,7 @@ class CLILogging(object):
         self.console_log_format = CLILogging._get_console_log_format()
         self.ctx = ctx
         self.ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, CLILogging.on_global_arguments)
-        self.ctx.register_event(EVENT_APPLICATION_PRE_CMD_TBL_CREATE, CLILogging.remove_logger_flags)
+        self.ctx.register_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, CLILogging.remove_logger_flags)
 
     def configure(self, args):
         verbose_level = self._determine_verbose_level(args)

@@ -13,7 +13,7 @@ from collections import OrderedDict
 from six import StringIO, text_type, u, string_types
 
 from .util import CLIError, CommandResultItem
-from ._events import EVENT_APPLICATION_POST_PARSE_ARGS, EVENT_PARSER_GLOBAL_CREATE
+from ._events import EVENT_INVOKER_POST_PARSE_ARGS, EVENT_PARSER_GLOBAL_CREATE
 from .log import get_logger
 
 logger = get_logger(__name__)
@@ -92,14 +92,14 @@ class OutputProducer(object):
     def handle_output_argument(ctx, **kwargs):
         args = kwargs.get('args')
         # Set the output type for this invocation
-        ctx.invocation_data['output'] = getattr(args, OutputProducer.ARG_DEST)
+        ctx.invocation.data['output'] = getattr(args, OutputProducer.ARG_DEST)
         # We've handled the argument so remove it
         delattr(args, OutputProducer.ARG_DEST)
 
     def __init__(self, ctx=None):
         self.ctx = ctx
         self.ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, OutputProducer.on_global_arguments)
-        self.ctx.register_event(EVENT_APPLICATION_POST_PARSE_ARGS, OutputProducer.handle_output_argument)
+        self.ctx.register_event(EVENT_INVOKER_POST_PARSE_ARGS, OutputProducer.handle_output_argument)
 
     def out(self, obj, formatter=None, out_file=None):  # pylint: disable=no-self-use
         if not isinstance(obj, CommandResultItem):

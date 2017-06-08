@@ -15,7 +15,7 @@ class CommandResultItem(object):  # pylint: disable=too-few-public-methods
 
 class CLIError(Exception):
     """Base class for exceptions that occur during
-    normal operation of the application.
+    normal operation of the CLI.
     Typically due to user error and can be resolved by the user.
     """
     def __init__(self, message):  # pylint: disable=useless-super-delegation

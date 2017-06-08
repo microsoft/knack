@@ -27,7 +27,7 @@ class CliCommand(object):  # pylint:disable=too-many-instance-attributes
 
     def should_load_description(self):  # pylint: disable=no-self-use
         # TODO self.ctx should be passed in somehow...
-        # return not self.ctx.cli_data['completer_active']
+        # return not self.ctx.data['completer_active']
         return True
 
     def load_arguments(self):
@@ -54,4 +54,5 @@ class CLICommandsLoader(object):
         self.command_table = dict()
 
     def generate_command_table(self, args):  # pylint: disable=unused-argument
+        self.ctx.raise_event('Commands.OnGenerateCommandTable', cmd_tbl=self.command_table)
         return OrderedDict(self.command_table)

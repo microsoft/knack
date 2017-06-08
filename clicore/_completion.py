@@ -12,7 +12,7 @@ class CLICompletion(object):
 
     def __init__(self, ctx=None):
         self.ctx = ctx
-        self.ctx.cli_data['completer_active'] = ARGCOMPLETE_ENV_NAME in os.environ
+        self.ctx.data['completer_active'] = ARGCOMPLETE_ENV_NAME in os.environ
 
     def get_completion_args(self, is_completion=False, comp_line=None):  # pylint: disable=no-self-use
         """ Get the args that will be used to tab completion if completion is active. """
