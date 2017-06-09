@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
+""" User registers commands with CLICommand objects directly """
+
 import os
 import sys
 from collections import OrderedDict
 
 from clicore import CLI
-from clicore.commands import CLICommandsLoader, CliCommand
+from clicore.commands import CLICommandsLoader, CLICommand
 
 def a_test_command_handler(h):
     return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
@@ -14,8 +16,8 @@ def a_test_command_handler(h):
 class MyCommandsLoader(CLICommandsLoader):
 
     def generate_command_table(self, args):
-        self.command_table['abc xyz'] = CliCommand('abc xyz', a_test_command_handler)
-        self.command_table['abc list'] = CliCommand('abc xyz', a_test_command_handler)
+        self.command_table['abc xyz'] = CLICommand(self.ctx, 'abc xyz', a_test_command_handler)
+        self.command_table['abc list'] = CLICommand(self.ctx, 'abc xyz', a_test_command_handler)
         return OrderedDict(self.command_table)
 
 mycli = CLI(cli_name='exapp1', config_dir=os.path.join('~', '.exapp1'), commands_loader_cls=MyCommandsLoader)
