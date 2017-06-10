@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+
+""" User registers commands with CommandGroups """
+
+import os
+import sys
+from collections import OrderedDict
+
+from clicore import CLI
+from clicore.commands import CLICommandsLoader, CommandSuperGroup
+from clicore.arguments import ArgumentsContext
+
+def a_test_command_handler():
+    return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
+
+
+def hello_command_handler(myarg=None, abc=None):
+    return ['hello', 'world', myarg, abc]
+
+
+class MyCommandsLoader(CLICommandsLoader):
+
+    def generate_command_table(self, args):
+        with CommandSuperGroup(__name__, self, '__main__#{}') as sg:
+            with sg.group('hello') as g:
+                g.command('world', 'hello_command_handler', confirmation=True)
+            with sg.group('abc') as g:
+                g.command('list', 'a_test_command_handler')
+                g.command('show', 'a_test_command_handler')
+        with ArgumentsContext(self, 'hello world') as ac:
+            ac.argument('myarg', type=int, default=100)
+        return OrderedDict(self.command_table)
+
+name = 'exapp4'
+
+mycli = CLI(cli_name=name, config_dir=os.path.join('~', '.{}'.format(name)), config_env_var_prefix=name, commands_loader_cls=MyCommandsLoader)
+exit_code = mycli.invoke(sys.argv[1:])
+sys.exit(exit_code)

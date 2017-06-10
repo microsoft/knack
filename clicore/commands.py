@@ -12,6 +12,8 @@ import six
 
 from .prompting import prompt_y_n, NoTTYException
 from .util import CLIError
+from .arguments import ArgumentRegistry, CLICommandArgument
+from .introspection import extract_args_from_signature, extract_full_summary_from_signature
 from .log import get_logger
 
 logger = get_logger(__name__)
@@ -42,12 +44,14 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
             self.arguments.update(self.arguments_loader())
 
     def add_argument(self, param_name, *option_strings, **kwargs):
-        pass
-        # dest = kwargs.pop('dest', None)
-        # TODO Params
-        # argument = CliCommandArgument(
-        #     dest or param_name, options_list=option_strings, **kwargs)
-        # self.arguments[param_name] = argument
+        dest = kwargs.pop('dest', None)
+        argument = CLICommandArgument(dest or param_name, options_list=option_strings, **kwargs)
+        self.arguments[param_name] = argument
+
+    def update_argument(self, param_name, argtype):
+        arg = self.arguments[param_name]
+        # self._resolve_default_value_from_cfg_file(arg, argtype)
+        arg.type.update(other=argtype)
 
     def execute(self, **kwargs):
         return self(**kwargs)
@@ -64,16 +68,35 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
 class CLICommandsLoader(object):
 
     # TODO Param Confirmation & No-wait are extensions that should be added in an extensible way.
-    CONFIRM_PARAM_NAME = 'yes'
 
     def __init__(self, ctx=None):
         self.ctx = ctx
         # A command table is a dictionary of name -> CliCommand instances
         self.command_table = dict()
+        # An arguments registry stores all arguments for commands
+        self.arguments_registry = ArgumentRegistry()
 
+    # TODO Change name to load_command_table instead to match load_arguments?
     def generate_command_table(self, args):  # pylint: disable=unused-argument
         self.ctx.raise_event('Commands.OnGenerateCommandTable', cmd_tbl=self.command_table)
         return OrderedDict(self.command_table)
+
+    def load_arguments(self, command):
+        self.ctx.raise_event('Commands.OnLoadArguments', cmd_tbl=self.command_table, command=command)
+        try:
+            self.command_table[command].load_arguments()
+        except KeyError:
+            return
+        self._apply_parameter_info(command, self.command_table[command])
+
+    def _apply_parameter_info(self, command_name, command):
+        for argument_name in command.arguments:
+            overrides = self.arguments_registry.get_cli_argument(command_name, argument_name)
+            command.update_argument(argument_name, overrides)
+        # Add any arguments explicitly registered for this command
+        # for argument_name, argument_definition in _get_cli_extra_arguments(command_name):
+        #     command.arguments[argument_name] = argument_definition
+        #     command.update_argument(argument_name, _get_cli_argument(command_name, argument_name))
 
     def cli_command(self, module_name, name, operation, **kwargs):
         """ Add a command to the command table. """
@@ -91,7 +114,7 @@ class CLICommandsLoader(object):
         def _command_handler(command_args):
             # TODO Event for pre command handler execution
             if confirmation \
-                and not command_args.get(CLICommandsLoader.CONFIRM_PARAM_NAME) \
+                and not command_args.get('_confirm_yes') \
                 and not self.ctx.config.getboolean('core', 'disable_confirm_prompt', fallback=False) \
                     and not CLICommandsLoader.user_confirmed(confirmation, command_args):
                 # TODO Event for cancelled operation.
@@ -102,14 +125,10 @@ class CLICommandsLoader(object):
             return result
 
         def arguments_loader():
-            # TODO Params
-            pass
-            # return extract_args_from_signature(get_op_handler(operation), no_wait_param=no_wait_param)
+            return extract_args_from_signature(CLICommandsLoader.get_op_handler(operation))
 
         def description_loader():
-            # TODO Params
-            pass
-            # return extract_full_summary_from_signature(get_op_handler(operation))
+            return extract_full_summary_from_signature(CLICommandsLoader.get_op_handler(operation))
 
         kwargs['arguments_loader'] = arguments_loader
         kwargs['description_loader'] = description_loader
@@ -117,7 +136,7 @@ class CLICommandsLoader(object):
         cmd = CLICommand(self.ctx, name, _command_handler, **kwargs)
         # TODO Event to add any other arguments so that this is extensible.
         if confirmation:
-            cmd.add_argument(CLICommandsLoader.CONFIRM_PARAM_NAME, '--yes', '-y',
+            cmd.add_argument('yes', '--yes', '-y', dest='_confirm_yes',
                              action='store_true',
                              help='Do not prompt for confirmation')
         return cmd
@@ -147,6 +166,10 @@ class CLICommandsLoader(object):
         except NoTTYException:
             logger.warning('Unable to prompt for confirmation as no tty available. Use --yes.')
             return False
+
+    def register_cli_argument(self, scope, dest, arg_type=None, **kwargs):
+        ''' Specify CLI specific metadata for a given argument for a given scope. '''
+        self.arguments_registry.register_cli_argument(scope, dest, arg_type, **kwargs)
 
 
 class CommandSuperGroup(object):
