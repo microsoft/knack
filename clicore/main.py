@@ -18,6 +18,7 @@ from .query import CLIQuery
 from ._events import EVENT_CLI_PRE_EXECUTE, EVENT_CLI_POST_EXECUTE
 from ._parser import CLICommandParser
 from .commands import CLICommandsLoader
+from .help import CLIHelp
 
 logger = get_logger(__name__)
 
@@ -36,13 +37,15 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
                  completion_cls=CLICompletion,
                  query_cls=CLIQuery,
                  parser_cls=CLICommandParser,
-                 commands_loader_cls=CLICommandsLoader):
+                 commands_loader_cls=CLICommandsLoader,
+                 help_cls=CLIHelp):
         self.name = cli_name
         self.out_file = out_file
         self.config_cls = config_cls
         self.logging_cls = logging_cls
         self.output_cls = output_cls
         self.parser_cls = parser_cls
+        self.help_cls = help_cls
         self.commands_loader_cls = commands_loader_cls
         self.invocation_cls = invocation_cls
         self.invocation = None
@@ -114,6 +117,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
                 self.invocation = self.invocation_cls(ctx=self,
                                                       parser_cls=self.parser_cls,
                                                       commands_loader_cls=self.commands_loader_cls,
+                                                      help_cls=self.help_cls,
                                                       initial_data=initial_invocation_data)
                 cmd_result = self.invocation.execute(args)
                 output_type = self.invocation.data['output']

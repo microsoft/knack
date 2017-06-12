@@ -16,6 +16,7 @@ DEPENDENCIES = [
     'colorama',
     'jmespath',
     'pygments',
+    'pyyaml',
     'six',
     'tabulate'
 ]

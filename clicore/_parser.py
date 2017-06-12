@@ -6,6 +6,7 @@
 import argparse
 
 from ._events import EVENT_PARSER_GLOBAL_CREATE
+from .help import show_help
 
 
 class CLICommandParser(argparse.ArgumentParser):
@@ -103,3 +104,19 @@ class CLICommandParser(argparse.ArgumentParser):
                 parent_subparser.required = True
                 self.subparsers[tuple(path[0:length])] = parent_subparser
         return parent_subparser
+
+    def is_group(self):
+        """ Determine if this parser instance represents a group
+            or a command. Anything that has a func default is considered
+            a group. This includes any dummy commands served up by the
+            "filter out irrelevant commands based on argv" command filter """
+        cmd = self._defaults.get('func', None)
+        return not (cmd and cmd.handler)
+
+    def format_help(self):
+        is_group = self.is_group()
+        show_help(self.prog.split()[0],
+                  self.prog.split()[1:],
+                  self._actions[-1] if is_group else self,
+                  is_group)
+        self.exit()

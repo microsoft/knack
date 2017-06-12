@@ -12,6 +12,7 @@ from ._events import (EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_INVOKER_POST_CMD_T
                       EVENT_INVOKER_CMD_TBL_LOADED, EVENT_INVOKER_PRE_PARSE_ARGS,
                       EVENT_INVOKER_POST_PARSE_ARGS, EVENT_INVOKER_TRANSFORM_RESULT,
                       EVENT_INVOKER_FILTER_RESULT)
+from .help import CLIHelp
 
 
 class CommandInvoker(object):
@@ -20,6 +21,7 @@ class CommandInvoker(object):
                  ctx=None,
                  parser_cls=CLICommandParser,
                  commands_loader_cls=CLICommandsLoader,
+                 help_cls=CLIHelp,
                  initial_data=None):
         self.ctx = ctx
         # In memory collection of key-value data for this current invocation This does not persist between invocations.
@@ -28,6 +30,7 @@ class CommandInvoker(object):
         self._global_parser = parser_cls.create_global_parser(ctx=self.ctx)
         self.parser = parser_cls(ctx=self.ctx, prog=self.ctx.name, parents=[self._global_parser])
         self.commands_loader = commands_loader_cls(ctx=self.ctx)
+        self.help = help_cls(ctx=self.ctx)
 
     def _filter_params(self, args):  # pylint: disable=no-self-use
         # Consider - we are using any args that start with an underscore (_) as 'private'
@@ -60,6 +63,13 @@ class CommandInvoker(object):
         self.ctx.raise_event(EVENT_INVOKER_POST_CMD_TBL_CREATE, cmd_tbl=cmd_tbl)
         self.parser.load_command_table(cmd_tbl)
         self.ctx.raise_event(EVENT_INVOKER_CMD_TBL_LOADED, parser=self.parser)
+        if not args:
+            subparser = self.parser.subparsers[tuple()]
+            self.help.show_welcome(subparser)
+            return None
+
+        if args[0].lower() == 'help':
+            args[0] = '--help'
 
         self.ctx.raise_event(EVENT_INVOKER_PRE_PARSE_ARGS, args=args)
         parsed_args = self.parser.parse_args(args)
