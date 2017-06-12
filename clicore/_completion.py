@@ -4,8 +4,18 @@
 # --------------------------------------------------------------------------------------------
 
 import os
+import argcomplete
 
 ARGCOMPLETE_ENV_NAME = '_ARGCOMPLETE'
+
+
+class CaseInsensitiveChoicesCompleter(argcomplete.completers.ChoicesCompleter):
+    def __call__(self, prefix, **kwargs):
+        return (c for c in self.choices if c.lower().startswith(prefix.lower()))
+
+
+# Override the choices completer with one that is case insensitive
+argcomplete.completers.ChoicesCompleter = CaseInsensitiveChoicesCompleter
 
 
 class CLICompletion(object):
@@ -20,3 +30,9 @@ class CLICompletion(object):
         comp_line = comp_line or os.environ.get('COMP_LINE')
         # The first item is the exe name so ignore that.
         return comp_line.split()[1:] if is_completion and comp_line else None
+
+    def enable_autocomplete(self, parser):
+        if self.ctx.data['completer_active']:
+            argcomplete.autocomplete = argcomplete.CompletionFinder()
+            argcomplete.autocomplete(parser, validator=lambda c, p: c.lower().startswith(p.lower()),
+                                     default_completer=lambda _: ())

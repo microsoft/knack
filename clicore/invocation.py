@@ -64,12 +64,15 @@ class CommandInvoker(object):
         self.parser.load_command_table(cmd_tbl)
         self.ctx.raise_event(EVENT_INVOKER_CMD_TBL_LOADED, parser=self.parser)
         if not args:
+            self.ctx.completion.enable_autocomplete(self.parser)
             subparser = self.parser.subparsers[tuple()]
             self.help.show_welcome(subparser)
             return None
 
         if args[0].lower() == 'help':
             args[0] = '--help'
+
+        self.ctx.completion.enable_autocomplete(self.parser)
 
         self.ctx.raise_event(EVENT_INVOKER_PRE_PARSE_ARGS, args=args)
         parsed_args = self.parser.parse_args(args)

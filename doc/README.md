@@ -14,6 +14,7 @@ TODO
 - Logging
 
 - Completion
+    Enable it with `eval "$(register-python-argcomplete CLI_EXE_NAME)"`
 
 - Prompting
 
