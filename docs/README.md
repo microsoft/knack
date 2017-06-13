@@ -31,8 +31,6 @@ Doc Sections
 
 - [Arguments](arguments.md) - Provides logic to register and load command arguments
 
-- [Invocation](invocation.md) - Provides logic for a single command invocation
-
 - [Events](events.md) - Provides an extensible eventing module that you can hook into
 
 - [Config](config.md) - Provides user-configurable options back by environment variables or config files

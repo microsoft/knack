@@ -71,7 +71,7 @@ class CLICommandsLoader(object):
 
     def __init__(self, ctx=None):
         self.ctx = ctx
-        # A command table is a dictionary of name -> CliCommand instances
+        # A command table is a dictionary of name -> CLICommand instances
         self.command_table = dict()
         # An arguments registry stores all arguments for commands
         self.arguments_registry = ArgumentRegistry()
