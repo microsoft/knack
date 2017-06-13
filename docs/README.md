@@ -25,7 +25,7 @@ CLI Patterns
 Doc Sections
 ------------
 
-- [CLI](cli.md) - Provides the main entry point into your CLI
+- [CLI](cli.md) - Provides the entry point
 
 - [Commands](commands.md) - Provides logic to register and load commands
 
