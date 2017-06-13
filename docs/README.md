@@ -22,15 +22,16 @@ CLI Patterns
 - STDOUT vs. STDERR: STDOUT is used for actual command output. Everything else to STDERR (e.g. log/status/error messages).
 
 
-
-Overall Architecture
---------------------
-
-TODO Overall architecture of CLI, Invocations, etc.
-
-
 Doc Sections
 ------------
+
+- [CLI](cli.md) - Provides the main entry point into your CLI
+
+- [Commands](commands.md) - Provides logic to register and load commands
+
+- [Arguments](arguments.md) - Provides logic to register and load command arguments
+
+- [Invocation](invocation.md) - Provides logic for a single command invocation
 
 - [Events](events.md) - Provides an extensible eventing module that you can hook into
 
