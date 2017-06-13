@@ -7,6 +7,9 @@ Knack
 .. image:: https://img.shields.io/pypi/pyversions/knack.svg
     :target: https://pypi.python.org/pypi/knack
 
+.. image:: https://travis-ci.org/microsoft/knack.svg?branch=master
+    :target: https://travis-ci.org/microsoft/knack
+
 
 ------------
 
