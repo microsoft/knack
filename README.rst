@@ -1,7 +1,65 @@
 Knack
 =====
 
-A Command-Line Interface framework.
+.. image:: https://img.shields.io/pypi/v/knack.svg
+    :target: https://pypi.python.org/pypi/knack
+
+.. image:: https://img.shields.io/pypi/pyversions/knack.svg
+    :target: https://pypi.python.org/pypi/knack
+
+
+------------
+
+::
+
+    _                     _    
+   | | ___ __   __ _  ___| | __
+   | |/ / '_ \ / _` |/ __| |/ /
+   |   <| | | | (_| | (__|   < 
+   |_|\_\_| |_|\__,_|\___|_|\_\
+
+
+**A Command-Line Interface framework**
+
+
+Usage
+=====
+
+
+.. code-block:: python
+
+    from knack import CLI, CLICommandsLoader, CLICommand
+
+    def abc_list(h):
+        import string
+        return list(string.ascii_lowercase)
+
+    class MyCommandsLoader(CLICommandsLoader):
+        def load_command_table(self, args):
+            self.command_table['abc list'] = CLICommand(self.ctx, 'abc list', abc_list)
+            return OrderedDict(self.command_table)
+
+    mycli = CLI(cli_name='mycli', commands_loader_cls=MyCommandsLoader)
+    exit_code = mycli.invoke(sys.argv[1:])
+    sys.exit(exit_code)
+
+
+More samples and snippets available at `examples <examples>`__.
+
+
+Documentation
+=============
+
+Documentation is available at `docs <docs>`__.
+
+Developer Setup
+===============
+
+In a virtual environment, install the requirements.txt file.
+
+.. code-block:: bash
+
+    pip install -r requirements.txt
 
 
 Contribute Code

@@ -1,26 +1,28 @@
 Documentation
 =============
 
-TODO
+Overview
+--------
 
-- The Context framework
+TODO Overall architecture of CLI, Invocations, etc.
 
-- Events
-    Description on each event and what's expected from the handlers.
-    Event handlers cannot return anything. However, they can modify the arguments they receive.
+Sections
+--------
 
-- Config
+- [Events](events.md) - Provides an extensible eventing module that you can hook into
 
-- Logging
+- [Config](config.md) - Provides user-configurable options back by environment variables or config files
 
-- Completion
-    Enable it with `eval "$(register-python-argcomplete CLI_EXE_NAME)"`
+- [Logging](logging.md) - Provides consistent logging
 
-- Prompting
+- [Completion](completion.md) - Provides tab completion support
 
-- Telemetry
+- [Prompting](prompting.md) - Provides a consistent user-prompting experience
 
+- [Help](help.md) - Provides command/argument help
 
-- Testing
-    For tests, install the dependencies in `requirements.txt`
+- [Output](output.md) - Provides output options and displays command output
 
+- [Query](query.md) - Provides JMESPath query support
+
+- [Testing](testing.md) - Provides a framework to test your commands
