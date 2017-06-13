@@ -9,7 +9,7 @@ from __future__ import print_function
 from codecs import open
 from setuptools import setup, find_packages
 
-VERSION = "0.0.1"
+VERSION = '0.1.0'
 
 DEPENDENCIES = [
     'argcomplete',
@@ -26,16 +26,15 @@ with open('README.rst', 'r', encoding='utf-8') as f:
 with open('HISTORY.rst', 'r', encoding='utf-8') as f:
     HISTORY = f.read()
 
-# TODO Decide on a name and url
 setup(
-    name='contoso-cli-core',
+    name='knack',
     version=VERSION,
-    description='Command-Line Tools Core',
+    description='A Command-Line Interface framework',
     long_description=README + '\n\n' + HISTORY,
     license='MIT',
     author='Microsoft Corporation',
     author_email='azpycli@microsoft.com',
-    url='TODO',
+    url='https://github.com/microsoft/knack',
     zip_safe=False,
     classifiers=[
         'Development Status :: 4 - Beta',

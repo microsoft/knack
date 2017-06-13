@@ -30,7 +30,7 @@ class CLIArgumentType(object):
 
 
 class CLICommandArgument(object):  # pylint: disable=too-few-public-methods
-    _NAMED_ARGUMENTS = ('options_list', 'validator', 'completer', 'id_part', 'arg_group')
+    _NAMED_ARGUMENTS = ('options_list', 'validator', 'completer', 'arg_group')
 
     def __init__(self, dest=None, argtype=None, **kwargs):
         self.type = CLIArgumentType(overrides=argtype, **kwargs)

@@ -5,8 +5,8 @@
 
 import collections
 
-from ._events import (EVENT_PARSER_GLOBAL_CREATE, EVENT_INVOKER_POST_PARSE_ARGS,
-                      EVENT_INVOKER_FILTER_RESULT)
+from .events import (EVENT_PARSER_GLOBAL_CREATE, EVENT_INVOKER_POST_PARSE_ARGS,
+                     EVENT_INVOKER_FILTER_RESULT)
 
 
 class CLIQuery(object):

@@ -16,7 +16,7 @@ def patch_time_sleep_api(unit_test):
 
 def _mock_in_unit_test(unit_test, target, replacement):
     if not isinstance(unit_test, unittest.TestCase):
-        raise CliTestError('The patch_main_exception_handler can be only used in unit test')
+        raise CliTestError('The patch can be only used in unit test')
     mp = mock.patch(target, replacement)
     mp.__enter__()
     unit_test.addCleanup(mp.__exit__)

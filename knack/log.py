@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 import colorama
 
 from .util import ensure_dir
-from ._events import EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_PARSER_GLOBAL_CREATE
+from .events import EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_PARSER_GLOBAL_CREATE
 
 CLI_LOGGER_NAME = 'cli'
 

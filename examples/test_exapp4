@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" User registers commands with CommandGroups """
+""" Create ScenarioTests from a CLI you've created. """
 
 import os
 import sys
@@ -8,9 +8,9 @@ import unittest
 
 from collections import OrderedDict
 
-from clicore import CLI
-from clicore.commands import CLICommandsLoader, CommandSuperGroup
-from clicore.arguments import ArgumentsContext
+from knack import CLI
+from knack.commands import CLICommandsLoader, CommandSuperGroup
+from knack.arguments import ArgumentsContext
 
 ## DEFINE MY CLI
 
@@ -26,7 +26,7 @@ def hello_command_handler(myarg=None, abc=None):
 
 class MyCommandsLoader(CLICommandsLoader):
 
-    def generate_command_table(self, args):
+    def load_command_table(self, args):
         with CommandSuperGroup(__name__, self, '__main__#{}') as sg:
             with sg.group('hello') as g:
                 g.command('world', 'hello_command_handler', confirmation=True)
@@ -51,7 +51,7 @@ mycli = CLI(cli_name=name,
 
 ## DEFINE MY TESTS
 
-from clicore.testsdk import ScenarioTest, JMESPathCheck
+from knack.testsdk import ScenarioTest, JMESPathCheck
 
 class TestMyScenarios(ScenarioTest):
 

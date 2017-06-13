@@ -15,3 +15,8 @@ EVENT_INVOKER_TRANSFORM_RESULT = 'CommandInvoker.OnTransformResult'
 EVENT_INVOKER_FILTER_RESULT = 'CommandInvoker.OnFilterResult'
 
 EVENT_PARSER_GLOBAL_CREATE = 'CommandParser.OnGlobalArgumentsCreate'
+
+EVENT_CMDLOADER_LOAD_COMMAND_TABLE = 'CommandLoader.OnLoadCommandTable'
+EVENT_CMDLOADER_LOAD_ARGUMENTS = 'CommandLoader.OnLoadArguments'
+
+EVENT_COMMAND_CANCELLED = 'Command.OnOperationCancelled'

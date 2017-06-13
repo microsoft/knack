@@ -14,6 +14,8 @@ from .prompting import prompt_y_n, NoTTYException
 from .util import CLIError
 from .arguments import ArgumentRegistry, CLICommandArgument
 from .introspection import extract_args_from_signature, extract_full_summary_from_signature
+from .events import (EVENT_CMDLOADER_LOAD_COMMAND_TABLE, EVENT_CMDLOADER_LOAD_ARGUMENTS,
+                     EVENT_COMMAND_CANCELLED)
 from .log import get_logger
 
 logger = get_logger(__name__)
@@ -67,8 +69,6 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
 
 class CLICommandsLoader(object):
 
-    # TODO Param Confirmation & No-wait are extensions that should be added in an extensible way.
-
     def __init__(self, ctx=None):
         self.ctx = ctx
         # A command table is a dictionary of name -> CliCommand instances
@@ -76,13 +76,12 @@ class CLICommandsLoader(object):
         # An arguments registry stores all arguments for commands
         self.arguments_registry = ArgumentRegistry()
 
-    # TODO Change name to load_command_table instead to match load_arguments?
-    def generate_command_table(self, args):  # pylint: disable=unused-argument
-        self.ctx.raise_event('Commands.OnGenerateCommandTable', cmd_tbl=self.command_table)
+    def load_command_table(self, args):  # pylint: disable=unused-argument
+        self.ctx.raise_event(EVENT_CMDLOADER_LOAD_COMMAND_TABLE, cmd_tbl=self.command_table)
         return OrderedDict(self.command_table)
 
     def load_arguments(self, command):
-        self.ctx.raise_event('Commands.OnLoadArguments', cmd_tbl=self.command_table, command=command)
+        self.ctx.raise_event(EVENT_CMDLOADER_LOAD_ARGUMENTS, cmd_tbl=self.command_table, command=command)
         try:
             self.command_table[command].load_arguments()
         except KeyError:
@@ -112,12 +111,11 @@ class CLICommandsLoader(object):
         client_factory = kwargs.get('client_factory', None)
 
         def _command_handler(command_args):
-            # TODO Event for pre command handler execution
             if confirmation \
                 and not command_args.get('_confirm_yes') \
                 and not self.ctx.config.getboolean('core', 'disable_confirm_prompt', fallback=False) \
                     and not CLICommandsLoader.user_confirmed(confirmation, command_args):
-                # TODO Event for cancelled operation.
+                self.ctx.raise_event(EVENT_COMMAND_CANCELLED, command=name, command_args=command_args)
                 raise CLIError('Operation cancelled.')
             op = CLICommandsLoader.get_op_handler(operation)
             client = client_factory(command_args) if client_factory else None
@@ -134,7 +132,6 @@ class CLICommandsLoader(object):
         kwargs['description_loader'] = description_loader
 
         cmd = CLICommand(self.ctx, name, _command_handler, **kwargs)
-        # TODO Event to add any other arguments so that this is extensible.
         if confirmation:
             cmd.add_argument('yes', '--yes', '-y', dest='_confirm_yes',
                              action='store_true',

@@ -71,7 +71,6 @@ class CLIConfig(object):
         with open(self.config_path, 'w') as configfile:
             config.write(configfile)
         os.chmod(self.config_path, stat.S_IRUSR | stat.S_IWUSR)
-        # reload config
         self.config_parser.read(self.config_path)
 
     def set_value(self, section, option, value):

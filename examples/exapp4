@@ -6,12 +6,12 @@ import os
 import sys
 from collections import OrderedDict
 
-from clicore import CLI
-from clicore.commands import CLICommandsLoader, CommandSuperGroup
-from clicore.arguments import ArgumentsContext
-from clicore.help import CLIHelp
+from knack import CLI
+from knack.commands import CLICommandsLoader, CommandSuperGroup
+from knack.arguments import ArgumentsContext
+from knack.help import CLIHelp
 
-from clicore.help_files import helps
+from knack.help_files import helps
 
 helps['abc'] = """
     type: group
@@ -58,7 +58,7 @@ class MyCLIHelp(CLIHelp):
 
 class MyCommandsLoader(CLICommandsLoader):
 
-    def generate_command_table(self, args):
+    def load_command_table(self, args):
         with CommandSuperGroup(__name__, self, '__main__#{}') as sg:
             with sg.group('hello') as g:
                 g.command('world', 'hello_command_handler', confirmation=True)

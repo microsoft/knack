@@ -6,12 +6,12 @@
 from collections import defaultdict
 
 from .util import CommandResultItem
-from ._parser import CLICommandParser
+from .parser import CLICommandParser
 from .commands import CLICommandsLoader
-from ._events import (EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_INVOKER_POST_CMD_TBL_CREATE,
-                      EVENT_INVOKER_CMD_TBL_LOADED, EVENT_INVOKER_PRE_PARSE_ARGS,
-                      EVENT_INVOKER_POST_PARSE_ARGS, EVENT_INVOKER_TRANSFORM_RESULT,
-                      EVENT_INVOKER_FILTER_RESULT)
+from .events import (EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_INVOKER_POST_CMD_TBL_CREATE,
+                     EVENT_INVOKER_CMD_TBL_LOADED, EVENT_INVOKER_PRE_PARSE_ARGS,
+                     EVENT_INVOKER_POST_PARSE_ARGS, EVENT_INVOKER_TRANSFORM_RESULT,
+                     EVENT_INVOKER_FILTER_RESULT)
 from .help import CLIHelp
 
 
@@ -57,7 +57,7 @@ class CommandInvoker(object):
 
     def execute(self, args):
         self.ctx.raise_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, args=args)
-        cmd_tbl = self.commands_loader.generate_command_table(args)
+        cmd_tbl = self.commands_loader.load_command_table(args)
         command = self._rudimentary_get_command(args)
         self.commands_loader.load_arguments(command)
         self.ctx.raise_event(EVENT_INVOKER_POST_CMD_TBL_CREATE, cmd_tbl=cmd_tbl)

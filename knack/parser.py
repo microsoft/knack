@@ -5,7 +5,7 @@
 
 import argparse
 
-from ._events import EVENT_PARSER_GLOBAL_CREATE
+from .events import EVENT_PARSER_GLOBAL_CREATE
 from .help import show_help
 
 

@@ -8,7 +8,8 @@
 # R0903 too-few-public-methods
 disable=W0511,C0111,C0103,I0011,R0913,R0903
 
-# TODO disable this feature as some pylint suppressions only apply to Python 2 or 3 and we run pylint on both Python 2 and 3
+# note: This is useful but some pylint suppressions only apply to Python 2 or 3
+# and we run pylint on both Python 2 and 3. e.g. You may see some no-member useless-suppression messages.
 enable=useless-suppression
 
 [FORMAT]

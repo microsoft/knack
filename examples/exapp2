@@ -6,8 +6,8 @@ import os
 import sys
 from collections import OrderedDict
 
-from clicore import CLI
-from clicore.commands import CLICommandsLoader, CLICommand
+from knack import CLI
+from knack.commands import CLICommandsLoader, CLICommand
 
 def a_test_command_handler():
     return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
@@ -19,7 +19,7 @@ def hello_command_handler():
 
 class MyCommandsLoader(CLICommandsLoader):
 
-    def generate_command_table(self, args):
+    def load_command_table(self, args):
         self.cli_command(__name__, 'hello', '__main__#hello_command_handler', confirmation=True)
         self.cli_command(__name__, 'abc show', '__main__#a_test_command_handler')
         self.cli_command(__name__, 'abc list', '__main__#a_test_command_handler')

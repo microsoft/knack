@@ -9,14 +9,14 @@ import platform
 from collections import defaultdict
 
 from .invocation import CommandInvoker
-from ._completion import CLICompletion
-from ._output import OutputProducer
+from .completion import CLICompletion
+from .output import OutputProducer
 from .log import CLILogging, get_logger
 from .util import CLIError
 from .config import CLIConfig
 from .query import CLIQuery
-from ._events import EVENT_CLI_PRE_EXECUTE, EVENT_CLI_POST_EXECUTE
-from ._parser import CLICommandParser
+from .events import EVENT_CLI_PRE_EXECUTE, EVENT_CLI_POST_EXECUTE
+from .parser import CLICommandParser
 from .commands import CLICommandsLoader
 from .help import CLIHelp
 
