@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+
+""" User registers commands with CommandGroups """
+
+import os
+import sys
+import unittest
+
+from collections import OrderedDict
+
+from clicore import CLI
+from clicore.commands import CLICommandsLoader, CommandSuperGroup
+from clicore.arguments import ArgumentsContext
+
+## DEFINE MY CLI
+
+def a_test_command_handler():
+    return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
+
+def abc_list_command_handler():
+    import string
+    return list(string.ascii_lowercase)
+
+def hello_command_handler(myarg=None, abc=None):
+    return ['hello', 'world', myarg, abc]
+
+class MyCommandsLoader(CLICommandsLoader):
+
+    def generate_command_table(self, args):
+        with CommandSuperGroup(__name__, self, '__main__#{}') as sg:
+            with sg.group('hello') as g:
+                g.command('world', 'hello_command_handler', confirmation=True)
+            with sg.group('abc') as g:
+                g.command('list', 'abc_list_command_handler')
+                g.command('show', 'a_test_command_handler')
+        return OrderedDict(self.command_table)
+
+    def load_arguments(self, command):
+        with ArgumentsContext(self, 'hello world') as ac:
+            ac.argument('myarg', type=int, default=100)
+        super(MyCommandsLoader, self).load_arguments(command)
+
+name = 'exapp4'
+
+mycli = CLI(cli_name=name,
+            config_dir=os.path.join('~', '.{}'.format(name)),
+            config_env_var_prefix=name,
+            commands_loader_cls=MyCommandsLoader)
+
+## END OF - DEFINE MY CLI
+
+## DEFINE MY TESTS
+
+from clicore.testsdk import ScenarioTest, JMESPathCheck
+
+class TestMyScenarios(ScenarioTest):
+
+    def __init__(self, method_name):
+        super(TestMyScenarios, self).__init__(mycli, method_name)
+
+    def test_abc_list(self):
+        self.cmd('abc list', checks=[
+            JMESPathCheck('length(@)', 26)
+        ])
+
+    def test_abc_show(self):
+        self.cmd('abc show', checks=[
+            JMESPathCheck('length(@)', 2),
+        ])
+
+## END OF - DEFINE MY TESTS
+
+if __name__ == '__main__':
+    unittest.main()

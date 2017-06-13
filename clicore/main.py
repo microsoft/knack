@@ -102,10 +102,11 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         logger.exception(ex)
         return 1
 
-    def invoke(self, args, initial_invocation_data=None):
+    def invoke(self, args, initial_invocation_data=None, out_file=None):
         """ Invoke a command. """
         try:
             args = self.completion.get_completion_args() or args
+            out_file = out_file or self.out_file
 
             self.logging.configure(args)
             logger.debug('Command arguments: %s', args)
@@ -123,7 +124,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
                 output_type = self.invocation.data['output']
                 if cmd_result and cmd_result.result is not None:
                     formatter = self.output.get_formatter(output_type)
-                    self.output.out(cmd_result, formatter=formatter, out_file=self.out_file)
+                    self.output.out(cmd_result, formatter=formatter, out_file=out_file)
             self.raise_event(EVENT_CLI_POST_EXECUTE)
             exit_code = 0
         except CLIError as ex:

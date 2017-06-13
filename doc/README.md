@@ -19,3 +19,8 @@ TODO
 - Prompting
 
 - Telemetry
+
+
+- Testing
+    For tests, install the dependencies in `requirements.txt`
+
