@@ -33,14 +33,21 @@ Usage
 
     from knack import CLI, CLICommandsLoader, CLICommand
 
-    def abc_list(h):
+    def abc_list(myarg):
         import string
         return list(string.ascii_lowercase)
 
     class MyCommandsLoader(CLICommandsLoader):
         def load_command_table(self, args):
-            self.command_table['abc list'] = CLICommand(self.ctx, 'abc list', abc_list)
+            with CommandSuperGroup(__name__, self, '__main__#{}') as sg:
+                with sg.group('abc') as g:
+                    g.command('list', 'abc_list')
             return OrderedDict(self.command_table)
+
+        def load_arguments(self, command):
+            with ArgumentsContext(self, 'abc list') as ac:
+                ac.argument('myarg', type=int, default=100)
+            super(MyCommandsLoader, self).load_arguments(command)
 
     mycli = CLI(cli_name='mycli', commands_loader_cls=MyCommandsLoader)
     exit_code = mycli.invoke(sys.argv[1:])
