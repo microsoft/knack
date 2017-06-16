@@ -104,6 +104,8 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
 
     def invoke(self, args, initial_invocation_data=None, out_file=None):
         """ Invoke a command. """
+        if not isinstance(args, (list, tuple)):
+            raise TypeError('args should be a list or tuple.')
         try:
             args = self.completion.get_completion_args() or args
             out_file = out_file or self.out_file
