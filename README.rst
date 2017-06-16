@@ -24,9 +24,10 @@ Knack
 
 **A Command-Line Interface framework**
 
-```
-pip install knack
-```
+
+.. code-block:: bash
+
+    pip install knack
 
 
 Usage
