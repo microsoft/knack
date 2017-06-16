@@ -1,20 +1,48 @@
-# Python cache
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 
-# Virtual environment
+# Distribution / packaging
+.Python
 env/
 env27/
-
-# Build results
-obj/
-dist/
-MANIFEST
-
-# Result of running python setup.py install/pip install -e
-RECORD.txt
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+obj/
+parts/
+sdist/
+var/
+wheels/
 *.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+RECORD.txt
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Sphinx documentation
+docs/_build/
 
 # User-specific files
 *.suo
