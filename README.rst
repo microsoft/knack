@@ -24,6 +24,10 @@ Knack
 
 **A Command-Line Interface framework**
 
+```
+pip install knack
+```
+
 
 Usage
 =====
@@ -70,6 +74,7 @@ In a virtual environment, install the requirements.txt file.
 .. code-block:: bash
 
     pip install -r requirements.txt
+    pip install -e .
 
 
 Contribute Code
