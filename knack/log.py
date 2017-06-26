@@ -121,9 +121,7 @@ class CLILogging(object):
             get_logger(__name__).debug("File logging enabled - writing logs to '%s'.", self.log_dir)
 
     def determine_verbose_level(self, args):
-        """ Get verbose level by reading the arguments.
-            Remove any consumed args.
-        """
+        """ Get verbose level by reading the arguments. """
         verbose_level = 0
         for arg in args:
             if arg == CLILogging.VERBOSE_FLAG:
