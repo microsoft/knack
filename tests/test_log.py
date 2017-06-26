@@ -4,19 +4,42 @@
 # --------------------------------------------------------------------------------------------
 
 import unittest
+import mock
 
+from knack.events import EVENT_PARSER_GLOBAL_CREATE, EVENT_INVOKER_PRE_CMD_TBL_CREATE
 from knack.log import CLILogging, get_logger, CLI_LOGGER_NAME
 from tests.util import MockContext
 
 
-class TestLogging(unittest.TestCase):
+class TestLoggingEventHandling(unittest.TestCase):
 
     def setUp(self):
-        mock_ctx = MockContext()
-        self.cli_logging = CLILogging('clitest', ctx=mock_ctx)
+        self.mock_ctx = MockContext()
+        self.cli_logging = CLILogging('clitest', ctx=self.mock_ctx)
 
-    # When running verbose level tests, we check that argv is empty
-    # as we expect _determine_verbose_level to remove consumed arguments.
+    def test_logging_argument_registrations(self):
+        parser_arg_group_mock = mock.MagicMock()
+        self.mock_ctx.raise_event(EVENT_PARSER_GLOBAL_CREATE, arg_group=parser_arg_group_mock)
+        parser_arg_group_mock.add_argument.assert_any_call(CLILogging.VERBOSE_FLAG,
+                                                           dest=mock.ANY,
+                                                           action=mock.ANY,
+                                                           help=mock.ANY)
+        parser_arg_group_mock.add_argument.assert_any_call(CLILogging.DEBUG_FLAG,
+                                                           dest=mock.ANY,
+                                                           action=mock.ANY,
+                                                           help=mock.ANY)
+
+    def test_logging_arguments_removed(self):
+        arguments = [CLILogging.VERBOSE_FLAG, CLILogging.DEBUG_FLAG]
+        self.mock_ctx.raise_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, args=arguments)
+        # After the event is raised, the arguments should have been removed
+        self.assertFalse(arguments)
+
+class TestLoggingLevel(unittest.TestCase):
+
+    def setUp(self):
+        self.mock_ctx = MockContext()
+        self.cli_logging = CLILogging('clitest', ctx=self.mock_ctx)
 
     def test_determine_verbose_level_default(self):
         argv = []
