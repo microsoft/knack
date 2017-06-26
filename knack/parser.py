@@ -113,6 +113,17 @@ class CLICommandParser(argparse.ArgumentParser):
         cmd = self._defaults.get('func', None)
         return not (cmd and cmd.handler)
 
+    def __getattribute__(self, name):
+        """ Since getting the description can be expensive (require module loads), we defer
+            this until someone actually wants to use it (i.e. show help for the command)
+        """
+        if name == 'description':
+            if self._description:
+                self.description = self._description() \
+                    if callable(self._description) else self._description
+                self._description = None
+        return object.__getattribute__(self, name)
+
     def format_help(self):
         is_group = self.is_group()
         show_help(self.prog.split()[0],
