@@ -5,7 +5,7 @@
 
 from collections import defaultdict
 
-from .util import CommandResultItem
+from .util import CommandResultItem, todict
 from .parser import CLICommandParser
 from .commands import CLICommandsLoader
 from .events import (EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_INVOKER_POST_CMD_TBL_CREATE,
@@ -83,6 +83,7 @@ class CommandInvoker(object):
         params = self._filter_params(parsed_args)
 
         cmd_result = parsed_args.func(params)
+        cmd_result = todict(cmd_result)
 
         event_data = {'result': cmd_result}
         self.ctx.raise_event(EVENT_INVOKER_TRANSFORM_RESULT, event_data=event_data)

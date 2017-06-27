@@ -1,0 +1,30 @@
+# --------------------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License. See License.txt in the project root for license information.
+# --------------------------------------------------------------------------------------------
+
+import unittest
+import mock
+
+from knack.events import EVENT_PARSER_GLOBAL_CREATE
+from knack.query import CLIQuery
+from tests.util import MockContext
+
+
+class TestQueryEventHandling(unittest.TestCase):
+
+    def setUp(self):
+        self.mock_ctx = MockContext()
+        self.cli_query = CLIQuery(ctx=self.mock_ctx)
+
+    def test_query_argument_registrations(self):
+        parser_arg_group_mock = mock.MagicMock()
+        self.mock_ctx.raise_event(EVENT_PARSER_GLOBAL_CREATE, arg_group=parser_arg_group_mock)
+        parser_arg_group_mock.add_argument.assert_any_call('--query',
+                                                           metavar=mock.ANY,
+                                                           dest=mock.ANY,
+                                                           help=mock.ANY,
+                                                           type=mock.ANY)
+
+if __name__ == '__main__':
+    unittest.main()
