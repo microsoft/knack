@@ -31,6 +31,10 @@ def ensure_dir(d):
         os.makedirs(d)
 
 
+def normalize_newlines(str_to_normalize):
+    return str_to_normalize.replace('\r\n', '\n')
+
+
 KEYS_CAMELCASE_PATTERN = re.compile('(?!^)_([a-zA-Z])')
 
 

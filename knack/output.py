@@ -33,7 +33,7 @@ class _ComplexEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-def _format_json(obj):
+def format_json(obj):
     result = obj.result
     # OrderedDict.__dict__ is always '{}', to persist the data, convert to dict first.
     input_dict = dict(result) if hasattr(result, '__dict__') else result
@@ -41,16 +41,20 @@ def _format_json(obj):
                       separators=(',', ': ')) + '\n'
 
 
-def _format_json_color(obj):
+def format_json_color(obj):
     from pygments import highlight, lexers, formatters
-    return highlight(_format_json(obj), lexers.JsonLexer(), formatters.TerminalFormatter())  # pylint: disable=no-member
+    return highlight(format_json(obj), lexers.JsonLexer(), formatters.TerminalFormatter())  # pylint: disable=no-member
 
 
-def _format_table(obj):
+def format_table(obj):
     result = obj.result
     try:
         if obj.table_transformer and not obj.is_query_active:
-            result = obj.table_transformer(result)
+            if isinstance(obj.table_transformer, str):
+                from jmespath import compile as compile_jmes, Options
+                result = compile_jmes(obj.table_transformer).search(result, Options(OrderedDict))
+            else:
+                result = obj.table_transformer(result)
         result_list = result if isinstance(result, list) else [result]
         should_sort_keys = not obj.is_query_active and not obj.table_transformer
         to = _TableOutput(should_sort_keys)
@@ -62,7 +66,7 @@ def _format_table(obj):
                        "Use --debug for more info.")
 
 
-def _format_tsv(obj):
+def format_tsv(obj):
     result = obj.result
     result_list = result if isinstance(result, list) else [result]
     return _TsvOutput.dump(result_list)
@@ -73,10 +77,10 @@ class OutputProducer(object):
     ARG_DEST = '_output_format'
 
     _FORMAT_DICT = {
-        'json': _format_json,
-        'jsonc': _format_json_color,
-        'table': _format_table,
-        'tsv': _format_tsv,
+        'json': format_json,
+        'jsonc': format_json_color,
+        'table': format_table,
+        'tsv': format_tsv,
     }
 
     @staticmethod
