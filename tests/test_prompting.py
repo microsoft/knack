@@ -309,8 +309,8 @@ class TestPrompting(unittest.TestCase):
         with mock.patch('knack.prompting._input', side_effect=['?', '1']):
             with mock.patch('sys.stdout', new_callable=StringIO) as mock_stdout:
                 actual_result = prompt_choice_list('What is your favourite color?',
-                                                    a_list,
-                                                    help_string='Your real favourite.')
+                                                   a_list,
+                                                   help_string='Your real favourite.')
                 self.assertEqual(0, actual_result)
             self.assertTrue('Your real favourite.' in mock_stdout.getvalue())
 
