@@ -3,6 +3,7 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
+import sys
 import unittest
 import mock
 from six import StringIO
@@ -11,6 +12,7 @@ from knack.prompting import (verify_is_a_tty, NoTTYException, _INVALID_PASSWORD_
                              prompt_int, prompt_pass, prompt_y_n, prompt_t_f, prompt_choice_list)
 
 
+@unittest.skipIf(sys.version_info[0] == 2, "Can't modify isatty in Python 2 as it's read-only")
 class TestPrompting(unittest.TestCase):
 
     @mock.patch('sys.stdin.isatty', return_value=True)
