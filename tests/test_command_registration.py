@@ -7,7 +7,7 @@ import sys
 import unittest
 
 from knack.commands import CLICommandsLoader
-from knack.arguments import CLIArgumentType
+from knack.arguments import CLIArgumentType, CLICommandArgument
 from tests.util import MockContext
 
 def _dictContainsSubset(expected, actual):
@@ -169,6 +169,109 @@ class TestCommandRegistration(unittest.TestCase):
                                                   command_metadata.arguments[existing].options)
             self.assertTrue(contains_subset)
 
+    def test_command_build_argument_help_text(self):
+        def sample_sdk_method_with_weird_docstring(param_a, param_b, param_c):  # pylint: disable=unused-argument
+            """
+            An operation with nothing good.
+
+            :param dict param_a:
+            :param param_b: The name
+            of
+            nothing.
+            :param param_c: The name
+            of
+
+            nothing2.
+            """
+            pass
+
+        cl = CLICommandsLoader(self.mock_ctx)
+        command_name = 'test command foo'
+        setattr(sys.modules[__name__], sample_sdk_method_with_weird_docstring.__name__,
+                sample_sdk_method_with_weird_docstring)
+        cl.cli_command(None, command_name, '{}#{}'.format(__name__, sample_sdk_method_with_weird_docstring.__name__))
+        cl.load_arguments(command_name)
+        command_metadata = cl.command_table[command_name]
+        self.assertEqual(len(command_metadata.arguments), 3, 'We expected exactly 3 arguments')
+        some_expected_arguments = {
+            'param_a': CLIArgumentType(dest='param_a', required=True, help=''),
+            'param_b': CLIArgumentType(dest='param_b', required=True, help='The name of nothing.'),
+            'param_c': CLIArgumentType(dest='param_c', required=True, help='The name of nothing2.')
+        }
+
+        for probe in some_expected_arguments:
+            existing = next(arg for arg in command_metadata.arguments if arg == probe)
+            contains_subset = _dictContainsSubset(some_expected_arguments[existing].settings,
+                                                  command_metadata.arguments[existing].options)
+            self.assertTrue(contains_subset)
+
+    def test_override_existing_option_string(self):
+        arg = CLIArgumentType(options_list=('--funky', '-f'))
+        updated_options_list = ('--something-else', '-s')
+        arg.update(options_list=updated_options_list, validator=lambda: (), completer=lambda: ())
+        self.assertEqual(arg.settings['options_list'], updated_options_list)
+        self.assertIsNotNone(arg.settings['validator'])
+        self.assertIsNotNone(arg.settings['completer'])
+
+    def test_dont_override_existing_option_string(self):
+        existing_options_list = ('--something-else', '-s')
+        arg = CLIArgumentType(options_list=existing_options_list)
+        arg.update()
+        self.assertEqual(arg.settings['options_list'], existing_options_list)
+
+    def test_override_remove_validator(self):
+        existing_options_list = ('--something-else', '-s')
+        arg = CLIArgumentType(options_list=existing_options_list,
+                              validator=lambda *args, **kwargs: ())
+        arg.update(validator=None)
+        self.assertIsNone(arg.settings['validator'])
+
+    def test_override_using_register_cli_argument(self):
+        def sample_sdk_method(param_a):  # pylint: disable=unused-argument
+            pass
+
+        def test_validator_completer():
+            pass
+
+        cl = CLICommandsLoader(self.mock_ctx)
+        command_name = 'override_using_register_cli_argument foo'
+        setattr(sys.modules[__name__], sample_sdk_method.__name__, sample_sdk_method)
+        cl.cli_command(None, command_name,
+                       '{}#{}'.format(__name__, sample_sdk_method.__name__))
+        cl.register_cli_argument('override_using_register_cli_argument',
+                                 'param_a',
+                                 options_list=('--overridden', '-r'),
+                                 validator=test_validator_completer,
+                                 completer=test_validator_completer,
+                                 required=False)
+        cl.load_arguments(command_name)
+
+        command_metadata = cl.command_table[command_name]
+        self.assertEqual(len(command_metadata.arguments), 1, 'We expected exactly 1 arguments')
+
+        actual_arg = command_metadata.arguments['param_a']
+        self.assertEqual(actual_arg.options_list, ('--overridden', '-r'))
+        self.assertEqual(actual_arg.validator, test_validator_completer)
+        self.assertEqual(actual_arg.completer, test_validator_completer)
+        self.assertFalse(actual_arg.options['required'])
+
+    def test_override_argtype_with_argtype(self):
+        existing_options_list = ('--default', '-d')
+        arg = CLIArgumentType(options_list=existing_options_list, validator=None, completer='base',
+                              help='base', required=True)
+        overriding_argtype = CLIArgumentType(options_list=('--overridden',), validator='overridden',
+                                             completer=None, overrides=arg, help='overridden',
+                                             required=CLIArgumentType.REMOVE)
+        self.assertEqual(overriding_argtype.settings['validator'], 'overridden')
+        self.assertEqual(overriding_argtype.settings['completer'], None)
+        self.assertEqual(overriding_argtype.settings['options_list'], ('--overridden',))
+        self.assertEqual(overriding_argtype.settings['help'], 'overridden')
+        self.assertEqual(overriding_argtype.settings['required'], CLIArgumentType.REMOVE)
+
+        cmd_arg = CLICommandArgument(dest='whatever', argtype=overriding_argtype,
+                                     help=CLIArgumentType.REMOVE)
+        self.assertFalse('required' in cmd_arg.options)
+        self.assertFalse('help' in cmd_arg.options)
 
 if __name__ == '__main__':
     unittest.main()
