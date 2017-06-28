@@ -3,11 +3,14 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
+import os
 import unittest
 import mock
 
+from collections import OrderedDict
 from six import StringIO
 
+from knack import CLI
 from knack.commands import CLICommand, CLICommandsLoader
 from knack.invocation import CommandInvoker
 from tests.util import MockContext
@@ -64,6 +67,54 @@ class TestCLIScenarios(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 _test('test command -V blah')
 
+    def test_cli_exapp1(self):
+        def a_test_command_handler(_):
+            return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
+
+        class MyCommandsLoader(CLICommandsLoader):
+            def load_command_table(self, args):
+                self.command_table['abc xyz'] = CLICommand(self.ctx, 'abc xyz', a_test_command_handler)
+                self.command_table['abc list'] = CLICommand(self.ctx, 'abc list', a_test_command_handler)
+                return OrderedDict(self.command_table)
+
+        mycli = CLI(cli_name='exapp1', config_dir=os.path.join('~', '.exapp1'), commands_loader_cls=MyCommandsLoader)
+
+        expected_output = """[
+  {
+    "a": 1,
+    "b": 1234
+  },
+  {
+    "a": 3,
+    "b": 4
+  }
+]
+"""
+        mock_stdout = StringIO()
+        exit_code = mycli.invoke(['abc', 'xyz'], out_file=mock_stdout)
+        self.assertEqual(expected_output, mock_stdout.getvalue())
+        self.assertEqual(0, exit_code)
+
+        mock_stdout = StringIO()
+        mycli.invoke(['abc', 'list'], out_file=mock_stdout)
+        self.assertEqual(expected_output, mock_stdout.getvalue())
+        self.assertEqual(0, exit_code)
+
+        expected_output = """{
+  "a": 1,
+  "b": 1234
+}
+"""
+        mock_stdout = StringIO()
+        mycli.invoke(['abc', 'list', '--query', '[0]'], out_file=mock_stdout)
+        self.assertEqual(expected_output, mock_stdout.getvalue())
+        self.assertEqual(0, exit_code)
+
+        expected_output = "1\n"
+        mock_stdout = StringIO()
+        mycli.invoke(['abc', 'list', '--query', '[0].a'], out_file=mock_stdout)
+        self.assertEqual(expected_output, mock_stdout.getvalue())
+        self.assertEqual(0, exit_code)
 
 if __name__ == '__main__':
     unittest.main()

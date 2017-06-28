@@ -7,7 +7,7 @@ import sys
 from collections import OrderedDict
 
 from knack import CLI
-from knack.commands import CLICommandsLoader, CLICommand
+from knack.commands import CLICommandsLoader
 
 def a_test_command_handler():
     return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
@@ -25,6 +25,7 @@ class MyCommandsLoader(CLICommandsLoader):
         self.cli_command(__name__, 'abc list', '__main__#a_test_command_handler')
         return OrderedDict(self.command_table)
 
-mycli = CLI(cli_name='exapp2', config_dir=os.path.join('~', '.exapp2'), config_env_var_prefix='exapp2', commands_loader_cls=MyCommandsLoader)
+mycli = CLI(cli_name='exapp2', config_dir=os.path.join('~', '.exapp2'),
+            config_env_var_prefix='exapp2', commands_loader_cls=MyCommandsLoader)
 exit_code = mycli.invoke(sys.argv[1:])
 sys.exit(exit_code)
