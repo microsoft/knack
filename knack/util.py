@@ -4,6 +4,9 @@
 # --------------------------------------------------------------------------------------------
 
 import os
+import re
+from datetime import datetime, timedelta
+from enum import Enum
 
 
 class CommandResultItem(object):  # pylint: disable=too-few-public-methods
@@ -26,3 +29,40 @@ def ensure_dir(d):
     """ Create a directory if it doesn't exist """
     if not os.path.isdir(d):
         os.makedirs(d)
+
+
+def normalize_newlines(str_to_normalize):
+    return str_to_normalize.replace('\r\n', '\n')
+
+
+KEYS_CAMELCASE_PATTERN = re.compile('(?!^)_([a-zA-Z])')
+
+
+def to_camel_case(s):
+    return re.sub(KEYS_CAMELCASE_PATTERN, lambda x: x.group(1).upper(), s)
+
+
+def to_snake_case(s):
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', s)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
+def todict(obj):  # pylint: disable=too-many-return-statements
+
+    if isinstance(obj, dict):
+        return {k: todict(v) for (k, v) in obj.items()}
+    elif isinstance(obj, list):
+        return [todict(a) for a in obj]
+    elif isinstance(obj, Enum):
+        return obj.value
+    elif isinstance(obj, datetime):
+        return obj.isoformat()
+    elif isinstance(obj, timedelta):
+        return str(obj)
+    elif hasattr(obj, '_asdict'):
+        return todict(obj._asdict())
+    elif hasattr(obj, '__dict__'):
+        return dict([(to_camel_case(k), todict(v))
+                     for k, v in obj.__dict__.items()
+                     if not callable(v) and not k.startswith('_')])
+    return obj

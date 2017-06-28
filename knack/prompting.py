@@ -13,21 +13,27 @@ from .log import get_logger
 
 logger = get_logger(__name__)
 
+_INVALID_PASSWORD_MSG = 'Passwords do not match.'
+
 
 class NoTTYException(Exception):
     pass
 
 
-def _verify_is_a_tty():
+def _input(msg):
+    return input(msg)
+
+
+def verify_is_a_tty():
     if not sys.stdin.isatty():
         logger.debug('No tty available.')
         raise NoTTYException()
 
 
 def prompt(msg, help_string=None):
-    _verify_is_a_tty()
+    verify_is_a_tty()
     while True:
-        val = input(msg)
+        val = _input(msg)
         if val == '?' and help_string is not None:
             print(help_string)
             continue
@@ -35,10 +41,10 @@ def prompt(msg, help_string=None):
 
 
 def prompt_int(msg, help_string=None):
-    _verify_is_a_tty()
+    verify_is_a_tty()
 
     while True:
-        value = input(msg)
+        value = _input(msg)
         if value == '?' and help_string is not None:
             print(help_string)
             continue
@@ -49,7 +55,7 @@ def prompt_int(msg, help_string=None):
 
 
 def prompt_pass(msg='Password: ', confirm=False, help_string=None):
-    _verify_is_a_tty()
+    verify_is_a_tty()
     while True:
         password = getpass.getpass(msg)
         if password == '?' and help_string is not None:
@@ -58,7 +64,7 @@ def prompt_pass(msg='Password: ', confirm=False, help_string=None):
         if confirm:
             password2 = getpass.getpass('Confirm ' + msg)
             if password != password2:
-                logger.warning('Passwords do not match.')
+                logger.warning(_INVALID_PASSWORD_MSG)
                 continue
         return password
 
@@ -72,13 +78,13 @@ def prompt_t_f(msg, default=None, help_string=None):
 
 
 def _prompt_bool(msg, true_str, false_str, default=None, help_string=None):
-    _verify_is_a_tty()
+    verify_is_a_tty()
     if default not in [None, true_str, false_str]:
         raise ValueError("Valid values for default are {}, {} or None".format(true_str, false_str))
     y = true_str.upper() if default == true_str else true_str
     n = false_str.upper() if default == false_str else false_str
     while True:
-        ans = input('{} ({}/{}): '.format(msg, y, n))
+        ans = _input('{} ({}/{}): '.format(msg, y, n))
         if ans == '?' and help_string is not None:
             print(help_string)
             continue
@@ -97,7 +103,7 @@ def prompt_choice_list(msg, a_list, default=1, help_string=None):
     :param int default:The default option that should be chosen if user doesn't enter a choice
     :returns: The list index of the item chosen.
     '''
-    _verify_is_a_tty()
+    verify_is_a_tty()
     options = '\n'.join([' [{}] {}{}'
                          .format(i + 1,
                                  x['name'] if isinstance(x, dict) and 'name' in x else x,
@@ -105,7 +111,7 @@ def prompt_choice_list(msg, a_list, default=1, help_string=None):
                          for i, x in enumerate(a_list)])
     allowed_vals = list(range(1, len(a_list) + 1))
     while True:
-        val = input('{}\n{}\nPlease enter a choice [{}]: '.format(msg, options, default))
+        val = _input('{}\n{}\nPlease enter a choice [{}]: '.format(msg, options, default))
         if val == '?' and help_string is not None:
             print(help_string)
             continue

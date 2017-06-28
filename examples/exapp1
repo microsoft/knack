@@ -17,7 +17,7 @@ class MyCommandsLoader(CLICommandsLoader):
 
     def load_command_table(self, args):
         self.command_table['abc xyz'] = CLICommand(self.ctx, 'abc xyz', a_test_command_handler)
-        self.command_table['abc list'] = CLICommand(self.ctx, 'abc xyz', a_test_command_handler)
+        self.command_table['abc list'] = CLICommand(self.ctx, 'abc list', a_test_command_handler)
         return OrderedDict(self.command_table)
 
 mycli = CLI(cli_name='exapp1', config_dir=os.path.join('~', '.exapp1'), commands_loader_cls=MyCommandsLoader)

@@ -5,7 +5,7 @@
 
 import types
 import copy
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from importlib import import_module
 
 import six
@@ -73,8 +73,9 @@ class CLICommandsLoader(object):
         self.ctx = ctx
         # A command table is a dictionary of name -> CLICommand instances
         self.command_table = dict()
-        # An arguments registry stores all arguments for commands
-        self.arguments_registry = ArgumentRegistry()
+        # An argument registry stores all arguments for commands
+        self.argument_registry = ArgumentRegistry()
+        self.extra_argument_registry = defaultdict(lambda: {})
 
     def load_command_table(self, args):  # pylint: disable=unused-argument
         self.ctx.raise_event(EVENT_CMDLOADER_LOAD_COMMAND_TABLE, cmd_tbl=self.command_table)
@@ -90,12 +91,12 @@ class CLICommandsLoader(object):
 
     def _apply_parameter_info(self, command_name, command):
         for argument_name in command.arguments:
-            overrides = self.arguments_registry.get_cli_argument(command_name, argument_name)
+            overrides = self.argument_registry.get_cli_argument(command_name, argument_name)
             command.update_argument(argument_name, overrides)
         # Add any arguments explicitly registered for this command
-        # for argument_name, argument_definition in _get_cli_extra_arguments(command_name):
-        #     command.arguments[argument_name] = argument_definition
-        #     command.update_argument(argument_name, _get_cli_argument(command_name, argument_name))
+        for argument_name, argument_definition in self.extra_argument_registry[command_name].items():
+            command.arguments[argument_name] = argument_definition
+            command.update_argument(argument_name, self.argument_registry.get_cli_argument(command_name, argument_name))
 
     def cli_command(self, module_name, name, operation, **kwargs):
         """ Add a command to the command table. """
@@ -166,7 +167,13 @@ class CLICommandsLoader(object):
 
     def register_cli_argument(self, scope, dest, arg_type=None, **kwargs):
         ''' Specify CLI specific metadata for a given argument for a given scope. '''
-        self.arguments_registry.register_cli_argument(scope, dest, arg_type, **kwargs)
+        self.argument_registry.register_cli_argument(scope, dest, arg_type, **kwargs)
+
+    def register_extra_cli_argument(self, command, dest, **kwargs):
+        '''Register extra parameters for the given command. Typically used to augment auto-command built
+        commands to add more parameters than the specific SDK method introspected.
+        '''
+        self.extra_argument_registry[command][dest] = CLICommandArgument(dest, **kwargs)
 
 
 class CommandSuperGroup(object):
