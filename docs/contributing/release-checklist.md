@@ -21,7 +21,7 @@ pip install twine
 ```
 
 ```
-export TWINE_REPOSITORY_URL=https://pypi.python.org/pypi
+export TWINE_REPOSITORY_URL=https://upload.pypi.org/legacy/
 export TWINE_USERNAME=A_USERNAME
 export TWINE_PASSWORD=A_SECRET
 twine upload dist/*
