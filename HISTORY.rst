@@ -3,6 +3,11 @@
 Release History
 ===============
 
+unreleased
+^^^^^^^^^^
+
+* Support command level and argument level validators.
+
 0.1.1 (2017-07-05)
 ^^^^^^^^^^^^^^^^^^
 

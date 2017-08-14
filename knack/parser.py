@@ -54,6 +54,7 @@ class CLICommandParser(argparse.ArgumentParser):
                                                   help_file=metadata.help,
                                                   formatter_class=fc)
 
+            command_validator = metadata.validator
             argument_validators = []
             argument_groups = {}
             for arg in metadata.arguments.values():
@@ -77,7 +78,8 @@ class CLICommandParser(argparse.ArgumentParser):
             command_parser.set_defaults(
                 func=metadata,
                 command=command_name,
-                _validators=argument_validators,
+                _command_validator=command_validator,
+                _argument_validators=argument_validators,
                 _parser=command_parser)
 
     def _get_subparser(self, path):
@@ -104,6 +106,9 @@ class CLICommandParser(argparse.ArgumentParser):
                 parent_subparser.required = True
                 self.subparsers[tuple(path[0:length])] = parent_subparser
         return parent_subparser
+
+    def validation_error(self, message):
+        return super(CLICommandParser, self).error(message)
 
     def is_group(self):
         """ Determine if this parser instance represents a group
