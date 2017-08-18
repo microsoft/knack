@@ -7,6 +7,7 @@ unreleased
 ^^^^^^^^^^
 
 * Support command level and argument level validators.
+* knack.commands.CLICommandsLoader no accepts a `command_cls` argument so you can provide your own `CLICommand` class.
 
 0.1.1 (2017-07-05)
 ^^^^^^^^^^^^^^^^^^

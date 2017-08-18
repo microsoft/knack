@@ -32,3 +32,13 @@ class MyCommandsLoader(CLICommandsLoader):
 mycli = CLI(cli_name='mycli', commands_loader_cls=MyCommandsLoader)
 exit_code = mycli.invoke(sys.argv[1:])
 ```
+
+You can also provide your own command class to the CLICommandsLoader like so:
+
+```Python
+class MyCommandsLoader(CLICommandsLoader):
+
+    def __init__(self, ctx=None):
+        super(MyCommandsLoader, self).__init__(ctx=ctx, command_cls=MyCustomCLICommand)
+
+```
