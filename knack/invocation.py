@@ -3,9 +3,11 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
+import sys
+
 from collections import defaultdict
 
-from .util import CommandResultItem, todict
+from .util import CLIError, CommandResultItem, todict
 from .parser import CLICommandParser
 from .commands import CLICommandsLoader
 from .events import (EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_INVOKER_POST_CMD_TBL_CREATE,
@@ -55,6 +57,35 @@ class CommandInvoker(object):
             nouns.append(args[i])
         return ' '.join(nouns)
 
+    def _validate_cmd_level(self, ns, cmd_validator):  # pylint: disable=no-self-use
+        if cmd_validator:
+            cmd_validator(ns)
+        try:
+            delattr(ns, '_command_validator')
+        except AttributeError:
+            pass
+
+    def _validate_arg_level(self, ns, **_):  # pylint: disable=no-self-use
+        for validator in getattr(ns, '_argument_validators', []):
+            validator(ns)
+        try:
+            delattr(ns, '_argument_validators')
+        except AttributeError:
+            pass
+
+    def _validation(self, parsed_ns):
+        try:
+            cmd_validator = getattr(parsed_ns, '_command_validator', None)
+            if cmd_validator:
+                self._validate_cmd_level(parsed_ns, cmd_validator)
+            else:
+                self._validate_arg_level(parsed_ns)
+        except CLIError:
+            raise
+        except Exception:  # pylint: disable=broad-except
+            err = sys.exc_info()[1]
+            getattr(parsed_ns, '_parser', self.parser).validation_error(str(err))
+
     def execute(self, args):
         self.ctx.raise_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, args=args)
         cmd_tbl = self.commands_loader.load_command_table(args)
@@ -77,6 +108,8 @@ class CommandInvoker(object):
         self.ctx.raise_event(EVENT_INVOKER_PRE_PARSE_ARGS, args=args)
         parsed_args = self.parser.parse_args(args)
         self.ctx.raise_event(EVENT_INVOKER_POST_PARSE_ARGS, command=parsed_args.command, args=parsed_args)
+
+        self._validation(parsed_args)
 
         self.data['command'] = parsed_args.command
 

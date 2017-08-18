@@ -26,7 +26,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
     # pylint: disable=unused-argument
     def __init__(self, ctx, name, handler, description=None, table_transformer=None,
                  arguments_loader=None, description_loader=None,
-                 formatter_class=None, deprecate_info=None, **kwargs):
+                 formatter_class=None, deprecate_info=None, validator=None, **kwargs):
         self.ctx = ctx
         self.name = name
         self.handler = handler
@@ -37,6 +37,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         self.table_transformer = table_transformer
         self.formatter_class = formatter_class
         self.deprecate_info = deprecate_info
+        self.validator = validator
 
     def should_load_description(self):
         return not self.ctx.data['completer_active']
