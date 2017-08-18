@@ -103,7 +103,7 @@ class CLILogging(object):
         self.ctx.register_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, CLILogging.remove_logger_flags)
 
     def configure(self, args):
-        verbose_level = self.determine_verbose_level(args)
+        verbose_level = self._determine_verbose_level(args)
         log_level_config = self.console_log_configs[verbose_level]
         root_logger = logging.getLogger()
         cli_logger = logging.getLogger(CLI_LOGGER_NAME)
@@ -120,7 +120,7 @@ class CLILogging(object):
             self._init_logfile_handlers(root_logger, cli_logger)
             get_logger(__name__).debug("File logging enabled - writing logs to '%s'.", self.log_dir)
 
-    def determine_verbose_level(self, args):
+    def _determine_verbose_level(self, args):
         """ Get verbose level by reading the arguments. """
         verbose_level = 0
         for arg in args:
