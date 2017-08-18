@@ -11,11 +11,10 @@ i.e. A command can have at most command validator or many argument level validat
 
 **Command-level Validators**
 
-Command-level validators can operate on any arguments on the command. This is useful when you want a validator to make use of more than a single argument.
+Command-level validators can operate on any arguments on the command. This is useful when you need to control the validation sequence.
 
 **Argument-level Validators**
 
 Argument-level validators should only operate on a single argument.
 
-The order argument-level validators are executed in is not guaranteed so don't use an arguments that make use of multiple arguments.
-
+The order argument-level validators are executed in is not guaranteed so don't use multiple argument-level validators that rely on the same arguments.
