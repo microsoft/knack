@@ -70,8 +70,9 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
 
 class CLICommandsLoader(object):
 
-    def __init__(self, ctx=None):
+    def __init__(self, ctx=None, command_cls=CLICommand):
         self.ctx = ctx
+        self.command_cls = command_cls
         # A command table is a dictionary of name -> CLICommand instances
         self.command_table = dict()
         # An argument registry stores all arguments for commands
@@ -133,7 +134,7 @@ class CLICommandsLoader(object):
         kwargs['arguments_loader'] = arguments_loader
         kwargs['description_loader'] = description_loader
 
-        cmd = CLICommand(self.ctx, name, _command_handler, **kwargs)
+        cmd = self.command_cls(self.ctx, name, _command_handler, **kwargs)
         if confirmation:
             cmd.add_argument('yes', '--yes', '-y', dest='_confirm_yes',
                              action='store_true',
