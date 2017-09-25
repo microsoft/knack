@@ -7,6 +7,7 @@ import argparse
 
 from .events import EVENT_PARSER_GLOBAL_CREATE
 from .help import show_help
+from .util import CtxTypeError
 
 
 class CLICommandParser(argparse.ArgumentParser):
@@ -19,6 +20,9 @@ class CLICommandParser(argparse.ArgumentParser):
         return global_parser
 
     def __init__(self, cli_ctx=None, **kwargs):
+        from .cli import CLI
+        if cli_ctx is not None and not isinstance(cli_ctx, CLI):
+            raise CtxTypeError(cli_ctx)
         self.cli_ctx = cli_ctx
         self.subparsers = {}
         self.parents = kwargs.get('parents', [])

@@ -8,6 +8,7 @@ import argparse
 import sys
 import textwrap
 
+from .util import CtxTypeError
 from .help_files import _load_help_file
 
 
@@ -416,6 +417,9 @@ class HelpExample(object):  # pylint: disable=too-few-public-methods
 class CLIHelp(object):
 
     def __init__(self, cli_ctx=None, privacy_statement='', welcome_message=''):
+        from .cli import CLI
+        if cli_ctx is not None and not isinstance(cli_ctx, CLI):
+            raise CtxTypeError(cli_ctx)
         self.cli_ctx = cli_ctx
         self.privacy_statement = privacy_statement
         self.welcome_message = welcome_message

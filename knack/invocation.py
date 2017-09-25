@@ -7,7 +7,7 @@ import sys
 
 from collections import defaultdict
 
-from .util import CLIError, CommandResultItem, todict
+from .util import CLIError, CtxTypeError, CommandResultItem, todict
 from .parser import CLICommandParser
 from .commands import CLICommandsLoader
 from .events import (EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_INVOKER_POST_CMD_TBL_CREATE,
@@ -25,6 +25,9 @@ class CommandInvoker(object):
                  commands_loader_cls=CLICommandsLoader,
                  help_cls=CLIHelp,
                  initial_data=None):
+        from .cli import CLI
+        if cli_ctx is not None and not isinstance(cli_ctx, CLI):
+            raise CtxTypeError(cli_ctx)
         self.cli_ctx = cli_ctx
         # In memory collection of key-value data for this current invocation This does not persist between invocations.
         self.data = initial_data or defaultdict(lambda: None)

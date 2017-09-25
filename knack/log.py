@@ -10,7 +10,7 @@ from logging.handlers import RotatingFileHandler
 
 import colorama
 
-from .util import ensure_dir
+from .util import CtxTypeError, ensure_dir
 from .events import EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_PARSER_GLOBAL_CREATE
 
 CLI_LOGGER_NAME = 'cli'
@@ -93,6 +93,9 @@ class CLILogging(object):
             pass
 
     def __init__(self, name, cli_ctx=None):
+        from .cli import CLI
+        if cli_ctx is not None and not isinstance(cli_ctx, CLI):
+            raise CtxTypeError(cli_ctx)
         self.logfile_name = '{}.log'.format(name)
         self.file_log_enabled = CLILogging._is_file_log_enabled(cli_ctx)
         self.log_dir = CLILogging._get_log_dir(cli_ctx)

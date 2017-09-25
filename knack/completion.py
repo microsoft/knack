@@ -6,6 +6,8 @@
 import os
 import argcomplete
 
+from .util import CtxTypeError
+
 ARGCOMPLETE_ENV_NAME = '_ARGCOMPLETE'
 
 
@@ -21,6 +23,9 @@ argcomplete.completers.ChoicesCompleter = CaseInsensitiveChoicesCompleter
 class CLICompletion(object):
 
     def __init__(self, cli_ctx=None):
+        from .cli import CLI
+        if cli_ctx is not None and not isinstance(cli_ctx, CLI):
+            raise CtxTypeError(cli_ctx)
         self.cli_ctx = cli_ctx
         self.cli_ctx.data['completer_active'] = ARGCOMPLETE_ENV_NAME in os.environ
 

@@ -7,6 +7,7 @@ import collections
 
 from .events import (EVENT_PARSER_GLOBAL_CREATE, EVENT_INVOKER_POST_PARSE_ARGS,
                      EVENT_INVOKER_FILTER_RESULT)
+from .util import CtxTypeError
 
 
 class CLIQuery(object):
@@ -48,6 +49,9 @@ class CLIQuery(object):
             cli_ctx.invocation.data['query_active'] = True
 
     def __init__(self, cli_ctx=None):
+        from .cli import CLI
+        if cli_ctx is not None and not isinstance(cli_ctx, CLI):
+            raise CtxTypeError(cli_ctx)
         self.cli_ctx = cli_ctx
         self.cli_ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, CLIQuery.on_global_arguments)
         self.cli_ctx.register_event(EVENT_INVOKER_POST_PARSE_ARGS, CLIQuery.handle_query_parameter)

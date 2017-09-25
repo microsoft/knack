@@ -11,7 +11,7 @@ from importlib import import_module
 import six
 
 from .prompting import prompt_y_n, NoTTYException
-from .util import CLIError
+from .util import CLIError, CtxTypeError
 from .arguments import ArgumentRegistry, CLICommandArgument
 from .introspection import extract_args_from_signature, extract_full_summary_from_signature
 from .events import (EVENT_CMDLOADER_LOAD_COMMAND_TABLE, EVENT_CMDLOADER_LOAD_ARGUMENTS,
@@ -27,6 +27,9 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
     def __init__(self, cli_ctx, name, handler, description=None, table_transformer=None,
                  arguments_loader=None, description_loader=None,
                  formatter_class=None, deprecate_info=None, validator=None, **kwargs):
+        from .cli import CLI
+        if cli_ctx is not None and not isinstance(cli_ctx, CLI):
+            raise CtxTypeError(cli_ctx)
         self.cli_ctx = cli_ctx
         self.name = name
         self.handler = handler
@@ -71,6 +74,9 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
 class CLICommandsLoader(object):
 
     def __init__(self, cli_ctx=None, command_cls=CLICommand):
+        from .cli import CLI
+        if cli_ctx is not None and not isinstance(cli_ctx, CLI):
+            raise CtxTypeError(cli_ctx)
         self.cli_ctx = cli_ctx
         self.command_cls = command_cls
         # A command table is a dictionary of name -> CLICommand instances

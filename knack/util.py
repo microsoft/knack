@@ -25,6 +25,14 @@ class CLIError(Exception):
         super(CLIError, self).__init__(message)
 
 
+class CtxTypeError(TypeError):
+
+    def __init__(self, obj):
+        from .cli import CLI
+        super(CtxTypeError, self).__init__('expected instance of {} got {}'.format(CLI.__name__,
+                                                                                   obj.__class__.__name__))
+
+
 def ensure_dir(d):
     """ Create a directory if it doesn't exist """
     if not os.path.isdir(d):
