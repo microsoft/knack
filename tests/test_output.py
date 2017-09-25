@@ -22,6 +22,10 @@ class TestOutput(unittest.TestCase):
     def tearDown(self):
         self.io.close()
 
+    def test_cli_ctx_type_error(self):
+        with self.assertRaises(TypeError):
+            OutputProducer(cli_ctx=object())
+
     def test_out_json_valid(self):
         """
         The JSON output when the input is a dict should be the dict serialized to JSON

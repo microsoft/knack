@@ -15,6 +15,10 @@ class TestCompletion(unittest.TestCase):
     def setUp(self):
         self.mock_ctx = MockContext()
 
+    def test_cli_ctx_type_error(self):
+        with self.assertRaises(TypeError):
+            CLICompletion(cli_ctx=object())
+
     @mock.patch.dict(os.environ, {})
     def test_completer_not_active(self):
         CLICompletion(cli_ctx=self.mock_ctx)

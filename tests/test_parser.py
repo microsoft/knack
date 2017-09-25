@@ -107,6 +107,10 @@ class TestParser(unittest.TestCase):
         args = parser.parse_args('test command --opt sNake_CASE'.split())
         self.assertEqual(args.opt, 'snake_case')
 
+    def test_cli_ctx_type_error(self):
+        with self.assertRaises(TypeError):
+            CLICommandParser(cli_ctx=object())
+
 
 class VerifyError(object):  # pylint: disable=too-few-public-methods
 

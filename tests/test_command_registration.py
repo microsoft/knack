@@ -273,5 +273,9 @@ class TestCommandRegistration(unittest.TestCase):
         self.assertFalse('required' in cmd_arg.options)
         self.assertFalse('help' in cmd_arg.options)
 
+    def test_cli_ctx_type_error(self):
+        with self.assertRaises(TypeError):
+            CLICommandsLoader(cli_ctx=object())
+
 if __name__ == '__main__':
     unittest.main()
