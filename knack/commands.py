@@ -24,10 +24,10 @@ logger = get_logger(__name__)
 class CLICommand(object):  # pylint:disable=too-many-instance-attributes
 
     # pylint: disable=unused-argument
-    def __init__(self, ctx, name, handler, description=None, table_transformer=None,
+    def __init__(self, cli_ctx, name, handler, description=None, table_transformer=None,
                  arguments_loader=None, description_loader=None,
                  formatter_class=None, deprecate_info=None, validator=None, **kwargs):
-        self.ctx = ctx
+        self.cli_ctx = cli_ctx
         self.name = name
         self.handler = handler
         self.help = None
@@ -40,7 +40,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         self.validator = validator
 
     def should_load_description(self):
-        return not self.ctx.data['completer_active']
+        return not self.cli_ctx.data['completer_active']
 
     def load_arguments(self):
         if self.arguments_loader:
@@ -70,8 +70,8 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
 
 class CLICommandsLoader(object):
 
-    def __init__(self, ctx=None, command_cls=CLICommand):
-        self.ctx = ctx
+    def __init__(self, cli_ctx=None, command_cls=CLICommand):
+        self.cli_ctx = cli_ctx
         self.command_cls = command_cls
         # A command table is a dictionary of name -> CLICommand instances
         self.command_table = dict()
@@ -80,11 +80,11 @@ class CLICommandsLoader(object):
         self.extra_argument_registry = defaultdict(lambda: {})
 
     def load_command_table(self, args):  # pylint: disable=unused-argument
-        self.ctx.raise_event(EVENT_CMDLOADER_LOAD_COMMAND_TABLE, cmd_tbl=self.command_table)
+        self.cli_ctx.raise_event(EVENT_CMDLOADER_LOAD_COMMAND_TABLE, cmd_tbl=self.command_table)
         return OrderedDict(self.command_table)
 
     def load_arguments(self, command):
-        self.ctx.raise_event(EVENT_CMDLOADER_LOAD_ARGUMENTS, cmd_tbl=self.command_table, command=command)
+        self.cli_ctx.raise_event(EVENT_CMDLOADER_LOAD_ARGUMENTS, cmd_tbl=self.command_table, command=command)
         try:
             self.command_table[command].load_arguments()
         except KeyError:
@@ -116,9 +116,9 @@ class CLICommandsLoader(object):
         def _command_handler(command_args):
             if confirmation \
                 and not command_args.get('_confirm_yes') \
-                and not self.ctx.config.getboolean('core', 'disable_confirm_prompt', fallback=False) \
+                and not self.cli_ctx.config.getboolean('core', 'disable_confirm_prompt', fallback=False) \
                     and not CLICommandsLoader.user_confirmed(confirmation, command_args):
-                self.ctx.raise_event(EVENT_COMMAND_CANCELLED, command=name, command_args=command_args)
+                self.cli_ctx.raise_event(EVENT_COMMAND_CANCELLED, command=name, command_args=command_args)
                 raise CLIError('Operation cancelled.')
             op = CLICommandsLoader.get_op_handler(operation)
             client = client_factory(command_args) if client_factory else None
@@ -134,7 +134,7 @@ class CLICommandsLoader(object):
         kwargs['arguments_loader'] = arguments_loader
         kwargs['description_loader'] = description_loader
 
-        cmd = self.command_cls(self.ctx, name, _command_handler, **kwargs)
+        cmd = self.command_cls(self.cli_ctx, name, _command_handler, **kwargs)
         if confirmation:
             cmd.add_argument('yes', '--yes', '-y', dest='_confirm_yes',
                              action='store_true',

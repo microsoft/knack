@@ -11,15 +11,15 @@ Things to keep in mind:
 Register for an event
 ---------------------
 
-To register for an event, get the context, `ctx`, and call `register_event()`.
+To register for an event, get the context, `cli_ctx`, and call `register_event()`.
 
-When an event is raised, the first argument is the context, `ctx` and `kwargs` is any keyword arguments passed in by the raiser of the event (so this is event specific).
+When an event is raised, the first argument is the context, `cli_ctx` and `kwargs` is any keyword arguments passed in by the raiser of the event (so this is event specific).
 
 ```Python
-def event_handler(ctx, **kwargs):
+def event_handler(cli_ctx, **kwargs):
     print(kwargs)
 
-self.ctx.register_event(EVENT_NAME, event_handler)
+self.cli_ctx.register_event(EVENT_NAME, event_handler)
 ```
 
 Raise your own events
@@ -31,5 +31,5 @@ For the full list of events, see [events](../knack/events.py).
 You can also add your own events.
 
 ```Python
-self.ctx.raise_event(EVENT_NAME, arg1=arg1, arg2=arg2, ...)
+self.cli_ctx.raise_event(EVENT_NAME, arg1=arg1, arg2=arg2, ...)
 ```

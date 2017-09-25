@@ -17,12 +17,12 @@ class TestCompletion(unittest.TestCase):
 
     @mock.patch.dict(os.environ, {})
     def test_completer_not_active(self):
-        CLICompletion(ctx=self.mock_ctx)
+        CLICompletion(cli_ctx=self.mock_ctx)
         self.assertFalse(self.mock_ctx.data['completer_active'])
 
     @mock.patch.dict(os.environ, {ARGCOMPLETE_ENV_NAME: '1'})
     def test_completer_active(self):
-        CLICompletion(ctx=self.mock_ctx)
+        CLICompletion(cli_ctx=self.mock_ctx)
         self.assertTrue(self.mock_ctx.data['completer_active'])
 
     def test_case_insensitive_choices_empty(self):

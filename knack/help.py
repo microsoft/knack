@@ -415,17 +415,17 @@ class HelpExample(object):  # pylint: disable=too-few-public-methods
 
 class CLIHelp(object):
 
-    def __init__(self, ctx=None, privacy_statement='', welcome_message=''):
-        self.ctx = ctx
+    def __init__(self, cli_ctx=None, privacy_statement='', welcome_message=''):
+        self.cli_ctx = cli_ctx
         self.privacy_statement = privacy_statement
         self.welcome_message = welcome_message
 
     def show_privacy_statement(self):
-        ran_before = self.ctx.config.getboolean('core', 'first_run', fallback=False)
+        ran_before = self.cli_ctx.config.getboolean('core', 'first_run', fallback=False)
         if not ran_before:
             if self.privacy_statement:
-                print(self.privacy_statement, file=self.ctx.out_file)
-            self.ctx.config.set_value('core', 'first_run', 'yes')
+                print(self.privacy_statement, file=self.cli_ctx.out_file)
+            self.cli_ctx.config.set_value('core', 'first_run', 'yes')
 
     def show_welcome_message(self):
         _print_indent(self.welcome_message)

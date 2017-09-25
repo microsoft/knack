@@ -15,7 +15,7 @@ class TestQueryEventHandling(unittest.TestCase):
 
     def setUp(self):
         self.mock_ctx = MockContext()
-        self.cli_query = CLIQuery(ctx=self.mock_ctx)
+        self.cli_query = CLIQuery(cli_ctx=self.mock_ctx)
 
     def test_query_argument_registrations(self):
         parser_arg_group_mock = mock.MagicMock()

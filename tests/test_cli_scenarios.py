@@ -45,7 +45,7 @@ class TestCLIScenarios(unittest.TestCase):
 
         def _test(cmd_line):
             with mock.patch.object(CLICommandsLoader, 'load_command_table', return_value=cmd_table):
-                ci = CommandInvoker(ctx=self.mock_ctx)
+                ci = CommandInvoker(cli_ctx=self.mock_ctx)
                 self.mock_ctx.invocation = ci
                 return ci.execute(cmd_line.split())
 
@@ -73,8 +73,8 @@ class TestCLIScenarios(unittest.TestCase):
 
         class MyCommandsLoader(CLICommandsLoader):
             def load_command_table(self, args):
-                self.command_table['abc xyz'] = CLICommand(self.ctx, 'abc xyz', a_test_command_handler)
-                self.command_table['abc list'] = CLICommand(self.ctx, 'abc list', a_test_command_handler)
+                self.command_table['abc xyz'] = CLICommand(self.cli_ctx, 'abc xyz', a_test_command_handler)
+                self.command_table['abc list'] = CLICommand(self.cli_ctx, 'abc list', a_test_command_handler)
                 return OrderedDict(self.command_table)
 
         mycli = CLI(cli_name='exapp1', config_dir=os.path.join('~', '.exapp1'), commands_loader_cls=MyCommandsLoader)

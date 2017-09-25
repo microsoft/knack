@@ -54,10 +54,10 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         self.config = config_cls(config_dir=config_dir, config_env_var_prefix=config_env_var_prefix)
         # In memory collection of key-value data for this current cli. This persists between invocations.
         self.data = defaultdict(lambda: None)
-        self.completion = completion_cls(ctx=self)
-        self.logging = logging_cls(self.name, ctx=self)
-        self.output = self.output_cls(ctx=self)
-        self.query = query_cls(ctx=self)
+        self.completion = completion_cls(cli_ctx=self)
+        self.logging = logging_cls(self.name, cli_ctx=self)
+        self.output = self.output_cls(cli_ctx=self)
+        self.query = query_cls(cli_ctx=self)
 
     @staticmethod
     def _should_show_version(args):
@@ -117,7 +117,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             if CLI._should_show_version(args):
                 self.show_version()
             else:
-                self.invocation = self.invocation_cls(ctx=self,
+                self.invocation = self.invocation_cls(cli_ctx=self,
                                                       parser_cls=self.parser_cls,
                                                       commands_loader_cls=self.commands_loader_cls,
                                                       help_cls=self.help_cls,
