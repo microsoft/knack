@@ -10,7 +10,7 @@ from logging.handlers import RotatingFileHandler
 
 import colorama
 
-from .util import ensure_dir
+from .util import CtxTypeError, ensure_dir
 from .events import EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_PARSER_GLOBAL_CREATE
 
 CLI_LOGGER_NAME = 'cli'
@@ -92,15 +92,18 @@ class CLILogging(object):
         except ValueError:
             pass
 
-    def __init__(self, name, ctx=None):
+    def __init__(self, name, cli_ctx=None):
+        from .cli import CLI
+        if cli_ctx is not None and not isinstance(cli_ctx, CLI):
+            raise CtxTypeError(cli_ctx)
         self.logfile_name = '{}.log'.format(name)
-        self.file_log_enabled = CLILogging._is_file_log_enabled(ctx)
-        self.log_dir = CLILogging._get_log_dir(ctx)
+        self.file_log_enabled = CLILogging._is_file_log_enabled(cli_ctx)
+        self.log_dir = CLILogging._get_log_dir(cli_ctx)
         self.console_log_configs = CLILogging._get_console_log_configs()
         self.console_log_format = CLILogging._get_console_log_format()
-        self.ctx = ctx
-        self.ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, CLILogging.on_global_arguments)
-        self.ctx.register_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, CLILogging.remove_logger_flags)
+        self.cli_ctx = cli_ctx
+        self.cli_ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, CLILogging.on_global_arguments)
+        self.cli_ctx.register_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, CLILogging.remove_logger_flags)
 
     def configure(self, args):
         verbose_level = self._determine_verbose_level(args)
@@ -148,13 +151,13 @@ class CLILogging(object):
         cli_logger.addHandler(logfile_handler)
 
     @staticmethod
-    def _is_file_log_enabled(ctx):
-        return ctx.config.getboolean('logging', 'enable_log_file', fallback=False)
+    def _is_file_log_enabled(cli_ctx):
+        return cli_ctx.config.getboolean('logging', 'enable_log_file', fallback=False)
 
     @staticmethod
-    def _get_log_dir(ctx):
-        default_dir = (os.path.join(ctx.config.config_dir, 'logs'))
-        return os.path.expanduser(ctx.config.get('logging', 'log_dir', fallback=default_dir))
+    def _get_log_dir(cli_ctx):
+        default_dir = (os.path.join(cli_ctx.config.config_dir, 'logs'))
+        return os.path.expanduser(cli_ctx.config.get('logging', 'log_dir', fallback=default_dir))
 
     @staticmethod
     def _get_console_log_configs():

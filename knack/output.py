@@ -12,7 +12,7 @@ import traceback
 from collections import OrderedDict
 from six import StringIO, text_type, u, string_types
 
-from .util import CLIError, CommandResultItem
+from .util import CLIError, CommandResultItem, CtxTypeError
 from .events import EVENT_INVOKER_POST_PARSE_ARGS, EVENT_PARSER_GLOBAL_CREATE
 from .log import get_logger
 
@@ -84,26 +84,29 @@ class OutputProducer(object):
     }
 
     @staticmethod
-    def on_global_arguments(ctx, **kwargs):
+    def on_global_arguments(cli_ctx, **kwargs):
         arg_group = kwargs.get('arg_group')
         arg_group.add_argument('--output', '-o', dest=OutputProducer.ARG_DEST,
                                choices=list(OutputProducer._FORMAT_DICT),
-                               default=ctx.config.get('core', 'output', fallback='json'),
+                               default=cli_ctx.config.get('core', 'output', fallback='json'),
                                help='Output format',
                                type=str.lower)
 
     @staticmethod
-    def handle_output_argument(ctx, **kwargs):
+    def handle_output_argument(cli_ctx, **kwargs):
         args = kwargs.get('args')
         # Set the output type for this invocation
-        ctx.invocation.data['output'] = getattr(args, OutputProducer.ARG_DEST)
+        cli_ctx.invocation.data['output'] = getattr(args, OutputProducer.ARG_DEST)
         # We've handled the argument so remove it
         delattr(args, OutputProducer.ARG_DEST)
 
-    def __init__(self, ctx=None):
-        self.ctx = ctx
-        self.ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, OutputProducer.on_global_arguments)
-        self.ctx.register_event(EVENT_INVOKER_POST_PARSE_ARGS, OutputProducer.handle_output_argument)
+    def __init__(self, cli_ctx=None):
+        from .cli import CLI
+        if cli_ctx is not None and not isinstance(cli_ctx, CLI):
+            raise CtxTypeError(cli_ctx)
+        self.cli_ctx = cli_ctx
+        self.cli_ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, OutputProducer.on_global_arguments)
+        self.cli_ctx.register_event(EVENT_INVOKER_POST_PARSE_ARGS, OutputProducer.handle_output_argument)
 
     def out(self, obj, formatter=None, out_file=None):  # pylint: disable=no-self-use
         if not isinstance(obj, CommandResultItem):

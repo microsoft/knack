@@ -38,7 +38,7 @@ You can also provide your own command class to the CLICommandsLoader like so:
 ```Python
 class MyCommandsLoader(CLICommandsLoader):
 
-    def __init__(self, ctx=None):
-        super(MyCommandsLoader, self).__init__(ctx=ctx, command_cls=MyCustomCLICommand)
+    def __init__(self, cli_ctx=None):
+        super(MyCommandsLoader, self).__init__(cli_ctx=cli_ctx, command_cls=MyCustomCLICommand)
 
 ```

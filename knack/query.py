@@ -7,6 +7,7 @@ import collections
 
 from .events import (EVENT_PARSER_GLOBAL_CREATE, EVENT_INVOKER_POST_PARSE_ARGS,
                      EVENT_INVOKER_FILTER_RESULT)
+from .util import CtxTypeError
 
 
 class CLIQuery(object):
@@ -34,20 +35,23 @@ class CLIQuery(object):
                                type=CLIQuery.jmespath_type)
 
     @staticmethod
-    def handle_query_parameter(ctx, **kwargs):
+    def handle_query_parameter(cli_ctx, **kwargs):
         args = kwargs['args']
         query_expression = args._jmespath_query  # pylint: disable=protected-access
         del args._jmespath_query
         if query_expression:
-            def filter_output(ctx, **kwargs):
+            def filter_output(cli_ctx, **kwargs):
                 from jmespath import Options
                 kwargs['event_data']['result'] = query_expression.search(
                     kwargs['event_data']['result'], Options(collections.OrderedDict))
-                ctx.unregister_event(EVENT_INVOKER_FILTER_RESULT, filter_output)
-            ctx.register_event(EVENT_INVOKER_FILTER_RESULT, filter_output)
-            ctx.invocation.data['query_active'] = True
+                cli_ctx.unregister_event(EVENT_INVOKER_FILTER_RESULT, filter_output)
+            cli_ctx.register_event(EVENT_INVOKER_FILTER_RESULT, filter_output)
+            cli_ctx.invocation.data['query_active'] = True
 
-    def __init__(self, ctx=None):
-        self.ctx = ctx
-        self.ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, CLIQuery.on_global_arguments)
-        self.ctx.register_event(EVENT_INVOKER_POST_PARSE_ARGS, CLIQuery.handle_query_parameter)
+    def __init__(self, cli_ctx=None):
+        from .cli import CLI
+        if cli_ctx is not None and not isinstance(cli_ctx, CLI):
+            raise CtxTypeError(cli_ctx)
+        self.cli_ctx = cli_ctx
+        self.cli_ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, CLIQuery.on_global_arguments)
+        self.cli_ctx.register_event(EVENT_INVOKER_POST_PARSE_ARGS, CLIQuery.handle_query_parameter)

@@ -15,7 +15,11 @@ class TestLoggingEventHandling(unittest.TestCase):
 
     def setUp(self):
         self.mock_ctx = MockContext()
-        self.cli_logging = CLILogging('clitest', ctx=self.mock_ctx)
+        self.cli_logging = CLILogging('clitest', cli_ctx=self.mock_ctx)
+
+    def test_cli_ctx_type_error(self):
+        with self.assertRaises(TypeError):
+            CLILogging('myclitest', cli_ctx=object())
 
     def test_logging_argument_registrations(self):
         parser_arg_group_mock = mock.MagicMock()
@@ -39,7 +43,7 @@ class TestLoggingLevel(unittest.TestCase):
 
     def setUp(self):
         self.mock_ctx = MockContext()
-        self.cli_logging = CLILogging('clitest', ctx=self.mock_ctx)
+        self.cli_logging = CLILogging('clitest', cli_ctx=self.mock_ctx)
 
     def test_determine_verbose_level_default(self):
         argv = []

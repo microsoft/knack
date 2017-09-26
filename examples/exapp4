@@ -51,8 +51,8 @@ Welcome to the cool new CLI!
 
 class MyCLIHelp(CLIHelp):
 
-    def __init__(self, ctx=None):
-        super(MyCLIHelp, self).__init__(ctx=ctx,
+    def __init__(self, cli_ctx=None):
+        super(MyCLIHelp, self).__init__(cli_ctx=cli_ctx,
                                         privacy_statement='My privacy statement.',
                                         welcome_message=WELCOME_MESSAGE)
 

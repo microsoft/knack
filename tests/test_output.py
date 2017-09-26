@@ -22,11 +22,15 @@ class TestOutput(unittest.TestCase):
     def tearDown(self):
         self.io.close()
 
+    def test_cli_ctx_type_error(self):
+        with self.assertRaises(TypeError):
+            OutputProducer(cli_ctx=object())
+
     def test_out_json_valid(self):
         """
         The JSON output when the input is a dict should be the dict serialized to JSON
         """
-        output_producer = OutputProducer(ctx=self.mock_ctx)
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
         output_producer.out(CommandResultItem({'active': True, 'id': '0b1f6472'}),
                             formatter=format_json, out_file=self.io)
         self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
@@ -40,7 +44,7 @@ class TestOutput(unittest.TestCase):
         """
         The JSON output when the input is OrderedDict should be serialized to JSON
         """
-        output_producer = OutputProducer(ctx=self.mock_ctx)
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
         output_producer.out(CommandResultItem(OrderedDict({'active': True, 'id': '0b1f6472'})),
                             formatter=format_json, out_file=self.io)
         self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
@@ -51,7 +55,7 @@ class TestOutput(unittest.TestCase):
 """))
 
     def test_out_json_byte(self):
-        output_producer = OutputProducer(ctx=self.mock_ctx)
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
         output_producer.out(CommandResultItem({'active': True, 'contents': b'0b1f6472'}),
                             formatter=format_json, out_file=self.io)
         self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
@@ -62,7 +66,7 @@ class TestOutput(unittest.TestCase):
 """))
 
     def test_out_json_byte_empty(self):
-        output_producer = OutputProducer(ctx=self.mock_ctx)
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
         output_producer.out(CommandResultItem({'active': True, 'contents': b''}),
                             formatter=format_json, out_file=self.io)
         self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
@@ -75,7 +79,7 @@ class TestOutput(unittest.TestCase):
     # TABLE output tests
 
     def test_out_table(self):
-        output_producer = OutputProducer(ctx=self.mock_ctx)
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
         obj = OrderedDict()
         obj['active'] = True
         obj['val'] = '0b1f6472'
@@ -87,7 +91,7 @@ True      0b1f6472
 """))
 
     def test_out_table_list_of_lists(self):
-        output_producer = OutputProducer(ctx=self.mock_ctx)
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
         obj = [['a', 'b'], ['c', 'd']]
         output_producer.out(CommandResultItem(obj), formatter=format_table, out_file=self.io)
         self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
@@ -98,7 +102,7 @@ c          d
 """))
 
     def test_out_table_complex_obj(self):
-        output_producer = OutputProducer(ctx=self.mock_ctx)
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
         obj = OrderedDict()
         obj['name'] = 'qwerty'
         obj['val'] = '0b1f6472qwerty'
@@ -112,7 +116,7 @@ qwerty  0b1f6472qwerty
 """))
 
     def test_out_table_no_query_no_transformer_order(self):
-        output_producer = OutputProducer(ctx=self.mock_ctx)
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
         obj = {'name': 'qwerty', 'val': '0b1f6472qwerty', 'active': True, 'sub': '0b1f6472'}
         result_item = CommandResultItem(obj, table_transformer=None, is_query_active=False)
         output_producer.out(result_item, formatter=format_table, out_file=self.io)
@@ -124,7 +128,7 @@ True      qwerty  0b1f6472  0b1f6472qwerty
 """))
 
     def test_out_table_no_query_yes_transformer_order(self):
-        output_producer = OutputProducer(ctx=self.mock_ctx)
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
         obj = {'name': 'qwerty', 'val': '0b1f6472qwerty', 'active': True, 'sub': '0b1f6472'}
 
         def transformer(r):
@@ -141,7 +145,7 @@ qwerty  0b1f6472qwerty  True      0b1f6472
 """))
 
     def test_out_table_no_query_yes_jmespath_table_transformer(self):
-        output_producer = OutputProducer(ctx=self.mock_ctx)
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
         obj = {'name': 'qwerty', 'val': '0b1f6472qwerty', 'active': True, 'sub': '0b1f6472'}
 
         result_item = CommandResultItem(obj,

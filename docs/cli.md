@@ -3,7 +3,7 @@ CLI
 
 CLI provides the entry point.
 
-The CLI object is used as a context, `ctx`, that is passed around throughout the application. You will see this context, `ctx`, referenced frequently.
+The CLI object is used as a context, `cli_ctx`, that is passed around throughout the application. You will see this context, `cli_ctx`, referenced frequently.
 
 We recommend specifying `cli_name`, `config_dir` and `config_env_var_prefix`.
 
