@@ -30,7 +30,7 @@ class CLIArgumentType(object):
 
 
 class CLICommandArgument(object):  # pylint: disable=too-few-public-methods
-    _NAMED_ARGUMENTS = ('options_list', 'validator', 'completer', 'arg_group')
+    NAMED_ARGUMENTS = ['options_list', 'validator', 'completer', 'arg_group']
 
     def __init__(self, dest=None, argtype=None, **kwargs):
         self.type = CLIArgumentType(overrides=argtype, **kwargs)
@@ -47,13 +47,13 @@ class CLICommandArgument(object):  # pylint: disable=too-few-public-methods
             self.options_list = ('--{}'.format(self.options['dest'].replace('_', '-')),)
 
     def __getattr__(self, name):
-        if name in self._NAMED_ARGUMENTS:
+        if name in self.NAMED_ARGUMENTS:
             return self.type.settings.get(name, None)
         elif name == 'name':
             return self.type.settings.get('dest', None)
         elif name == 'options':
             return {key: value for key, value in self.type.settings.items()
-                    if key != 'options' and key not in self._NAMED_ARGUMENTS and
+                    if key != 'options' and key not in self.NAMED_ARGUMENTS and
                     not value == CLIArgumentType.REMOVE}
         elif name == 'choices':
             return self.type.settings.get(name, None)
