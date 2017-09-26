@@ -106,10 +106,6 @@ class CLICommandsLoader(object):
             command.arguments[argument_name] = argument_definition
             command.update_argument(argument_name, self.argument_registry.get_cli_argument(command_name, argument_name))
 
-    def cli_command(self, module_name, name, operation, **kwargs):
-        """ Add a command to the command table. """
-        self.command_table[name] = self.create_command(module_name, name, operation, **kwargs)
-
     def create_command(self, module_name, name, operation, **kwargs):  # pylint: disable=unused-argument
         if not isinstance(operation, six.string_types):
             raise ValueError("Operation must be a string. Got '{}'".format(operation))
@@ -221,7 +217,8 @@ class CommandGroup(object):
         command_name = '{} {}'.format(self.group_name, name)
         command_kwargs = copy.deepcopy(self.group_kwargs)
         command_kwargs.update(kwargs)
-        self.command_loader.cli_command(self.module_name,
-                                        command_name,
-                                        self.operations_tmpl.format(method_name),
-                                        **command_kwargs)
+        self.command_loader.command_table[command_name] = self.command_loader.create_command(
+            self.module_name,
+            command_name,
+            self.operations_tmpl.format(method_name),
+            **command_kwargs)
