@@ -111,6 +111,22 @@ class TestParser(unittest.TestCase):
         with self.assertRaises(TypeError):
             CLICommandParser(cli_ctx=object())
 
+    def test_extra_nonargparse_parameters(self):
+        """ Add argument that has non argparse parameters.
+
+            'mycustomarg' should be filtered out and load_command_table
+            should complete successfully instead of throwing
+            TypeError: __init__() got an unexpected keyword argument 'mycustomarg'
+        """
+        def test_handler():
+            pass
+
+        command = CLICommand(self.mock_ctx, 'test command', test_handler)
+        command.add_argument('req', '--req', required=True, mycustomarg=True)
+        cmd_table = {'test command': command}
+        parser = CLICommandParser()
+        parser.load_command_table(cmd_table)
+
 
 class VerifyError(object):  # pylint: disable=too-few-public-methods
 
