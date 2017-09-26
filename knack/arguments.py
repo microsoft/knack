@@ -98,16 +98,35 @@ class ArgumentsContext(object):
         pass
 
     def ignore(self, argument_name):
-        self.command_loader.register_cli_argument(self.commmand, argument_name, ignore_type)
+        self.command_loader.argument_registry.register_cli_argument(self.commmand,
+                                                                    argument_name,
+                                                                    ignore_type)
 
     def argument(self, argument_name, arg_type=None, **kwargs):
-        self.command_loader.register_cli_argument(self.commmand, argument_name, arg_type=arg_type, **kwargs)
+        self.command_loader.argument_registry.register_cli_argument(self.commmand,
+                                                                    argument_name,
+                                                                    arg_type,
+                                                                    **kwargs)
 
     def register_alias(self, argument_name, options_list, **kwargs):
-        self.command_loader.register_cli_argument(self.commmand, argument_name, options_list=options_list, **kwargs)
+        self.command_loader.argument_registry.register_cli_argument(self.commmand,
+                                                                    argument_name,
+                                                                    None,
+                                                                    options_list=options_list,
+                                                                    **kwargs)
 
     def register(self, argument_name, options_list, **kwargs):
-        self.command_loader.register_cli_argument(self.commmand, argument_name, options_list=options_list, **kwargs)
+        self.command_loader.argument_registry.register_cli_argument(self.commmand,
+                                                                    argument_name,
+                                                                    None,
+                                                                    options_list=options_list,
+                                                                    **kwargs)
+
+    def extra(self, command, dest, **kwargs):
+        '''Register extra parameters for the given command. Typically used to augment auto-command built
+        commands to add more parameters than the specific SDK method introspected.
+        '''
+        self.command_loader.extra_argument_registry[command][dest] = CLICommandArgument(dest, **kwargs)
 
 
 class IgnoreAction(argparse.Action):  # pylint: disable=too-few-public-methods

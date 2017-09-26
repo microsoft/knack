@@ -169,16 +169,6 @@ class CLICommandsLoader(object):
             logger.warning('Unable to prompt for confirmation as no tty available. Use --yes.')
             return False
 
-    def register_cli_argument(self, scope, dest, arg_type=None, **kwargs):
-        ''' Specify CLI specific metadata for a given argument for a given scope. '''
-        self.argument_registry.register_cli_argument(scope, dest, arg_type, **kwargs)
-
-    def register_extra_cli_argument(self, command, dest, **kwargs):
-        '''Register extra parameters for the given command. Typically used to augment auto-command built
-        commands to add more parameters than the specific SDK method introspected.
-        '''
-        self.extra_argument_registry[command][dest] = CLICommandArgument(dest, **kwargs)
-
 
 class CommandSuperGroup(object):
     def __init__(self, module_name, command_loader, operations_tmpl, **kwargs):
