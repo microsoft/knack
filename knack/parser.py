@@ -23,6 +23,7 @@ ARGPARSE_SUPPORTED_KWARGS = [
     'required',
     'help',
     'metavar',
+    'action'
 ]
 
 
