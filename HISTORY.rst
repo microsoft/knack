@@ -3,11 +3,11 @@
 Release History
 ===============
 
-unreleased
-^^^^^^^^^^
+0.2.0 (2017-09-27)
+^^^^^^^^^^^^^^^^^^
 
 * Support command level and argument level validators.
-* knack.commands.CLICommandsLoader no accepts a `command_cls` argument so you can provide your own `CLICommand` class.
+* knack.commands.CLICommandsLoader now accepts a `command_cls` argument so you can provide your own `CLICommand` class.
 * logging: make determine_verbose_level private method.
 * Allow overriding of NAMED_ARGUMENTS
 * Only pass valid argparse kwargs to argparse.ArgumentParser.add_argument and ignore the rest
