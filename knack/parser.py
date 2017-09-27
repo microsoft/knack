@@ -10,6 +10,23 @@ from .help import show_help
 from .util import CtxTypeError
 
 
+# List of keyword arguments supported in argparse
+# from https://github.com/python/cpython/blob/master/Lib/argparse.py#L748
+ARGPARSE_SUPPORTED_KWARGS = [
+    'option_strings',
+    'dest',
+    'nargs',
+    'const',
+    'default',
+    'type',
+    'choices',
+    'required',
+    'help',
+    'metavar',
+    'action'
+]
+
+
 class CLICommandParser(argparse.ArgumentParser):
 
     @staticmethod
@@ -18,6 +35,13 @@ class CLICommandParser(argparse.ArgumentParser):
         arg_group = global_parser.add_argument_group('global', 'Global Arguments')
         cli_ctx.raise_event(EVENT_PARSER_GLOBAL_CREATE, arg_group=arg_group)
         return global_parser
+
+    @staticmethod
+    def _add_argument(obj, arg):
+        """ Only pass valid argparse kwargs to argparse.ArgumentParser.add_argument """
+        options_list = arg.options_list
+        argparse_options = {name: value for name, value in arg.options.items() if name in ARGPARSE_SUPPORTED_KWARGS}
+        return obj.add_argument(*options_list, **argparse_options)
 
     def __init__(self, cli_ctx=None, **kwargs):
         from .cli import CLI
@@ -72,11 +96,9 @@ class CLICommandParser(argparse.ArgumentParser):
                         group_name = '{} Arguments'.format(arg.arg_group)
                         group = command_parser.add_argument_group(arg.arg_group, group_name)
                         argument_groups[arg.arg_group] = group
-                    param = group.add_argument(
-                        *arg.options_list, **arg.options)
+                    param = CLICommandParser._add_argument(group, arg)
                 else:
-                    param = command_parser.add_argument(
-                        *arg.options_list, **arg.options)
+                    param = CLICommandParser._add_argument(command_parser, arg)
                 param.completer = arg.completer
 
             command_parser.set_defaults(
