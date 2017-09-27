@@ -1,19 +1,19 @@
 sudo: false
 language: python
 python:
-  - "2.7"
-  - "3.5"
-  - "3.6"
+- '2.7'
+- '3.5'
+- '3.6'
 install:
-  - pip install --requirement requirements.txt
-  - pip install -e .
+- pip install --requirement requirements.txt
+- pip install -e .
 script:
-  - ./scripts/ci.sh
+- ./scripts/ci.sh
 deploy:
   provider: pypi
-  user: "azpycli"
+  user: azpycli
   password:
-    secure: "ChKJM9FqMBkTHNyiRGz91oih9VWpuZuBb4V0AV/xpRdGNPpSblFujSgIv4VPq5NJIOKQ+E0+RUKwK5sAxKg0TvtHNGbm4MRwceAxI57YGW+e6ZLAC6+FRaUr+dLM1Z702FTPP1VePrviUdWi+6Bv1o9D8LSB4yPd1pZ634En3acCYCpt6KmTuH2KoEale3FXIdpvLLnzmJPu2rDOas9h8BQ8DwPKG7KiYbMrDOK76gZIqgoty1stm3iqRFvM1FoPQ333AyGcVZCghYhrrihtfSbWG3jLExEmVudMvM6lw5Xgoc4rz/98VAd4egBajdslFojfbDWn/pJ1JQj4Emrvnfgpl2SV76XpG42WHlXDvP0DyWLTGYuLI9nQGOVXCd+QrIrEHiXAvfgBFHbzXbfhvh4oZga3DEjgkmo8clAavz/XSlwImo5W8LkeHYph8tEVcchspkzPHxZ+IsrBD9RKMi/kaG8SLAMLrUMxFhzQXbsbvmfIP7sKdhC3igNCLFg7NA850IOI9HkC402xtJLA4GvQZJBQ31xyKgfViz/qXmQWLFYQqTeEHc/KwazmBSCyqX1GzgG79iz+Z39Csx+hY1YfVaXeKLEldt26y0yHaOvMPkf4CY9xxt62xAKOhwSJQdtHPW6JTOCMuaqsIG8SitYX9p0h9Ges0eZ7af8N/UQ="
-  distributions: "sdist bdist_wheel"
+    secure: SFg9WYAQgW9kMNtRBU1/qcWCF7QvhTw3hcKgsx4ZNbwGtBm0/Z6U09DzPwpgdpAK6ymmRv83I1Mf3CrqgJANkko/h/PZ8Hn55DdFWGFkAPabwhUaRERWFL40I6K7s4ARZId6lH7yI/5d0WWMJpnCsgriUmAYZlYbrgo7hsyX2n/XL0U9PtPWQi8X2IOLUVkNcm7zPmlNrLtq/v/nY+sxzI7AkupPMh8q0TE/wKzOjsijV7QQ9LK0cQe4fNoRfR4ryW+w7XZ59FE4r1CKixHzyMsGJ1/nQsBr4P1Wt1G5kEIerLf7evJhA53UJMfbMF4MZo1446hhL4ZRyXb7rSgjhc7mapupsptIiz+lQmthpnhxl2x2XzJzsJfnSjkmtIjkHjwzWIw3E2RRF/c+zkiGtinmo15sw7l5rK6v9adEBJG2HK694bOjCyB3QNDHomReP+b7d/PUHhuRiB02rmLuSYMz7y2ENhFCkyZ54ny5CGe1ZplLQE49baFBkW1e/LOc8JECmrV93+jAGXUJGP1dAlUlc57Cne/ird4BJ41qOGM6EGKygAWa9U4HnbvOBdPPja+5hMWqXeDLFL8uTmx8+G4UY5XC5CYCJ+35abgM8EmADvOuIvvZ5tw/Qwf9oZEJdcXq3Xr0AFs1m5ePWvpPZIA0ClKPxcxugXfg0XY69ZE=
+  distributions: sdist bdist_wheel
   on:
     tags: true
