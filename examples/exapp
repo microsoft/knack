@@ -13,6 +13,8 @@ from knack.help import CLIHelp
 
 from knack.help_files import helps
 
+cli_name = os.path.basename(__file__)
+
 helps['abc'] = """
     type: group
     short-summary: Manage the alphabet of words.
@@ -23,8 +25,8 @@ helps['abc list'] = """
     short-summary: List the alphabet.
     examples:
         - name: It's pretty straightforward.
-          text: exapp4 abc list
-"""
+          text: {cli_name} abc list
+""".format(cli_name=cli_name)
 
 def a_test_command_handler():
     return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
@@ -72,8 +74,10 @@ class MyCommandsLoader(CLICommandsLoader):
             ac.argument('myarg', type=int, default=100)
         super(MyCommandsLoader, self).load_arguments(command)
 
-name = 'exapp4'
-
-mycli = CLI(cli_name=name, config_dir=os.path.join('~', '.{}'.format(name)), config_env_var_prefix=name, commands_loader_cls=MyCommandsLoader, help_cls=MyCLIHelp)
+mycli = CLI(cli_name=cli_name,
+            config_dir=os.path.join('~', '.{}'.format(cli_name)),
+            config_env_var_prefix=cli_name,
+            commands_loader_cls=MyCommandsLoader,
+            help_cls=MyCLIHelp)
 exit_code = mycli.invoke(sys.argv[1:])
 sys.exit(exit_code)

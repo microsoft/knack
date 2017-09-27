@@ -106,10 +106,6 @@ class CLICommandsLoader(object):
             command.arguments[argument_name] = argument_definition
             command.update_argument(argument_name, self.argument_registry.get_cli_argument(command_name, argument_name))
 
-    def cli_command(self, module_name, name, operation, **kwargs):
-        """ Add a command to the command table. """
-        self.command_table[name] = self.create_command(module_name, name, operation, **kwargs)
-
     def create_command(self, module_name, name, operation, **kwargs):  # pylint: disable=unused-argument
         if not isinstance(operation, six.string_types):
             raise ValueError("Operation must be a string. Got '{}'".format(operation))
@@ -173,16 +169,6 @@ class CLICommandsLoader(object):
             logger.warning('Unable to prompt for confirmation as no tty available. Use --yes.')
             return False
 
-    def register_cli_argument(self, scope, dest, arg_type=None, **kwargs):
-        ''' Specify CLI specific metadata for a given argument for a given scope. '''
-        self.argument_registry.register_cli_argument(scope, dest, arg_type, **kwargs)
-
-    def register_extra_cli_argument(self, command, dest, **kwargs):
-        '''Register extra parameters for the given command. Typically used to augment auto-command built
-        commands to add more parameters than the specific SDK method introspected.
-        '''
-        self.extra_argument_registry[command][dest] = CLICommandArgument(dest, **kwargs)
-
 
 class CommandSuperGroup(object):
     def __init__(self, module_name, command_loader, operations_tmpl, **kwargs):
@@ -221,7 +207,8 @@ class CommandGroup(object):
         command_name = '{} {}'.format(self.group_name, name)
         command_kwargs = copy.deepcopy(self.group_kwargs)
         command_kwargs.update(kwargs)
-        self.command_loader.cli_command(self.module_name,
-                                        command_name,
-                                        self.operations_tmpl.format(method_name),
-                                        **command_kwargs)
+        self.command_loader.command_table[command_name] = self.command_loader.create_command(
+            self.module_name,
+            command_name,
+            self.operations_tmpl.format(method_name),
+            **command_kwargs)

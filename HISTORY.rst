@@ -11,6 +11,8 @@ unreleased
 * logging: make determine_verbose_level private method.
 * Allow overriding of NAMED_ARGUMENTS
 * Only pass valid argparse kwargs to argparse.ArgumentParser.add_argument and ignore the rest
+* logging: make determine_verbose_level private method
+* Remove `cli_command`, `register_cli_argument`, `register_extra_cli_argument` as ways to register commands and arguments.
 
 0.1.1 (2017-07-05)
 ^^^^^^^^^^^^^^^^^^
