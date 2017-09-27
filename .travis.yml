@@ -9,3 +9,11 @@ install:
   - pip install -e .
 script:
   - ./scripts/ci.sh
+deploy:
+  provider: pypi
+  user: "azpycli"
+  password:
+    secure: "ChKJM9FqMBkTHNyiRGz91oih9VWpuZuBb4V0AV/xpRdGNPpSblFujSgIv4VPq5NJIOKQ+E0+RUKwK5sAxKg0TvtHNGbm4MRwceAxI57YGW+e6ZLAC6+FRaUr+dLM1Z702FTPP1VePrviUdWi+6Bv1o9D8LSB4yPd1pZ634En3acCYCpt6KmTuH2KoEale3FXIdpvLLnzmJPu2rDOas9h8BQ8DwPKG7KiYbMrDOK76gZIqgoty1stm3iqRFvM1FoPQ333AyGcVZCghYhrrihtfSbWG3jLExEmVudMvM6lw5Xgoc4rz/98VAd4egBajdslFojfbDWn/pJ1JQj4Emrvnfgpl2SV76XpG42WHlXDvP0DyWLTGYuLI9nQGOVXCd+QrIrEHiXAvfgBFHbzXbfhvh4oZga3DEjgkmo8clAavz/XSlwImo5W8LkeHYph8tEVcchspkzPHxZ+IsrBD9RKMi/kaG8SLAMLrUMxFhzQXbsbvmfIP7sKdhC3igNCLFg7NA850IOI9HkC402xtJLA4GvQZJBQ31xyKgfViz/qXmQWLFYQqTeEHc/KwazmBSCyqX1GzgG79iz+Z39Csx+hY1YfVaXeKLEldt26y0yHaOvMPkf4CY9xxt62xAKOhwSJQdtHPW6JTOCMuaqsIG8SitYX9p0h9Ges0eZ7af8N/UQ="
+  distributions: "sdist bdist_wheel"
+  on:
+    tags: true

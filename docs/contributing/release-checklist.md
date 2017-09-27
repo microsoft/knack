@@ -8,6 +8,14 @@ number and Z is the patch release number. This project strictly follows
 
 Modify `HISTORY.rst` and the version number in `setup.py` and create a pull request for the changes.
 
+### Release with Travis CI
+
+Once the changes have been merged to master, create a tag on GitHub for that commit.
+
+A Travis CI build will be kicked-off that will publish to PyPI.
+
+### Release manually 
+
 Once the changes have been merged to master, continue with the rest of the release.
 
 ```
