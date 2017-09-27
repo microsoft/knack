@@ -122,11 +122,11 @@ class ArgumentsContext(object):
                                                                     options_list=options_list,
                                                                     **kwargs)
 
-    def extra(self, command, dest, **kwargs):
+    def extra(self, dest, **kwargs):
         '''Register extra parameters for the given command. Typically used to augment auto-command built
         commands to add more parameters than the specific SDK method introspected.
         '''
-        self.command_loader.extra_argument_registry[command][dest] = CLICommandArgument(dest, **kwargs)
+        self.command_loader.extra_argument_registry[self.commmand][dest] = CLICommandArgument(dest, **kwargs)
 
 
 class IgnoreAction(argparse.Action):  # pylint: disable=too-few-public-methods
