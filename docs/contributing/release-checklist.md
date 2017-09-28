@@ -6,11 +6,12 @@ All releases will be of the form X.Y.Z where X is the major version number, Y is
 number and Z is the patch release number. This project strictly follows
 [semantic versioning](http://semver.org/) so following this step is critical.
 
-Modify `HISTORY.rst` and the version number in `setup.py` and create a pull request for the changes.
+Modify the version number in `setup.py` and create a pull request for the changes.
 
 ### Release with Travis CI
 
 Once the changes have been merged to master, create a tag on GitHub for that commit.
+Follow the format of other releases in the release notes you create on GitHub.
 
 A Travis CI build will be kicked-off that will publish to PyPI.
 
