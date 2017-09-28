@@ -70,7 +70,7 @@ Documentation is available at `docs <docs>`__.
 Developer Setup
 ===============
 
-In a virtual environment, install the requirements.txt file.
+In a virtual environment, install the `requirements.txt` file.
 
 .. code-block:: bash
 
