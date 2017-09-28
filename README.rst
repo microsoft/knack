@@ -93,3 +93,8 @@ License
 =======
 
 Knack is licensed under `MIT <LICENSE>`__.
+
+Release History		
+===============
+
+See `GitHub Releases <https://github.com/Microsoft/knack/releases>`__.

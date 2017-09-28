@@ -23,14 +23,12 @@ DEPENDENCIES = [
 
 with open('README.rst', 'r', encoding='utf-8') as f:
     README = f.read()
-with open('HISTORY.rst', 'r', encoding='utf-8') as f:
-    HISTORY = f.read()
 
 setup(
     name='knack',
     version=VERSION,
     description='A Command-Line Interface framework',
-    long_description=README + '\n\n' + HISTORY,
+    long_description=README,
     license='MIT',
     author='Microsoft Corporation',
     author_email='azpycli@microsoft.com',
