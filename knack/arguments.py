@@ -129,7 +129,8 @@ class ArgumentsContext(object):
 
         :param command_loader: The command loader that arguments should be registered into
         :type command_loader: knack.commands.CLICommandsLoader
-        :param command_scope: The command scope this context manager should have
+        :param command_scope: The scope to which arguments in this context apply.
+                              More specific scopes will override less specific scopes in the event of a conflict.
         :type command_scope: str
         """
         self.command_loader = command_loader
@@ -144,7 +145,7 @@ class ArgumentsContext(object):
     def argument(self, argument_dest, arg_type=None, **kwargs):
         """ Register an argument for the given command scope using a knack.arguments.CLIArgumentType
 
-        :param argument_dest: The destination argument to add this argument type to
+        :param argument_dest: Predefined CLIArgumentType definition to register, as modified by any provided kwargs.
         :type argument_dest: str
         :param arg_type: The argument type we are registering
         :type arg_type: knack.arguments.CLIArgumentType
@@ -154,18 +155,6 @@ class ArgumentsContext(object):
                                                                     argument_dest,
                                                                     arg_type,
                                                                     **kwargs)
-
-    def register(self, argument_dest, options_list, **kwargs):
-        """ Register an argument for the given command scope without a knack.arguments.CLIArgumentType.
-            You add the kwargs you require yourself.
-
-        :param argument_dest: The destination argument to add this argument type to
-        :type argument_dest: str
-        :param options_list: The options that can be supplied for this argument
-        :type options_list: tuple
-        :param kwargs: Any argument type overrides that need to be applied
-        """
-        self.argument(argument_dest, arg_type=None, options_list=options_list, **kwargs)
 
     def ignore(self, argument_dest):
         """ Register an argument with type knack.arguments.ignore_type (hidden/ignored)

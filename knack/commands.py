@@ -45,7 +45,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         :type description_loader: function
         :param formatter_class: The formatter for how help should be displayed
         :type formatter_class: class
-        :param deprecate_info: Command deprecation information
+        :param deprecate_info: Deprecation message to display when this command is invoked
         :type deprecate_info: str
         :param validator: The command validator
         :param kwargs: Extra kwargs that are currently ignored
