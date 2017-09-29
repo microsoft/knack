@@ -23,6 +23,11 @@ argcomplete.completers.ChoicesCompleter = CaseInsensitiveChoicesCompleter
 class CLICompletion(object):
 
     def __init__(self, cli_ctx=None):
+        """ Sets up and gets completions for auto-complete
+
+        :param cli_ctx: CLI Context
+        :type cli_ctx: knack.cli.CLI
+        """
         from .cli import CLI
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
             raise CtxTypeError(cli_ctx)

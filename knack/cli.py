@@ -24,6 +24,7 @@ logger = get_logger(__name__)
 
 
 class CLI(object):  # pylint: disable=too-many-instance-attributes
+    """ The main driver for the CLI """
 
     def __init__(self,
                  cli_name='cli',
@@ -39,6 +40,34 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
                  parser_cls=CLICommandParser,
                  commands_loader_cls=CLICommandsLoader,
                  help_cls=CLIHelp):
+        """
+        :param cli_name: The name of the CLI (e.g. the executable name 'az')
+        :type cli_name: str
+        :param config_dir: Path to store config files for this CLI
+        :type config_dir: str
+        :param config_env_var_prefix: The prefix for configuration environment variables
+        :type config_env_var_prefix: str
+        :param out_file: File to write output to
+        :type out_file: file-like object
+        :param config_cls: Class to handle configuration
+        :type config_cls: knack.config.CLIConfig
+        :param logging_cls: Class to handle logging
+        :type logging_cls: knack.log.CLILogging
+        :param invocation_cls: Class to handle command invocations
+        :type invocation_cls: knack.invocation.CommandInvoker
+        :param output_cls: Class to handle output processing of commands
+        :type output_cls: knack.output.OutputProducer
+        :param completion_cls: Class to handle completions
+        :type completion_cls: knack.completion.CLICompletion
+        :param query_cls: Class to handle command queries
+        :type query_cls: knack.query.CLIQuery
+        :param parser_cls: Class to handler command parsing
+        :type parser_cls: knack.parser.CLICommandParser
+        :param commands_loader_cls: Class to handle loading commands
+        :type commands_loader_cls: knack.commands.CLICommandsLoader
+        :param help_cls: Class to handle help
+        :type help_cls: knack.help.CLIHelp
+        """
         self.name = cli_name
         self.out_file = out_file
         self.config_cls = config_cls
@@ -64,9 +93,19 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         return args and (args[0] == '--version' or args[0] == '-v')
 
     def get_cli_version(self):  # pylint: disable=no-self-use
+        """ Get the CLI Version. Override this to define how to get the CLI version
+
+        :return: The CLI version
+        :rtype: str
+        """
         return ''
 
     def get_runtime_version(self):  # pylint: disable=no-self-use
+        """ Get the runtime information.
+
+        :return: Runtime information
+        :rtype: str
+        """
         version_info = '\n\n'
         version_info += 'Python ({}) {}'.format(platform.system(), sys.version)
         version_info += '\n\n'
@@ -75,35 +114,64 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         return version_info
 
     def show_version(self):
+        """ Print version information to the out file. """
         version_info = self.get_cli_version()
         version_info += self.get_runtime_version()
         print(version_info, file=self.out_file)
 
     def register_event(self, event_name, handler):
         """ Register a callable that will be called when event is raised.
-            A handler will only be registered once. """
+            A handler will only be registered once.
+
+        :param event_name: The name of the event (see knack.events for in-built events)
+        :type event_name: str
+        :param handler: A callback to handle the event
+        :type handler: function
+        """
         self._event_handlers[event_name].append(handler)
 
     def unregister_event(self, event_name, handler):
-        """ Unregister a callable that will be called when event is raised. """
+        """ Unregister a callable that will be called when event is raised.
+
+        :param event_name: The name of the event (see knack.events for in-built events)
+        :type event_name: str
+        :param handler: The callback that was used to register the event
+        :type handler: function
+        """
         try:
             self._event_handlers[event_name].remove(handler)
         except ValueError:
             pass
 
     def raise_event(self, event_name, **kwargs):
-        """ Raise an event. """
+        """ Raise an event. Calls each handler in turn with kwargs
+
+        :param event_name: The name of the event to raise
+        :type event_name: str
+        :param kwargs: Kwargs to be passed to all event handlers
+        """
         handlers = list(self._event_handlers[event_name])
         logger.debug('Event: %s %s', event_name, handlers)
         for func in handlers:
             func(self, **kwargs)
 
     def exception_handler(self, ex):  # pylint: disable=no-self-use
+        """ The default exception handler for unknown CLI exceptions. """
         logger.exception(ex)
         return 1
 
     def invoke(self, args, initial_invocation_data=None, out_file=None):
-        """ Invoke a command. """
+        """ Invoke a command.
+
+        :param args: The arguments that represent the command
+        :type args: list, tuple
+        :param initial_invocation_data: Prime the in memory collection of key-value data for this invocation.
+        :type initial_invocation_data: dict
+        :param out_file: The file to send output to. If not used, we use out_file for knack.cli.CLI instance
+        :type out_file: file-like object
+        :return: The exit code of the invocation
+        :rtype: int
+        """
         if not isinstance(args, (list, tuple)):
             raise TypeError('args should be a list or tuple.')
         try:

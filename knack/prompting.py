@@ -97,12 +97,16 @@ def _prompt_bool(msg, true_str, false_str, default=None, help_string=None):
 
 
 def prompt_choice_list(msg, a_list, default=1, help_string=None):
-    '''Prompt user to select from a list of possible choices.
-    :param str msg:A message displayed to the user before the choice list
-    :param str a_list:The list of choices (list of strings or list of dicts with 'name' & 'desc')
-    :param int default:The default option that should be chosen if user doesn't enter a choice
+    """Prompt user to select from a list of possible choices.
+
+    :param msg:A message displayed to the user before the choice list
+    :type msg: str
+    :param a_list:The list of choices (list of strings or list of dicts with 'name' & 'desc')
+    "type a_list: list
+    :param default:The default option that should be chosen if user doesn't enter a choice
+    :type default: int
     :returns: The list index of the item chosen.
-    '''
+    """
     verify_is_a_tty()
     options = '\n'.join([' [{}] {}{}'
                          .format(i + 1,

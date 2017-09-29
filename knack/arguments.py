@@ -12,9 +12,17 @@ logger = get_logger(__name__)
 
 
 class CLIArgumentType(object):
+
     REMOVE = '---REMOVE---'
 
     def __init__(self, overrides=None, **kwargs):
+        """A base CLI Argument Type that can be applied to multiple command arguments
+
+        :param overrides: The base argument that you are overriding
+        :type overrides: knack.arguments.CLIArgumentType
+        :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
+                       `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
+        """
         if isinstance(overrides, str):
             raise ValueError("Overrides has to be a {} (cannot be a string)".format(CLIArgumentType.__name__))
         options_list = kwargs.get('options_list', None)
@@ -30,9 +38,18 @@ class CLIArgumentType(object):
 
 
 class CLICommandArgument(object):  # pylint: disable=too-few-public-methods
+
     NAMED_ARGUMENTS = ['options_list', 'validator', 'completer', 'arg_group']
 
     def __init__(self, dest=None, argtype=None, **kwargs):
+        """An argument that has a specific destination parameter.
+
+        :param dest: The parameter that this argument is for
+        :type dest: str
+        :param argtype: The argument type for this command argument
+        :type argtype: knack.arguments.CLIArgumentType
+        :param kwargs: see knack.arguments.CLIArgumentType
+        """
         self.type = CLIArgumentType(overrides=argtype, **kwargs)
         if dest:
             self.type.update(dest=dest)
@@ -67,15 +84,36 @@ class CLICommandArgument(object):  # pylint: disable=too-few-public-methods
 
 
 class ArgumentRegistry(object):
+    """A registry of all the arguments registered"""
+
     def __init__(self):
         self.arguments = defaultdict(lambda: {})
 
     def register_cli_argument(self, scope, dest, argtype, **kwargs):
+        """ Add an argument to the argument registry
+
+        :param scope: The command level to apply the argument registration (e.g. 'mygroup mycommand')
+        :type scope: str
+        :param dest: The parameter/destination that this argument is for
+        :type dest: str
+        :param argtype: The argument type for this command argument
+        :type argtype: knack.arguments.CLIArgumentType
+        :param kwargs: see knack.arguments.CLIArgumentType
+        """
         argument = CLIArgumentType(overrides=argtype,
                                    **kwargs)
         self.arguments[scope][dest] = argument
 
     def get_cli_argument(self, command, name):
+        """ Get the argument for the command after applying the scope hierarchy
+
+        :param command: The command that we want the argument for
+        :type command: str
+        :param name: The name of the argument
+        :type name: str
+        :return: The CLI command after all overrides in the scope hierarchy have been applied
+        :rtype: knack.arguments.CLIArgumentType
+        """
         parts = command.split()
         result = CLIArgumentType()
         for index in range(0, len(parts) + 1):
@@ -87,9 +125,17 @@ class ArgumentRegistry(object):
 
 
 class ArgumentsContext(object):
-    def __init__(self, command_loader, command):
+    def __init__(self, command_loader, command_scope):
+        """ Context manager to register arguments
+
+        :param command_loader: The command loader that arguments should be registered into
+        :type command_loader: knack.commands.CLICommandsLoader
+        :param command_scope: The scope to which arguments in this context apply.
+                              More specific scopes will override less specific scopes in the event of a conflict.
+        :type command_scope: str
+        """
         self.command_loader = command_loader
-        self.commmand = command
+        self.command_scope = command_scope
 
     def __enter__(self):
         return self
@@ -97,39 +143,44 @@ class ArgumentsContext(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def ignore(self, argument_name):
-        self.command_loader.argument_registry.register_cli_argument(self.commmand,
-                                                                    argument_name,
-                                                                    ignore_type)
+    def argument(self, argument_dest, arg_type=None, **kwargs):
+        """ Register an argument for the given command scope using a knack.arguments.CLIArgumentType
 
-    def argument(self, argument_name, arg_type=None, **kwargs):
-        self.command_loader.argument_registry.register_cli_argument(self.commmand,
-                                                                    argument_name,
+        :param argument_dest: The destination argument to add this argument type to
+        :type argument_dest: str
+        :param arg_type: Predefined CLIArgumentType definition to register, as modified by any provided kwargs.
+        :type arg_type: knack.arguments.CLIArgumentType
+        :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
+                       `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
+        """
+        self.command_loader.argument_registry.register_cli_argument(self.command_scope,
+                                                                    argument_dest,
                                                                     arg_type,
                                                                     **kwargs)
 
-    def register_alias(self, argument_name, options_list, **kwargs):
-        self.command_loader.argument_registry.register_cli_argument(self.commmand,
-                                                                    argument_name,
-                                                                    None,
-                                                                    options_list=options_list,
-                                                                    **kwargs)
+    def ignore(self, argument_dest):
+        """ Register an argument with type knack.arguments.ignore_type (hidden/ignored)
 
-    def register(self, argument_name, options_list, **kwargs):
-        self.command_loader.argument_registry.register_cli_argument(self.commmand,
-                                                                    argument_name,
-                                                                    None,
-                                                                    options_list=options_list,
-                                                                    **kwargs)
+        :param argument_dest: The destination argument to apply the ignore type to
+        :type argument_dest: str
+        """
+        self.argument(argument_dest, arg_type=ignore_type)
 
-    def extra(self, dest, **kwargs):
-        '''Register extra parameters for the given command. Typically used to augment auto-command built
+    def extra(self, argument_dest, **kwargs):
+        """Register extra parameters for the given command. Typically used to augment auto-command built
         commands to add more parameters than the specific SDK method introspected.
-        '''
-        self.command_loader.extra_argument_registry[self.commmand][dest] = CLICommandArgument(dest, **kwargs)
+
+        :param argument_dest: The destination argument to add this argument type to
+        :type argument_dest: str
+        :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
+                       `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
+        """
+        self.command_loader.extra_argument_registry[self.command_scope][argument_dest] = CLICommandArgument(
+            argument_dest, **kwargs)
 
 
 class IgnoreAction(argparse.Action):  # pylint: disable=too-few-public-methods
+    """ Show the argument as unrecognized if it is called """
 
     def __call__(self, parser, namespace, values, option_string=None):
         raise argparse.ArgumentError(None, 'unrecognized argument: {} {}'.format(
@@ -137,13 +188,15 @@ class IgnoreAction(argparse.Action):  # pylint: disable=too-few-public-methods
 
 
 class CaseInsensitiveList(list):
+    """ Determine if a choice is in a choice list in a case-insensitive manner """
 
     def __contains__(self, other):
         return next((True for x in self if other.lower() == x.lower()), False)
 
 
 def enum_choice_list(data):
-    """ Creates the argparse choices and type kwargs for a supplied enum type or list of strings. """
+    """ Creates the argparse choices and type kwargs for a supplied enum type or list of strings """
+
     # transform enum types, otherwise assume list of string choices
     if not data:
         return {}

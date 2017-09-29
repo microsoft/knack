@@ -17,6 +17,16 @@ CLI_LOGGER_NAME = 'cli'
 
 
 def get_logger(module_name=None):
+    """ Get the logger for a module. If no module name is given, the current CLI logger is returned.
+
+    Example:
+        get_logger(__name__)
+
+    :param module_name: The module to get the logger for
+    :type module_name: str
+    :return: The logger
+    :rtype: logger
+    """
     if module_name:
         logger_name = '{}.'.format(CLI_LOGGER_NAME) + module_name
     else:
@@ -93,6 +103,13 @@ class CLILogging(object):
             pass
 
     def __init__(self, name, cli_ctx=None):
+        """
+
+        :param name: The name to be used for log files
+        :type name: str
+        :param cli_ctx: CLI Context
+        :type cli_ctx: knack.cli.CLI
+        """
         from .cli import CLI
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
             raise CtxTypeError(cli_ctx)
@@ -106,6 +123,11 @@ class CLILogging(object):
         self.cli_ctx.register_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, CLILogging.remove_logger_flags)
 
     def configure(self, args):
+        """ Configure the loggers with the appropriate log level etc.
+
+        :param args: The arguments from the command line
+        :type args: list
+        """
         verbose_level = self._determine_verbose_level(args)
         log_level_config = self.console_log_configs[verbose_level]
         root_logger = logging.getLogger()

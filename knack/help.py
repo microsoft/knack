@@ -417,6 +417,15 @@ class HelpExample(object):  # pylint: disable=too-few-public-methods
 class CLIHelp(object):
 
     def __init__(self, cli_ctx=None, privacy_statement='', welcome_message=''):
+        """ Manages the generation and production of help in the CLI
+
+        :param cli_ctx: CLI Context
+        :type cli_ctx: knack.cli.CLI
+        :param privacy_statement: Privacy statement for the CLI
+        :type privacy_statement: str
+        :param welcome_message: A welcome message for the CLI
+        :type welcome_message: str
+        """
         from .cli import CLI
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
             raise CtxTypeError(cli_ctx)

@@ -14,11 +14,11 @@ class CLIQuery(object):
 
     @staticmethod
     def jmespath_type(raw_query):
-        '''Compile the query with JMESPath and return the compiled result.
+        """Compile the query with JMESPath and return the compiled result.
         JMESPath raises exceptions which subclass from ValueError.
         In addition though, JMESPath can raise a KeyError.
         ValueErrors are caught by argparse so argument errors can be generated.
-        '''
+        """
         from jmespath import compile as compile_jmespath
         try:
             return compile_jmespath(raw_query)
