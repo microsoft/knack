@@ -44,6 +44,12 @@ class CLICommandParser(argparse.ArgumentParser):
         return obj.add_argument(*options_list, **argparse_options)
 
     def __init__(self, cli_ctx=None, **kwargs):
+        """ Create the argument parser
+
+        :param cli_ctx: CLI Context
+        :type cli_ctx: knack.cli.CLI
+        :param kwargs: These kwargs are typically used by argparse when creating the subparsers
+        """
         from .cli import CLI
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
             raise CtxTypeError(cli_ctx)
@@ -58,6 +64,11 @@ class CLICommandParser(argparse.ArgumentParser):
         super(CLICommandParser, self).__init__(**kwargs)
 
     def load_command_table(self, cmd_tbl):
+        """ Process the command table and load it into the parser
+
+        :param cmd_tbl: A dictionary containing the commands
+        :type cmd_tbl: dict
+        """
         if not cmd_tbl:
             raise ValueError('The command table is empty. At least one command is required.')
         # If we haven't already added a subparser, we

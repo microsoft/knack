@@ -27,6 +27,29 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
     def __init__(self, cli_ctx, name, handler, description=None, table_transformer=None,
                  arguments_loader=None, description_loader=None,
                  formatter_class=None, deprecate_info=None, validator=None, **kwargs):
+        """ The command object that goes into the command table.
+
+        :param cli_ctx: CLI Context
+        :type cli_ctx: knack.cli.CLI
+        :param name: The name of the command (e.g. 'mygroup mycommand')
+        :type name: str
+        :param handler: The function that will handle this command
+        :type handler: function
+        :param description: The description for the command
+        :type description: str
+        :param table_transformer: A function that transforms the command output for displaying in a table
+        :type table_transformer: function
+        :param arguments_loader: The function that defines how the arguments for the command should be loaded
+        :type arguments_loader: function
+        :param description_loader: The function that defines how the description for the command should be loaded
+        :type description_loader: function
+        :param formatter_class: The formatter for how help should be displayed
+        :type formatter_class: class
+        :param deprecate_info: Command deprecation information
+        :type deprecate_info: str
+        :param validator: The command validator
+        :param kwargs: Extra kwargs that are currently ignored
+        """
         from .cli import CLI
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
             raise CtxTypeError(cli_ctx)
@@ -74,6 +97,13 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
 class CLICommandsLoader(object):
 
     def __init__(self, cli_ctx=None, command_cls=CLICommand):
+        """ The loader of commands. It contains the command table and argument registries.
+
+        :param cli_ctx: CLI Context
+        :type cli_ctx: knack.cli.CLI
+        :param command_cls: The command type that the command table will be populated with
+        :type command_cls: knack.commands.CLICommand
+        """
         from .cli import CLI
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
             raise CtxTypeError(cli_ctx)
@@ -86,10 +116,22 @@ class CLICommandsLoader(object):
         self.extra_argument_registry = defaultdict(lambda: {})
 
     def load_command_table(self, args):  # pylint: disable=unused-argument
+        """ Load commands into the command table
+
+        :param args: List of the arguments from the command line
+        :type args: list
+        :return: The ordered command table
+        :rtype: collections.OrderedDict
+        """
         self.cli_ctx.raise_event(EVENT_CMDLOADER_LOAD_COMMAND_TABLE, cmd_tbl=self.command_table)
         return OrderedDict(self.command_table)
 
     def load_arguments(self, command):
+        """ Load the arguments for the specified command
+
+        :param command: The command to load arguments for
+        :type command: str
+        """
         self.cli_ctx.raise_event(EVENT_CMDLOADER_LOAD_ARGUMENTS, cmd_tbl=self.command_table, command=command)
         try:
             self.command_table[command].load_arguments()
@@ -107,6 +149,7 @@ class CLICommandsLoader(object):
             command.update_argument(argument_name, self.argument_registry.get_cli_argument(command_name, argument_name))
 
     def create_command(self, module_name, name, operation, **kwargs):  # pylint: disable=unused-argument
+        """ Constructs the command object that can then be added to the command table """
         if not isinstance(operation, six.string_types):
             raise ValueError("Operation must be a string. Got '{}'".format(operation))
 
@@ -172,6 +215,21 @@ class CLICommandsLoader(object):
 
 class CommandSuperGroup(object):
     def __init__(self, module_name, command_loader, operations_tmpl, **kwargs):
+        """ Context manager for registering commands that share common properties.
+
+        Example:
+            with CommandSuperGroup(__name__, self, '__main__#{}') as sg:
+                with sg.group('hello') as g:
+                    g.command('world', 'hello_command_handler', confirmation=True)
+
+        :param module_name: The module this command comes from (e.g. '__name__')
+        :type module_name: str
+        :param command_loader: The command loader that commands will be registered into
+        :type command_loader: knack.commands.CLICommandsLoader
+        :param operations_tmpl: The template for handlers for this group of commands (e.g. '__main__#{}')
+        :type operations_tmpl: str
+        :param kwargs: Kwargs to apply to all commands in this super group
+        """
         self.module_name = module_name
         self.command_loader = command_loader
         self.operations_tmpl = operations_tmpl
@@ -184,6 +242,14 @@ class CommandSuperGroup(object):
         pass
 
     def group(self, group_name, **kwargs):
+        """ Creates a new group of commands that inherits from the super group.
+
+        :param group_name: The name of this group of commands in the command hierarchy
+        :type group_name: str
+        :param kwargs: Kwargs to apply to all commands in this group
+        :return: The created command group
+        :rtype: knack.commands.CommandGroup
+        """
         group_args = copy.deepcopy(self.super_group_kwargs)
         group_args.update(kwargs)
         return CommandGroup(self.module_name, self.command_loader, group_name, self.operations_tmpl, **group_args)
@@ -191,6 +257,18 @@ class CommandSuperGroup(object):
 
 class CommandGroup(object):
     def __init__(self, module_name, command_loader, group_name, operations_tmpl, **kwargs):
+        """ Context manager for registering commands that share common properties.
+
+        :param module_name: The module this command comes from (e.g. '__name__')
+        :type module_name: str
+        :param command_loader: The command loader that commands will be registered into
+        :type command_loader: knack.commands.CLICommandsLoader
+        :param group_name: The name of the group of commands in the command hierarchy
+        :type group_name: str
+        :param operations_tmpl: The template for handlers for this group of commands (e.g. '__main__#{}')
+        :type operations_tmpl: str
+        :param kwargs: Kwargs to apply to all commands in this group
+        """
         self.module_name = module_name
         self.command_loader = command_loader
         self.group_name = group_name
@@ -203,12 +281,20 @@ class CommandGroup(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def command(self, name, method_name, **kwargs):
+    def command(self, name, handler_name, **kwargs):
+        """ Register a command into the command table
+
+        :param name: The name of the command
+        :type name: str
+        :param handler_name: The name of the handler that will be applied to the operations template
+        :type handler_name: str
+        :param kwargs: Kwargs to apply to the command
+        """
         command_name = '{} {}'.format(self.group_name, name)
         command_kwargs = copy.deepcopy(self.group_kwargs)
         command_kwargs.update(kwargs)
         self.command_loader.command_table[command_name] = self.command_loader.create_command(
             self.module_name,
             command_name,
-            self.operations_tmpl.format(method_name),
+            self.operations_tmpl.format(handler_name),
             **command_kwargs)

@@ -33,7 +33,7 @@ class MyCommandsLoader(CLICommandsLoader):
             with sg.group('abc') as g:
                 g.command('list', 'abc_list_command_handler')
                 g.command('show', 'a_test_command_handler')
-        return OrderedDict(self.command_table)
+        return super(MyCommandsLoader, self).load_command_table(args)
 
     def load_arguments(self, command):
         with ArgumentsContext(self, 'hello world') as ac:

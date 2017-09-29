@@ -150,7 +150,6 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         :type event_name: str
         :param kwargs: Kwargs to be passed to all event handlers
         """
-        """ Raise an event. """
         handlers = list(self._event_handlers[event_name])
         logger.debug('Event: %s %s', event_name, handlers)
         for func in handlers:
@@ -173,7 +172,6 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         :return: The exit code of the invocation
         :rtype: int
         """
-        """  """
         if not isinstance(args, (list, tuple)):
             raise TypeError('args should be a list or tuple.')
         try:

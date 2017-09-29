@@ -25,6 +25,13 @@ class CLIConfig(object):
     _CONFIG_FILE_NAME = 'config'
 
     def __init__(self, config_dir=None, config_env_var_prefix=None):
+        """ Manages configuration options available in the CLI
+
+        :param config_dir: The directory to store config files
+        :type config_dir: str
+        :param config_env_var_prefix: The prefix for config environment variables
+        :type config_env_var_prefix: str
+        """
         config_dir = config_dir or CLIConfig._DEFAULT_CONFIG_DIR
         config_env_var_prefix = config_env_var_prefix or CLIConfig._DEFAULT_CONFIG_ENV_VAR_PREFIX
         self.config_parser = get_config_parser()

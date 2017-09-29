@@ -25,6 +25,19 @@ class CommandInvoker(object):
                  commands_loader_cls=CLICommandsLoader,
                  help_cls=CLIHelp,
                  initial_data=None):
+        """ Manages a single invocation of the CLI (i.e. running a command)
+
+        :param cli_ctx: CLI Context
+        :type cli_ctx: knack.cli.CLI
+        :param parser_cls: A class to handle command parsing
+        :type parser_cls: knack.parser.CLICommandParser
+        :param commands_loader_cls: A class to handle loading commands
+        :type commands_loader_cls: knack.commands.CLICommandsLoader
+        :param help_cls: A class to handle help
+        :type help_cls: knack.help.CLIHelp
+        :param initial_data: The initial in-memory collection for this command invocation
+        :type initial_data: dict
+        """
         from .cli import CLI
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
             raise CtxTypeError(cli_ctx)
@@ -90,6 +103,13 @@ class CommandInvoker(object):
             getattr(parsed_ns, '_parser', self.parser).validation_error(str(err))
 
     def execute(self, args):
+        """ Executes the command invocation
+
+        :param args: The command arguments for this invocation
+        :type args: list
+        :return: The command result
+        :rtype: knack.util.CommandResultItem
+        """
         self.cli_ctx.raise_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, args=args)
         cmd_tbl = self.commands_loader.load_command_table(args)
         command = self._rudimentary_get_command(args)

@@ -101,6 +101,11 @@ class OutputProducer(object):
         delattr(args, OutputProducer.ARG_DEST)
 
     def __init__(self, cli_ctx=None):
+        """ Manages the production of output from the result of a command invocation
+
+        :param cli_ctx: CLI Context
+        :type cli_ctx: knack.cli.CLI
+        """
         from .cli import CLI
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
             raise CtxTypeError(cli_ctx)
@@ -109,6 +114,16 @@ class OutputProducer(object):
         self.cli_ctx.register_event(EVENT_INVOKER_POST_PARSE_ARGS, OutputProducer.handle_output_argument)
 
     def out(self, obj, formatter=None, out_file=None):  # pylint: disable=no-self-use
+        """ Produces the output using the command result.
+            The method does not return a result as the output is written straight to the output file.
+
+        :param obj: The command result
+        :type obj: knack.util.CommandResultItem
+        :param formatter: The formatter we should use for the command result
+        :type formatter: function
+        :param out_file: The file to write output to
+        :type out_file: file-like object
+        """
         if not isinstance(obj, CommandResultItem):
             raise TypeError('Expected {} got {}'.format(CommandResultItem.__name__, type(obj)))
         import colorama
