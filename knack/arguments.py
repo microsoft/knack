@@ -20,7 +20,8 @@ class CLIArgumentType(object):
 
         :param overrides: The base argument that you are overriding
         :type overrides: knack.arguments.CLIArgumentType
-        :param kwargs: Kwargs for an argument (Argparse keywords can be used or you can add your own)
+        :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
+                       `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
         """
         if isinstance(overrides, str):
             raise ValueError("Overrides has to be a {} (cannot be a string)".format(CLIArgumentType.__name__))
@@ -145,11 +146,12 @@ class ArgumentsContext(object):
     def argument(self, argument_dest, arg_type=None, **kwargs):
         """ Register an argument for the given command scope using a knack.arguments.CLIArgumentType
 
-        :param argument_dest: Predefined CLIArgumentType definition to register, as modified by any provided kwargs.
+        :param argument_dest: The destination argument to add this argument type to
         :type argument_dest: str
-        :param arg_type: The argument type we are registering
+        :param arg_type: Predefined CLIArgumentType definition to register, as modified by any provided kwargs.
         :type arg_type: knack.arguments.CLIArgumentType
-        :param kwargs: Any argument type overrides that need to be applied
+        :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
+                       `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
         """
         self.command_loader.argument_registry.register_cli_argument(self.command_scope,
                                                                     argument_dest,
@@ -164,11 +166,17 @@ class ArgumentsContext(object):
         """
         self.argument(argument_dest, arg_type=ignore_type)
 
-    def extra(self, dest, **kwargs):
-        '''Register extra parameters for the given command. Typically used to augment auto-command built
+    def extra(self, argument_dest, **kwargs):
+        """Register extra parameters for the given command. Typically used to augment auto-command built
         commands to add more parameters than the specific SDK method introspected.
-        '''
-        self.command_loader.extra_argument_registry[self.command_scope][dest] = CLICommandArgument(dest, **kwargs)
+
+        :param argument_dest: The destination argument to add this argument type to
+        :type argument_dest: str
+        :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
+                       `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
+        """
+        self.command_loader.extra_argument_registry[self.command_scope][argument_dest] = CLICommandArgument(
+            argument_dest, **kwargs)
 
 
 class IgnoreAction(argparse.Action):  # pylint: disable=too-few-public-methods

@@ -228,7 +228,9 @@ class CommandSuperGroup(object):
         :type command_loader: knack.commands.CLICommandsLoader
         :param operations_tmpl: The template for handlers for this group of commands (e.g. '__main__#{}')
         :type operations_tmpl: str
-        :param kwargs: Kwargs to apply to all commands in this super group
+        :param kwargs: Kwargs to apply to all commands in this super group.
+                       Possible values: `client_factory`, `arguments_loader`, `description_loader`, `description`,
+                       `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`.
         """
         self.module_name = module_name
         self.command_loader = command_loader
@@ -246,7 +248,9 @@ class CommandSuperGroup(object):
 
         :param group_name: The name of this group of commands in the command hierarchy
         :type group_name: str
-        :param kwargs: Kwargs to apply to all commands in this group
+        :param kwargs: Kwargs to apply to all commands in this group.
+                       Possible values: `client_factory`, `arguments_loader`, `description_loader`, `description`,
+                       `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`.
         :return: The created command group
         :rtype: knack.commands.CommandGroup
         """
@@ -267,7 +271,9 @@ class CommandGroup(object):
         :type group_name: str
         :param operations_tmpl: The template for handlers for this group of commands (e.g. '__main__#{}')
         :type operations_tmpl: str
-        :param kwargs: Kwargs to apply to all commands in this group
+        :param kwargs: Kwargs to apply to all commands in this group.
+                       Possible values: `client_factory`, `arguments_loader`, `description_loader`, `description`,
+                       `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`.
         """
         self.module_name = module_name
         self.command_loader = command_loader
@@ -288,7 +294,9 @@ class CommandGroup(object):
         :type name: str
         :param handler_name: The name of the handler that will be applied to the operations template
         :type handler_name: str
-        :param kwargs: Kwargs to apply to the command
+        :param kwargs: Kwargs to apply to the command.
+                       Possible values: `client_factory`, `arguments_loader`, `description_loader`, `description`,
+                       `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`.
         """
         command_name = '{} {}'.format(self.group_name, name)
         command_kwargs = copy.deepcopy(self.group_kwargs)
