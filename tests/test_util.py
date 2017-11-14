@@ -5,7 +5,7 @@
 
 from collections import namedtuple
 import unittest
-import tempfile
+from datetime import date, time, datetime
 
 from knack.util import todict, to_snake_case
 
@@ -48,6 +48,24 @@ class TestUtils(unittest.TestCase):
         the_input = {'a': mo}
         actual = todict(the_input)
         expected = {'a': {'a': 'x', 'b': 'y'}}
+        self.assertEqual(actual, expected)
+
+    def test_application_todict_dict_with_date(self):
+        the_input = date(2017, 10, 13)
+        actual = todict(the_input)
+        expected = the_input.isoformat()
+        self.assertEqual(actual, expected)
+
+    def test_application_todict_dict_with_datetime(self):
+        the_input = datetime(2017, 10, 13, 1, 23, 45)
+        actual = todict(the_input)
+        expected = the_input.isoformat()
+        self.assertEqual(actual, expected)
+
+    def test_application_todict_dict_with_time(self):
+        the_input = time(1, 23, 45)
+        actual = todict(the_input)
+        expected = the_input.isoformat()
         self.assertEqual(actual, expected)
 
     def test_to_snake_case_from_camel(self):
