@@ -36,7 +36,9 @@ Usage
 
 .. code-block:: python
 
-    from knack import CLI, CLICommandsLoader, CLICommand
+    import sys
+    from collections import OrderedDict
+    from knack import CLI, CLICommandsLoader, CommandSuperGroup, ArgumentsContext
 
     def abc_list(myarg):
         import string
