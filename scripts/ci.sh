@@ -18,3 +18,6 @@ python -m unittest discover tests
 
 # Misc.
 python $scripts_root/license_verify.py
+
+# Does it build?
+python setup.py bdist_wheel
