@@ -6,7 +6,6 @@
 from __future__ import print_function
 
 import errno
-import platform
 import json
 import traceback
 from collections import OrderedDict
@@ -126,7 +125,10 @@ class OutputProducer(object):
         """
         if not isinstance(obj, CommandResultItem):
             raise TypeError('Expected {} got {}'.format(CommandResultItem.__name__, type(obj)))
+
+        import platform
         import colorama
+
         if platform.system() == 'Windows':
             out_file = colorama.AnsiToWin32(out_file).stream
         output = formatter(obj)
