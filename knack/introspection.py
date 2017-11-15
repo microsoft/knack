@@ -64,13 +64,9 @@ def option_descriptions(operation):
     return option_descs
 
 
-EXCLUDED_PARAMS = frozenset(['self', 'raw', 'custom_headers', 'operation_config',
-                             'content_version', 'kwargs', 'client'])
-
-
-def extract_args_from_signature(operation, no_wait_param=None):
+def extract_args_from_signature(operation, excluded_params=None):
     """ Extracts basic argument data from an operation's signature and docstring
-        no_wait_param: SDK parameter which disables LRO polling. For now it is 'raw'
+        excluded_params: List of params to ignore and not extract. By default we ignore ['self', 'kwargs'].
     """
     args = []
     try:
@@ -82,10 +78,7 @@ def extract_args_from_signature(operation, no_wait_param=None):
         args = sig.args
 
     arg_docstring_help = option_descriptions(operation)
-    excluded_params = list(EXCLUDED_PARAMS)
-    if no_wait_param in excluded_params:
-        excluded_params.remove(no_wait_param)
-    found_no_wait_param = False
+    excluded_params = excluded_params or ['self', 'kwargs']
 
     for arg_name in [a for a in args if a not in excluded_params]:
         try:
@@ -108,17 +101,8 @@ def extract_args_from_signature(operation, no_wait_param=None):
         except AttributeError:
             pass
 
-        # improve the naming to 'no_wait'
-        if arg_name == no_wait_param:
-            if not isinstance(default, bool):
-                raise ValueError("The type of '{}' must be boolean to enable no_wait".format(
-                    no_wait_param))
-            found_no_wait_param = True
-            options_list = ['--no-wait']
-            help_str = 'do not wait for the long running operation to finish'
-        else:
-            options_list = ['--' + arg_name.replace('_', '-')]
-            help_str = arg_docstring_help.get(arg_name)
+        options_list = ['--' + arg_name.replace('_', '-')]
+        help_str = arg_docstring_help.get(arg_name)
 
         yield (arg_name, CLICommandArgument(arg_name,
                                             options_list=options_list,
@@ -126,6 +110,3 @@ def extract_args_from_signature(operation, no_wait_param=None):
                                             default=default,
                                             help=help_str,
                                             action=action))
-    if no_wait_param and not found_no_wait_param:
-        raise ValueError("Command authoring error: unable to enable no-wait option. Operation '{}' "
-                         "does not have a '{}' parameter.".format(operation, no_wait_param))

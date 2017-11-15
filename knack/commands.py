@@ -96,19 +96,23 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
 
 class CLICommandsLoader(object):
 
-    def __init__(self, cli_ctx=None, command_cls=CLICommand):
+    def __init__(self, cli_ctx=None, command_cls=CLICommand, excluded_command_handler_args=None):
         """ The loader of commands. It contains the command table and argument registries.
 
         :param cli_ctx: CLI Context
         :type cli_ctx: knack.cli.CLI
         :param command_cls: The command type that the command table will be populated with
         :type command_cls: knack.commands.CLICommand
+        :param excluded_command_handler_args: List of params to ignore and not extract from a commands handler.
+                                              By default we ignore ['self', 'kwargs'].
+        :type excluded_command_handler_args: list of str
         """
         from .cli import CLI
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
             raise CtxTypeError(cli_ctx)
         self.cli_ctx = cli_ctx
         self.command_cls = command_cls
+        self.excluded_command_handler_args = excluded_command_handler_args
         # A command table is a dictionary of name -> CLICommand instances
         self.command_table = dict()
         # An argument registry stores all arguments for commands
@@ -171,7 +175,8 @@ class CLICommandsLoader(object):
             return result
 
         def arguments_loader():
-            return extract_args_from_signature(CLICommandsLoader.get_op_handler(operation))
+            return extract_args_from_signature(CLICommandsLoader.get_op_handler(operation),
+                                               excluded_params=self.excluded_command_handler_args)
 
         def description_loader():
             return extract_full_summary_from_signature(CLICommandsLoader.get_op_handler(operation))
