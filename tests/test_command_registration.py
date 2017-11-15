@@ -6,7 +6,7 @@
 import sys
 import unittest
 
-from knack.commands import CLICommandsLoader, CommandSuperGroup
+from knack.commands import CLICommandsLoader, CommandSuperGroup, CommandGroup
 from knack.arguments import CLIArgumentType, CLICommandArgument, ArgumentsContext
 from tests.util import MockContext
 
@@ -111,6 +111,16 @@ class TestCommandRegistration(unittest.TestCase):
                                                   command_metadata.arguments[existing].options)
             self.assertTrue(contains_subset)
         self.assertEqual(command_metadata.arguments['resource_name'].options_list, ['--resource-name'])
+
+    def test_register_command_group_with_no_group_name(self):
+        cl = CLICommandsLoader(self.mock_ctx)
+        command_name = 'sample-command'
+        with CommandGroup(__name__, cl, None, '{}#{{}}'.format(__name__)) as g:
+            g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                           TestCommandRegistration.sample_command_handler.__name__))
+
+        self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
+        self.assertIn(command_name, cl.command_table)
 
     def test_register_cli_argument_with_overrides(self):
         cl = CLICommandsLoader(self.mock_ctx)

@@ -298,7 +298,7 @@ class CommandGroup(object):
                        Possible values: `client_factory`, `arguments_loader`, `description_loader`, `description`,
                        `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`.
         """
-        command_name = '{} {}'.format(self.group_name, name)
+        command_name = '{} {}'.format(self.group_name, name) if self.group_name else name
         command_kwargs = copy.deepcopy(self.group_kwargs)
         command_kwargs.update(kwargs)
         self.command_loader.command_table[command_name] = self.command_loader.create_command(
