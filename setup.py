@@ -47,5 +47,8 @@ setup(
         'License :: OSI Approved :: MIT License',
     ],
     packages=find_packages(),
-    install_requires=DEPENDENCIES
+    install_requires=DEPENDENCIES,
+    extras_require={
+        ':python_version<"3.4"': ['enum34']
+    }
 )
