@@ -47,7 +47,8 @@ class CommandInvoker(object):
         self.data['command'] = 'unknown'
         self._global_parser = parser_cls.create_global_parser(cli_ctx=self.cli_ctx)
         self.help = help_cls(cli_ctx=self.cli_ctx)
-        self.parser = parser_cls(cli_ctx=self.cli_ctx, cli_help=self.help, prog=self.cli_ctx.name, parents=[self._global_parser])
+        self.parser = parser_cls(cli_ctx=self.cli_ctx, cli_help=self.help,
+                                 prog=self.cli_ctx.name, parents=[self._global_parser])
         self.commands_loader = commands_loader_cls(cli_ctx=self.cli_ctx)
 
     def _filter_params(self, args):  # pylint: disable=no-self-use
