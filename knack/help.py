@@ -15,17 +15,6 @@ from .help_files import _load_help_file
 FIRST_LINE_PREFIX = ': '
 
 
-def show_help(cli_name, nouns, parser, is_group):
-    delimiters = ' '.join(nouns)
-    help_file = CommandHelpFile(delimiters, parser) \
-        if not is_group \
-        else GroupHelpFile(delimiters, parser)
-    help_file.load(parser)
-    if not nouns:
-        help_file.command = ''
-    print_detailed_help(cli_name, help_file)
-
-
 def print_detailed_help(cli_name, help_file):
     _print_header(cli_name, help_file)
     if help_file.type == 'command':
@@ -448,3 +437,13 @@ class CLIHelp(object):
         self.show_welcome_message()
         help_file = GroupHelpFile('', parser)
         print_description_list(help_file.children)
+
+    def show_help(self, cli_name, nouns, parser, is_group):  # pylint: disable=no-self-use
+        delimiters = ' '.join(nouns)
+        help_file = CommandHelpFile(delimiters, parser) \
+            if not is_group \
+            else GroupHelpFile(delimiters, parser)
+        help_file.load(parser)
+        if not nouns:
+            help_file.command = ''
+        print_detailed_help(cli_name, help_file)

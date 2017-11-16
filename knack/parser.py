@@ -6,7 +6,6 @@
 import argparse
 
 from .events import EVENT_PARSER_GLOBAL_CREATE
-from .help import show_help
 from .util import CtxTypeError
 
 
@@ -43,7 +42,7 @@ class CLICommandParser(argparse.ArgumentParser):
         argparse_options = {name: value for name, value in arg.options.items() if name in ARGPARSE_SUPPORTED_KWARGS}
         return obj.add_argument(*options_list, **argparse_options)
 
-    def __init__(self, cli_ctx=None, **kwargs):
+    def __init__(self, cli_ctx=None, cli_help=None, **kwargs):
         """ Create the argument parser
 
         :param cli_ctx: CLI Context
@@ -54,6 +53,7 @@ class CLICommandParser(argparse.ArgumentParser):
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
             raise CtxTypeError(cli_ctx)
         self.cli_ctx = cli_ctx
+        self.cli_help = cli_help
         self.subparsers = {}
         self.parents = kwargs.get('parents', [])
         self.help_file = kwargs.pop('help_file', None)
@@ -91,7 +91,8 @@ class CLICommandParser(argparse.ArgumentParser):
                                                   parents=self.parents,
                                                   conflict_handler='error',
                                                   help_file=metadata.help,
-                                                  formatter_class=fc)
+                                                  formatter_class=fc,
+                                                  cli_help=self.cli_help)
 
             command_validator = metadata.validator
             argument_validators = []
@@ -135,7 +136,7 @@ class CLICommandParser(argparse.ArgumentParser):
                 # subcmd2 and so on), we know we can always back up one step and
                 # add a subparser if one doesn't exist
                 grandparent_subparser = self.subparsers[tuple(path[0:length - 1])]
-                new_parser = grandparent_subparser.add_parser(path[length - 1])
+                new_parser = grandparent_subparser.add_parser(path[length - 1], cli_help=self.cli_help)
 
                 # Due to http://bugs.python.org/issue9253, we have to give the subparser
                 # a destination and set it to required in order to get a meaningful error
@@ -168,8 +169,12 @@ class CLICommandParser(argparse.ArgumentParser):
 
     def format_help(self):
         is_group = self.is_group()
-        show_help(self.prog.split()[0],
-                  self.prog.split()[1:],
-                  self._actions[-1] if is_group else self,
-                  is_group)
+        try:
+            self.cli_help.show_help(self.prog.split()[0],
+                                    self.prog.split()[1:],
+                                    self._actions[-1] if is_group else self,
+                                    is_group)
+        except AttributeError:
+            # If we're not given a help object, we use argparse help printer
+            print(super(CLICommandParser, self).format_help())
         self.exit()
