@@ -167,7 +167,7 @@ class CLICommandsLoader(object):
             command.arguments[argument_name] = argument_definition
             command.update_argument(argument_name, self.argument_registry.get_cli_argument(command_name, argument_name))
 
-    def create_command(self, module_name, name, operation, **kwargs):  # pylint: disable=unused-argument
+    def create_command(self, name, operation, **kwargs):
         """ Constructs the command object that can then be added to the command table """
         if not isinstance(operation, six.string_types):
             raise ValueError("Operation must be a string. Got '{}'".format(operation))
@@ -177,17 +177,17 @@ class CLICommandsLoader(object):
         client_factory = kwargs.get('client_factory', None)
 
         def _command_handler(command_args):
-            op = CLICommandsLoader.get_op_handler(operation)
+            op = CLICommandsLoader._get_op_handler(operation)
             client = client_factory(command_args) if client_factory else None
             result = op(client, **command_args) if client else op(**command_args)
             return result
 
         def arguments_loader():
-            return list(extract_args_from_signature(CLICommandsLoader.get_op_handler(operation),
+            return list(extract_args_from_signature(CLICommandsLoader._get_op_handler(operation),
                                                     excluded_params=self.excluded_command_handler_args))
 
         def description_loader():
-            return extract_full_summary_from_signature(CLICommandsLoader.get_op_handler(operation))
+            return extract_full_summary_from_signature(CLICommandsLoader._get_op_handler(operation))
 
         kwargs['arguments_loader'] = arguments_loader
         kwargs['description_loader'] = description_loader
@@ -196,7 +196,7 @@ class CLICommandsLoader(object):
         return cmd
 
     @staticmethod
-    def get_op_handler(operation):
+    def _get_op_handler(operation):
         """ Import and load the operation handler """
         try:
             mod_to_import, attr_path = operation.split('#')
@@ -210,7 +210,7 @@ class CLICommandsLoader(object):
             raise ValueError("The operation '{}' is invalid.".format(operation))
 
     @staticmethod
-    def user_confirmed(confirmation, command_args):
+    def _user_confirmed(confirmation, command_args):
         if callable(confirmation):
             return confirmation(command_args)
         try:
@@ -222,58 +222,10 @@ class CLICommandsLoader(object):
             return False
 
 
-class CommandSuperGroup(object):
-    def __init__(self, module_name, command_loader, operations_tmpl, **kwargs):
-        """ Context manager for registering commands that share common properties.
-
-        Example:
-            with CommandSuperGroup(__name__, self, '__main__#{}') as sg:
-                with sg.group('hello') as g:
-                    g.command('world', 'hello_command_handler', confirmation=True)
-
-        :param module_name: The module this command comes from (e.g. '__name__')
-        :type module_name: str
-        :param command_loader: The command loader that commands will be registered into
-        :type command_loader: knack.commands.CLICommandsLoader
-        :param operations_tmpl: The template for handlers for this group of commands (e.g. '__main__#{}')
-        :type operations_tmpl: str
-        :param kwargs: Kwargs to apply to all commands in this super group.
-                       Possible values: `client_factory`, `arguments_loader`, `description_loader`, `description`,
-                       `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`.
-        """
-        self.module_name = module_name
-        self.command_loader = command_loader
-        self.operations_tmpl = operations_tmpl
-        self.super_group_kwargs = kwargs
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-
-    def group(self, group_name, **kwargs):
-        """ Creates a new group of commands that inherits from the super group.
-
-        :param group_name: The name of this group of commands in the command hierarchy
-        :type group_name: str
-        :param kwargs: Kwargs to apply to all commands in this group.
-                       Possible values: `client_factory`, `arguments_loader`, `description_loader`, `description`,
-                       `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`.
-        :return: The created command group
-        :rtype: knack.commands.CommandGroup
-        """
-        group_args = copy.deepcopy(self.super_group_kwargs)
-        group_args.update(kwargs)
-        return CommandGroup(self.module_name, self.command_loader, group_name, self.operations_tmpl, **group_args)
-
-
 class CommandGroup(object):
-    def __init__(self, module_name, command_loader, group_name, operations_tmpl, **kwargs):
+    def __init__(self, command_loader, group_name, operations_tmpl, **kwargs):
         """ Context manager for registering commands that share common properties.
 
-        :param module_name: The module this command comes from (e.g. '__name__')
-        :type module_name: str
         :param command_loader: The command loader that commands will be registered into
         :type command_loader: knack.commands.CLICommandsLoader
         :param group_name: The name of the group of commands in the command hierarchy
@@ -284,7 +236,6 @@ class CommandGroup(object):
                        Possible values: `client_factory`, `arguments_loader`, `description_loader`, `description`,
                        `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`.
         """
-        self.module_name = module_name
         self.command_loader = command_loader
         self.group_name = group_name
         self.operations_tmpl = operations_tmpl
@@ -311,7 +262,6 @@ class CommandGroup(object):
         command_kwargs = copy.deepcopy(self.group_kwargs)
         command_kwargs.update(kwargs)
         self.command_loader.command_table[command_name] = self.command_loader.create_command(
-            self.module_name,
             command_name,
             self.operations_tmpl.format(handler_name),
             **command_kwargs)
