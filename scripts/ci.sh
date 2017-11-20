@@ -15,6 +15,7 @@ flake8 --statistics --append-config=.flake8 knack
 
 # Tests
 python -m unittest discover tests
+python ./examples/test_exapp
 
 # Misc.
 python $scripts_root/license_verify.py
