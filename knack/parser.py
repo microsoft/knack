@@ -169,12 +169,8 @@ class CLICommandParser(argparse.ArgumentParser):
 
     def format_help(self):
         is_group = self.is_group()
-        try:
-            self.cli_help.show_help(self.prog.split()[0],
-                                    self.prog.split()[1:],
-                                    self._actions[-1] if is_group else self,
-                                    is_group)
-        except AttributeError:
-            # If we're not given a help object, we use argparse help printer
-            print(super(CLICommandParser, self).format_help())
+        self.cli_help.show_help(self.prog.split()[0],
+                                self.prog.split()[1:],
+                                self._actions[-1] if is_group else self,
+                                is_group)
         self.exit()
