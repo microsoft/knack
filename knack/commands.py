@@ -26,7 +26,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
     # pylint: disable=unused-argument
     def __init__(self, cli_ctx, name, handler, description=None, table_transformer=None,
                  arguments_loader=None, description_loader=None,
-                 formatter_class=None, deprecate_info=None, validator=None, **kwargs):
+                 formatter_class=None, deprecate_info=None, validator=None, confirmation=None, **kwargs):
         """ The command object that goes into the command table.
 
         :param cli_ctx: CLI Context
@@ -48,6 +48,8 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         :param deprecate_info: Deprecation message to display when this command is invoked
         :type deprecate_info: str
         :param validator: The command validator
+        :param confirmation: User confirmation required for command
+        :type confirmation: bool, str, callable
         :param kwargs: Extra kwargs that are currently ignored
         """
         from .cli import CLI
@@ -63,6 +65,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         self.table_transformer = table_transformer
         self.formatter_class = formatter_class
         self.deprecate_info = deprecate_info
+        self.confirmation = confirmation
         self.validator = validator
 
     def should_load_description(self):
@@ -70,7 +73,12 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
 
     def load_arguments(self):
         if self.arguments_loader:
-            self.arguments.update(self.arguments_loader())
+            cmd_args = self.arguments_loader()
+            if self.confirmation:
+                cmd_args.append(('yes',
+                                 CLICommandArgument(dest='yes', options_list=['--yes', '-y'],
+                                                    action='store_true', help='Do not prompt for confirmation.')))
+            self.arguments.update(cmd_args)
 
     def add_argument(self, param_name, *option_strings, **kwargs):
         dest = kwargs.pop('dest', None)
@@ -79,18 +87,25 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
 
     def update_argument(self, param_name, argtype):
         arg = self.arguments[param_name]
-        # self._resolve_default_value_from_cfg_file(arg, argtype)
         arg.type.update(other=argtype)
 
     def execute(self, **kwargs):
         return self(**kwargs)
 
     def __call__(self, *args, **kwargs):
+        cmd_args = args[0]
         if self.deprecate_info is not None:
             text = 'This command is deprecating and will be removed in future releases.'
             if self.deprecate_info:
                 text += " Use '{}' instead.".format(self.deprecate_info)
             logger.warning(text)
+
+        confirm = self.confirmation and not cmd_args.pop('yes', None) \
+            and not self.cli_ctx.config.getboolean('core', 'disable_confirm_prompt', fallback=False)
+
+        if confirm and not CLICommandsLoader.user_confirmed(self.confirmation, cmd_args):
+            self.cli_ctx.raise_event(EVENT_COMMAND_CANCELLED, command=self.name, command_args=cmd_args)
+            raise CLIError('Operation cancelled.')
         return self.handler(*args, **kwargs)
 
 
@@ -159,24 +174,17 @@ class CLICommandsLoader(object):
 
         name = ' '.join(name.split())
 
-        confirmation = kwargs.get('confirmation', False)
         client_factory = kwargs.get('client_factory', None)
 
         def _command_handler(command_args):
-            if confirmation \
-                and not command_args.get('_confirm_yes') \
-                and not self.cli_ctx.config.getboolean('core', 'disable_confirm_prompt', fallback=False) \
-                    and not CLICommandsLoader.user_confirmed(confirmation, command_args):
-                self.cli_ctx.raise_event(EVENT_COMMAND_CANCELLED, command=name, command_args=command_args)
-                raise CLIError('Operation cancelled.')
             op = CLICommandsLoader.get_op_handler(operation)
             client = client_factory(command_args) if client_factory else None
             result = op(client, **command_args) if client else op(**command_args)
             return result
 
         def arguments_loader():
-            return extract_args_from_signature(CLICommandsLoader.get_op_handler(operation),
-                                               excluded_params=self.excluded_command_handler_args)
+            return list(extract_args_from_signature(CLICommandsLoader.get_op_handler(operation),
+                                                    excluded_params=self.excluded_command_handler_args))
 
         def description_loader():
             return extract_full_summary_from_signature(CLICommandsLoader.get_op_handler(operation))
@@ -185,10 +193,6 @@ class CLICommandsLoader(object):
         kwargs['description_loader'] = description_loader
 
         cmd = self.command_cls(self.cli_ctx, name, _command_handler, **kwargs)
-        if confirmation:
-            cmd.add_argument('yes', '--yes', '-y', dest='_confirm_yes',
-                             action='store_true',
-                             help='Do not prompt for confirmation')
         return cmd
 
     @staticmethod

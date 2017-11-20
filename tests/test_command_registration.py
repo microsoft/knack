@@ -137,6 +137,38 @@ class TestCommandRegistration(unittest.TestCase):
         self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
         self.assertIn(command_name, cl.command_table)
 
+    def test_register_command_confirmation_bool(self):
+        cl = CLICommandsLoader(self.mock_ctx)
+        command_name = 'test sample-command'
+        with CommandSuperGroup(__name__, cl, '{}#{{}}'.format(__name__)) as sg:
+            with sg.group('test') as g:
+                g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                           TestCommandRegistration.sample_command_handler.__name__),
+                          confirmation=True)
+        self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
+        cl.load_arguments(command_name)
+        command_metadata = cl.command_table[command_name]
+        self.assertIn('yes', command_metadata.arguments)
+        self.assertEqual(command_metadata.arguments['yes'].type.settings['action'], 'store_true')
+        self.assertIs(command_metadata.confirmation, True)
+
+    def test_register_command_confirmation_callable(self):
+        cl = CLICommandsLoader(self.mock_ctx)
+        def confirm_callable(_):
+            pass
+        command_name = 'test sample-command'
+        with CommandSuperGroup(__name__, cl, '{}#{{}}'.format(__name__)) as sg:
+            with sg.group('test') as g:
+                g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                           TestCommandRegistration.sample_command_handler.__name__),
+                          confirmation=confirm_callable)
+        self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
+        cl.load_arguments(command_name)
+        command_metadata = cl.command_table[command_name]
+        self.assertIn('yes', command_metadata.arguments)
+        self.assertEqual(command_metadata.arguments['yes'].type.settings['action'], 'store_true')
+        self.assertIs(command_metadata.confirmation, confirm_callable)
+
     def test_register_cli_argument_with_overrides(self):
         cl = CLICommandsLoader(self.mock_ctx)
         global_vm_name_type = CLIArgumentType(
