@@ -29,8 +29,7 @@ class TestCommandRegistration(unittest.TestCase):
         self.mock_ctx = MockContext()
 
     @staticmethod
-    def sample_command_handler(group_name, resource_name, opt_param=None, expand=None, custom_headers=None,
-                               raw=False, **operation_config):
+    def sample_command_handler(group_name, resource_name, opt_param=None, expand=None):
         """
         The operation to get a virtual machine.
 
@@ -46,11 +45,13 @@ class TestCommandRegistration(unittest.TestCase):
         :param dict custom_headers: headers that will be added to the request
         :param boolean raw: returns the direct response alongside the
             deserialized response
-        :rtype: VirtualMachine
-        :rtype: msrest.pipeline.ClientRawResponse if raw=True
         """
         pass
 
+    @staticmethod
+    def sample_command_handler2(group_name, resource_name, opt_param=None, expand=None, custom_headers=None,
+                                raw=False, **operation_config):
+        pass
 
 
     def test_register_cli_argument(self):
@@ -79,6 +80,20 @@ class TestCommandRegistration(unittest.TestCase):
                                                   command_metadata.arguments[existing].options)
             self.assertTrue(contains_subset)
         self.assertEqual(command_metadata.arguments['resource_name'].options_list, ('--wonky-name', '-n'))
+
+    def test_register_command_custom_excluded_params(self):
+        command_name = 'test sample-command'
+        ep = ['self', 'raw', 'custom_headers', 'operation_config', 'content_version', 'kwargs', 'client']
+        cl = CLICommandsLoader(self.mock_ctx, excluded_command_handler_args=ep)
+        with CommandGroup(__name__, cl, 'test', '{}#{{}}'.format(__name__)) as g:
+            g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                           TestCommandRegistration.sample_command_handler2.__name__))
+        self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
+        cl.load_arguments(command_name)
+        command_metadata = cl.command_table[command_name]
+        self.assertEqual(len(command_metadata.arguments), 4, 'We expected exactly 4 arguments')
+        self.assertIn(command_name, cl.command_table)
+
 
     def test_register_command(self):
         cl = CLICommandsLoader(self.mock_ctx)
