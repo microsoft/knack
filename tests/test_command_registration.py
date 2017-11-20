@@ -86,7 +86,7 @@ class TestCommandRegistration(unittest.TestCase):
         cl = CLICommandsLoader(self.mock_ctx, excluded_command_handler_args=ep)
         with CommandGroup(cl, 'test', '{}#{{}}'.format(__name__)) as g:
             g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler2.__name__))
+                                                       TestCommandRegistration.sample_command_handler2.__name__))
         self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
         cl.load_arguments(command_name)
         command_metadata = cl.command_table[command_name]
@@ -130,7 +130,7 @@ class TestCommandRegistration(unittest.TestCase):
         command_name = 'sample-command'
         with CommandGroup(cl, None, '{}#{{}}'.format(__name__)) as g:
             g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler.__name__))
+                                                       TestCommandRegistration.sample_command_handler.__name__))
 
         self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
         self.assertIn(command_name, cl.command_table)
@@ -176,11 +176,11 @@ class TestCommandRegistration(unittest.TestCase):
                                                help='first modification')
         with CommandGroup(cl, 'test', '{}#{{}}'.format(__name__)) as g:
             g.command('sample-get', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                        TestCommandRegistration.sample_command_handler.__name__))
+                                                   TestCommandRegistration.sample_command_handler.__name__))
             g.command('command sample-get-1', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                        TestCommandRegistration.sample_command_handler.__name__))
+                                                             TestCommandRegistration.sample_command_handler.__name__))
             g.command('command sample-get-2', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                        TestCommandRegistration.sample_command_handler.__name__))
+                                                             TestCommandRegistration.sample_command_handler.__name__))
         with ArgumentsContext(cl, 'test') as ac:
             ac.argument('resource_name', global_vm_name_type)
         with ArgumentsContext(cl, 'test command') as ac:
