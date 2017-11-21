@@ -6,7 +6,7 @@
 import sys
 import unittest
 
-from knack.commands import CLICommandsLoader, CommandSuperGroup, CommandGroup
+from knack.commands import CLICommandsLoader, CommandGroup
 from knack.arguments import CLIArgumentType, CLICommandArgument, ArgumentsContext
 from tests.util import MockContext
 
@@ -57,10 +57,9 @@ class TestCommandRegistration(unittest.TestCase):
     def test_register_cli_argument(self):
         cl = CLICommandsLoader(self.mock_ctx)
         command_name = 'test register sample-command'
-        with CommandSuperGroup(__name__, cl, '{}#{{}}'.format(__name__)) as sg:
-            with sg.group('test register') as g:
-                g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler.__name__))
+        with CommandGroup(cl, 'test register', '{}#{{}}'.format(__name__)) as g:
+            g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                       TestCommandRegistration.sample_command_handler.__name__))
         with ArgumentsContext(cl, command_name) as ac:
             ac.argument('resource_name', CLIArgumentType(
             options_list=('--wonky-name', '-n'), metavar='RNAME', help='Completely WONKY name...',
@@ -85,9 +84,9 @@ class TestCommandRegistration(unittest.TestCase):
         command_name = 'test sample-command'
         ep = ['self', 'raw', 'custom_headers', 'operation_config', 'content_version', 'kwargs', 'client']
         cl = CLICommandsLoader(self.mock_ctx, excluded_command_handler_args=ep)
-        with CommandGroup(__name__, cl, 'test', '{}#{{}}'.format(__name__)) as g:
+        with CommandGroup(cl, 'test', '{}#{{}}'.format(__name__)) as g:
             g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler2.__name__))
+                                                       TestCommandRegistration.sample_command_handler2.__name__))
         self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
         cl.load_arguments(command_name)
         command_metadata = cl.command_table[command_name]
@@ -98,10 +97,9 @@ class TestCommandRegistration(unittest.TestCase):
     def test_register_command(self):
         cl = CLICommandsLoader(self.mock_ctx)
         command_name = 'test register sample-command'
-        with CommandSuperGroup(__name__, cl, '{}#{{}}'.format(__name__)) as sg:
-            with sg.group('test register') as g:
-                g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler.__name__))
+        with CommandGroup(cl, 'test register', '{}#{{}}'.format(__name__)) as g:
+            g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                       TestCommandRegistration.sample_command_handler.__name__))
 
         self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
         cl.load_arguments(command_name)
@@ -130,9 +128,9 @@ class TestCommandRegistration(unittest.TestCase):
     def test_register_command_group_with_no_group_name(self):
         cl = CLICommandsLoader(self.mock_ctx)
         command_name = 'sample-command'
-        with CommandGroup(__name__, cl, None, '{}#{{}}'.format(__name__)) as g:
+        with CommandGroup(cl, None, '{}#{{}}'.format(__name__)) as g:
             g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler.__name__))
+                                                       TestCommandRegistration.sample_command_handler.__name__))
 
         self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
         self.assertIn(command_name, cl.command_table)
@@ -140,11 +138,10 @@ class TestCommandRegistration(unittest.TestCase):
     def test_register_command_confirmation_bool(self):
         cl = CLICommandsLoader(self.mock_ctx)
         command_name = 'test sample-command'
-        with CommandSuperGroup(__name__, cl, '{}#{{}}'.format(__name__)) as sg:
-            with sg.group('test') as g:
-                g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler.__name__),
-                          confirmation=True)
+        with CommandGroup(cl, 'test', '{}#{{}}'.format(__name__)) as g:
+            g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                       TestCommandRegistration.sample_command_handler.__name__),
+                      confirmation=True)
         self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
         cl.load_arguments(command_name)
         command_metadata = cl.command_table[command_name]
@@ -157,11 +154,10 @@ class TestCommandRegistration(unittest.TestCase):
         def confirm_callable(_):
             pass
         command_name = 'test sample-command'
-        with CommandSuperGroup(__name__, cl, '{}#{{}}'.format(__name__)) as sg:
-            with sg.group('test') as g:
-                g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler.__name__),
-                          confirmation=confirm_callable)
+        with CommandGroup(cl, 'test', '{}#{{}}'.format(__name__)) as g:
+            g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                       TestCommandRegistration.sample_command_handler.__name__),
+                      confirmation=confirm_callable)
         self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
         cl.load_arguments(command_name)
         command_metadata = cl.command_table[command_name]
@@ -176,14 +172,13 @@ class TestCommandRegistration(unittest.TestCase):
         )
         derived_vm_name_type = CLIArgumentType(base_type=global_vm_name_type,
                                                help='first modification')
-        with CommandSuperGroup(__name__, cl, '{}#{{}}'.format(__name__)) as sg:
-            with sg.group('test') as g:
-                g.command('sample-get', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler.__name__))
-                g.command('command sample-get-1', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler.__name__))
-                g.command('command sample-get-2', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler.__name__))
+        with CommandGroup(cl, 'test', '{}#{{}}'.format(__name__)) as g:
+            g.command('sample-get', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                   TestCommandRegistration.sample_command_handler.__name__))
+            g.command('command sample-get-1', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                             TestCommandRegistration.sample_command_handler.__name__))
+            g.command('command sample-get-2', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                             TestCommandRegistration.sample_command_handler.__name__))
         with ArgumentsContext(cl, 'test') as ac:
             ac.argument('resource_name', global_vm_name_type)
         with ArgumentsContext(cl, 'test command') as ac:
@@ -204,10 +199,9 @@ class TestCommandRegistration(unittest.TestCase):
     def test_register_extra_cli_argument(self):
         cl = CLICommandsLoader(self.mock_ctx)
         command_name = 'test register sample-command'
-        with CommandSuperGroup(__name__, cl, '{}#{{}}'.format(__name__)) as sg:
-            with sg.group('test register') as g:
-                g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler.__name__))
+        with CommandGroup(cl, 'test register', '{}#{{}}'.format(__name__)) as g:
+            g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                       TestCommandRegistration.sample_command_handler.__name__))
         with ArgumentsContext(cl, command_name) as ac:
             ac.extra('added_param', options_list=('--added-param',),
                      metavar='ADDED', help='Just added this right now!', required=True)
@@ -246,9 +240,8 @@ class TestCommandRegistration(unittest.TestCase):
         command_name = 'test command foo'
         setattr(sys.modules[__name__], sample_sdk_method_with_weird_docstring.__name__,
                 sample_sdk_method_with_weird_docstring)
-        with CommandSuperGroup(__name__, cl, '{}#{{}}'.format(__name__)) as sg:
-            with sg.group('test command') as g:
-                g.command('foo', sample_sdk_method_with_weird_docstring.__name__)
+        with CommandGroup(cl, 'test command', '{}#{{}}'.format(__name__)) as g:
+            g.command('foo', sample_sdk_method_with_weird_docstring.__name__)
         cl.load_arguments(command_name)
         command_metadata = cl.command_table[command_name]
         self.assertEqual(len(command_metadata.arguments), 3, 'We expected exactly 3 arguments')
@@ -295,9 +288,8 @@ class TestCommandRegistration(unittest.TestCase):
         cl = CLICommandsLoader(self.mock_ctx)
         command_name = 'override_using_register_cli_argument foo'
         setattr(sys.modules[__name__], sample_sdk_method.__name__, sample_sdk_method)
-        with CommandSuperGroup(__name__, cl, '{}#{{}}'.format(__name__)) as sg:
-            with sg.group('override_using_register_cli_argument') as g:
-                g.command('foo', sample_sdk_method.__name__)
+        with CommandGroup(cl, 'override_using_register_cli_argument', '{}#{{}}'.format(__name__)) as g:
+            g.command('foo', sample_sdk_method.__name__)
         with ArgumentsContext(cl, 'override_using_register_cli_argument') as ac:
             ac.argument('param_a',
                                  options_list=('--overridden', '-r'),

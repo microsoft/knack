@@ -7,7 +7,7 @@ import sys
 from collections import OrderedDict
 
 from knack import CLI
-from knack.commands import CLICommandsLoader, CommandSuperGroup
+from knack.commands import CLICommandsLoader, CommandGroup
 from knack.arguments import ArgumentsContext
 from knack.help import CLIHelp
 
@@ -61,10 +61,9 @@ class MyCLIHelp(CLIHelp):
 class MyCommandsLoader(CLICommandsLoader):
 
     def load_command_table(self, args):
-        with CommandSuperGroup(__name__, self, '__main__#{}') as sg:
-            with sg.group('hello') as g:
-                g.command('world', 'hello_command_handler', confirmation=True)
-            with sg.group('abc') as g:
+        with CommandGroup(self, 'hello', '__main__#{}') as g:
+            g.command('world', 'hello_command_handler', confirmation=True)
+        with CommandGroup(self, 'abc', '__main__#{}') as g:
                 g.command('list', 'abc_list_command_handler')
                 g.command('show', 'a_test_command_handler')
         return super(MyCommandsLoader, self).load_command_table(args)

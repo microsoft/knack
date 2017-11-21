@@ -4,8 +4,8 @@
 # --------------------------------------------------------------------------------------------
 
 from .cli import CLI
-from .commands import CLICommandsLoader, CLICommand, CommandSuperGroup
+from .commands import CLICommandsLoader, CLICommand
 from .arguments import ArgumentsContext
 from .help import CLIHelp
 
-__all__ = ['CLI', 'CLICommandsLoader', 'CLICommand', 'CommandSuperGroup', 'CLIHelp', 'ArgumentsContext']
+__all__ = ['CLI', 'CLICommandsLoader', 'CLICommand', 'CLIHelp', 'ArgumentsContext']
