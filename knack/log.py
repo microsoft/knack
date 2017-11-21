@@ -4,11 +4,8 @@
 # --------------------------------------------------------------------------------------------
 
 import os
-import platform
 import logging
 from logging.handlers import RotatingFileHandler
-
-import colorama
 
 from .util import CtxTypeError, ensure_dir
 from .events import EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_PARSER_GLOBAL_CREATE
@@ -35,19 +32,27 @@ def get_logger(module_name=None):
 
 
 class _CustomStreamHandler(logging.StreamHandler):
+    COLOR_MAP = None
 
-    def _color_wrapper(color_marker):  # pylint: disable=no-self-argument
-        def wrap_msg_with_color(msg):
-            return color_marker + msg + colorama.Style.RESET_ALL
-        return wrap_msg_with_color
+    @classmethod
+    def get_color_wrapper(cls, level):
+        if not cls.COLOR_MAP:
+            import colorama
 
-    COLOR_MAP = {
-        logging.CRITICAL: _color_wrapper(colorama.Fore.RED),
-        logging.ERROR: _color_wrapper(colorama.Fore.RED),
-        logging.WARNING: _color_wrapper(colorama.Fore.YELLOW),
-        logging.INFO: _color_wrapper(colorama.Fore.GREEN),
-        logging.DEBUG: _color_wrapper(colorama.Fore.CYAN)
-    }
+            def _color_wrapper(color_marker):
+                def wrap_msg_with_color(msg):
+                    return color_marker + msg + colorama.Style.RESET_ALL
+                return wrap_msg_with_color
+
+            cls.COLOR_MAP = {
+                logging.CRITICAL: _color_wrapper(colorama.Fore.RED),
+                logging.ERROR: _color_wrapper(colorama.Fore.RED),
+                logging.WARNING: _color_wrapper(colorama.Fore.YELLOW),
+                logging.INFO: _color_wrapper(colorama.Fore.GREEN),
+                logging.DEBUG: _color_wrapper(colorama.Fore.CYAN)
+            }
+
+        return cls.COLOR_MAP.get(level, None)
 
     def _should_enable_color(self):
         try:
@@ -59,6 +64,9 @@ class _CustomStreamHandler(logging.StreamHandler):
         return False
 
     def __init__(self, log_level_config, log_format):
+        import platform
+        import colorama
+
         logging.StreamHandler.__init__(self)
         self.setLevel(log_level_config)
         if platform.system() == 'Windows':
@@ -70,7 +78,7 @@ class _CustomStreamHandler(logging.StreamHandler):
         msg = logging.StreamHandler.format(self, record)
         if self.enable_color:
             try:
-                msg = _CustomStreamHandler.COLOR_MAP[record.levelno](msg)
+                msg = self.get_color_wrapper(record.levelno)(msg)
             except KeyError:
                 pass
         return msg

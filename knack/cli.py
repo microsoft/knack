@@ -5,7 +5,6 @@
 
 from __future__ import print_function
 import sys
-import platform
 from collections import defaultdict
 
 from .invocation import CommandInvoker
@@ -106,6 +105,8 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         :return: Runtime information
         :rtype: str
         """
+        import platform
+
         version_info = '\n\n'
         version_info += 'Python ({}) {}'.format(platform.system(), sys.version)
         version_info += '\n\n'
