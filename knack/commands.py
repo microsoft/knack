@@ -103,10 +103,22 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         confirm = self.confirmation and not cmd_args.pop('yes', None) \
             and not self.cli_ctx.config.getboolean('core', 'disable_confirm_prompt', fallback=False)
 
-        if confirm and not CLICommandsLoader.user_confirmed(self.confirmation, cmd_args):
+        if confirm and not self._user_confirmed(self.confirmation, cmd_args):
             self.cli_ctx.raise_event(EVENT_COMMAND_CANCELLED, command=self.name, command_args=cmd_args)
             raise CLIError('Operation cancelled.')
         return self.handler(*args, **kwargs)
+
+    @staticmethod
+    def _user_confirmed(confirmation, command_args):
+        if callable(confirmation):
+            return confirmation(command_args)
+        try:
+            if isinstance(confirmation, six.string_types):
+                return prompt_y_n(confirmation)
+            return prompt_y_n('Are you sure you want to perform this operation?')
+        except NoTTYException:
+            logger.warning('Unable to prompt for confirmation as no tty available. Use --yes.')
+            return False
 
 
 class CLICommandsLoader(object):
@@ -208,18 +220,6 @@ class CLICommandsLoader(object):
             return six.get_method_function(op)
         except (ValueError, AttributeError):
             raise ValueError("The operation '{}' is invalid.".format(operation))
-
-    @staticmethod
-    def _user_confirmed(confirmation, command_args):
-        if callable(confirmation):
-            return confirmation(command_args)
-        try:
-            if isinstance(confirmation, six.string_types):
-                return prompt_y_n(confirmation)
-            return prompt_y_n('Are you sure you want to perform this operation?')
-        except NoTTYException:
-            logger.warning('Unable to prompt for confirmation as no tty available. Use --yes.')
-            return False
 
 
 class CommandGroup(object):

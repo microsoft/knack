@@ -138,11 +138,10 @@ class TestCommandRegistration(unittest.TestCase):
     def test_register_command_confirmation_bool(self):
         cl = CLICommandsLoader(self.mock_ctx)
         command_name = 'test sample-command'
-        with CommandSuperGroup(__name__, cl, '{}#{{}}'.format(__name__)) as sg:
-            with sg.group('test') as g:
-                g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler.__name__),
-                          confirmation=True)
+        with CommandGroup(cl, 'test', '{}#{{}}'.format(__name__)) as g:
+            g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                       TestCommandRegistration.sample_command_handler.__name__),
+                      confirmation=True)
         self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
         cl.load_arguments(command_name)
         command_metadata = cl.command_table[command_name]
@@ -155,11 +154,10 @@ class TestCommandRegistration(unittest.TestCase):
         def confirm_callable(_):
             pass
         command_name = 'test sample-command'
-        with CommandSuperGroup(__name__, cl, '{}#{{}}'.format(__name__)) as sg:
-            with sg.group('test') as g:
-                g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
-                                                           TestCommandRegistration.sample_command_handler.__name__),
-                          confirmation=confirm_callable)
+        with CommandGroup(cl, 'test', '{}#{{}}'.format(__name__)) as g:
+            g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                       TestCommandRegistration.sample_command_handler.__name__),
+                      confirmation=confirm_callable)
         self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
         cl.load_arguments(command_name)
         command_metadata = cl.command_table[command_name]
