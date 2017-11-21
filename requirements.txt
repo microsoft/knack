@@ -9,3 +9,4 @@ pyyaml==3.12
 six==1.10.0
 tabulate==0.7.7
 vcrpy==1.10.3
+pytest

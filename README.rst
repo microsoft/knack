@@ -78,6 +78,15 @@ In a virtual environment, install the `requirements.txt` file.
     pip install -r requirements.txt
     pip install -e .
 
+Run Automation
+==============
+
+This project supports running automation using [tox](https://tox.readthedocs.io/en/latest/)
+
+.. code-block:: bash
+    pip install tox  # install tox in global PIP environment
+    tox
+
 
 Contribute Code
 ===============

@@ -20,6 +20,7 @@ PY_LICENSE_HEADER = """# -------------------------------------------------------
 env_folders = [
     os.path.join(ROOT_DIR, 'env'),
     os.path.join(ROOT_DIR, 'env27'),
+    os.path.join(ROOT_DIR, '.tox'),
 ]
 
 
