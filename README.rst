@@ -11,8 +11,6 @@ Knack
     :target: https://travis-ci.org/Microsoft/knack
 
 
-------------
-
 ::
 
     _                     _    
@@ -28,6 +26,9 @@ Knack
 .. code-block:: bash
 
     pip install knack
+
+
+------------
 
 
 .. note::  🚨  The project is in `initial development phase <https://semver.org/#how-should-i-deal-with-revisions-in-the-0yz-initial-development-phase>`__ . We recommend pinning to at least a specific minor version when marking **knack** as a dependency in your project.
