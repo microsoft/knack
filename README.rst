@@ -82,11 +82,27 @@ In a virtual environment, install the `requirements.txt` file.
 Run Automation
 ==============
 
-This project supports running automation using [tox](https://tox.readthedocs.io/en/latest/)
+This project supports running automation using `tox <https://tox.readthedocs.io/en/latest/>`__.
 
 .. code-block:: bash
-    pip install tox  # install tox in global PIP environment
+
+    pip install tox
     tox
+
+
+Real-world uses
+===============
+
+- `VSTS CLI <https://github.com/Microsoft/vsts-cli>`__: A command-line interface for Visual Studio Team Services (VSTS) and Team Foundation Server (TFS). With the VSTS CLI, you can manage and work with resources including pull requests, work items, builds, and more.
+- `Service Fabric CLI <https://github.com/Azure/service-fabric-cli>`__: A command-line interface for interacting with Azure Service Fabric clusters and their related entities.
+
+Do you use knack in your CLI as well? Open a pull request to include it here. We would love to have it in our list.
+
+
+Release History		
+===============
+
+See `GitHub Releases <https://github.com/Microsoft/knack/releases>`__.
 
 
 Contribute Code
@@ -105,7 +121,3 @@ License
 
 Knack is licensed under `MIT <LICENSE>`__.
 
-Release History		
-===============
-
-See `GitHub Releases <https://github.com/Microsoft/knack/releases>`__.
