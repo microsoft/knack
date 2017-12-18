@@ -21,8 +21,7 @@ class CLIError(Exception):
     normal operation of the CLI.
     Typically due to user error and can be resolved by the user.
     """
-    def __init__(self, message):  # pylint: disable=useless-super-delegation
-        super(CLIError, self).__init__(message)
+    pass
 
 
 class CtxTypeError(TypeError):
