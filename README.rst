@@ -100,6 +100,7 @@ This project supports running automation using `tox <https://tox.readthedocs.io/
 Real-world uses
 ===============
 
+- `Azure CLI <https://github.com/Azure/azure-cli/>`__: The Azure CLI 2.0 is Azure's new command line experience for managing Azure resources.
 - `VSTS CLI <https://github.com/Microsoft/vsts-cli>`__: A command-line interface for Visual Studio Team Services (VSTS) and Team Foundation Server (TFS). With the VSTS CLI, you can manage and work with resources including pull requests, work items, builds, and more.
 - `Service Fabric CLI <https://github.com/Azure/service-fabric-cli>`__: A command-line interface for interacting with Azure Service Fabric clusters and their related entities.
 
