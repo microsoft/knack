@@ -3,10 +3,10 @@ colorama==0.3.9
 flake8==3.2.1
 jmespath==0.9.2
 mock==2.0.0
-pylint==1.7.1
+pylint==1.8.1
 pygments==2.2.0
 pyyaml==3.12
 six==1.10.0
 tabulate==0.7.7
 vcrpy==1.10.3
-pytest
+pytest==3.3.1
