@@ -77,7 +77,7 @@ class CLICommandArgument(object):  # pylint: disable=too-few-public-methods
         else:
             raise AttributeError(message=name)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name, value):  # pylint: disable=inconsistent-return-statements
         if name == 'type':
             return super(CLICommandArgument, self).__setattr__(name, value)
         self.type.settings[name] = value

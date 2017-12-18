@@ -340,7 +340,7 @@ class CLIHelp(object):
         if not help_file.parameters:
             _print_indent('None', indent)
             _print_indent('')
-            return
+            return None
 
         if not help_file.parameters:
             _print_indent('none', indent)
