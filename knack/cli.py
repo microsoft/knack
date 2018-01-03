@@ -157,8 +157,11 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             func(self, **kwargs)
 
     def exception_handler(self, ex):  # pylint: disable=no-self-use
-        """ The default exception handler for unknown CLI exceptions. """
-        logger.exception(ex)
+        """ The default exception handler"""
+        if isinstance(ex, CLIError):
+            logger.error(ex)
+        else:
+            logger.exception(ex)
         return 1
 
     def invoke(self, args, initial_invocation_data=None, out_file=None):
@@ -198,9 +201,6 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
                     self.output.out(cmd_result, formatter=formatter, out_file=out_file)
             self.raise_event(EVENT_CLI_POST_EXECUTE)
             exit_code = 0
-        except CLIError as ex:
-            logger.error(ex)
-            exit_code = 1
         except KeyboardInterrupt:
             exit_code = 1
         except Exception as ex:  # pylint: disable=broad-except
