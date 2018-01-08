@@ -9,7 +9,7 @@ from __future__ import print_function
 from codecs import open
 from setuptools import setup, find_packages
 
-VERSION = '0.3.0'
+VERSION = '0.3.1'
 
 DEPENDENCIES = [
     'argcomplete',
