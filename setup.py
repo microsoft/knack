@@ -46,7 +46,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'License :: OSI Approved :: MIT License',
     ],
-    packages=find_packages(),
+    packages=['knack', 'knack.testsdk'],
     install_requires=DEPENDENCIES,
     extras_require={
         ':python_version<"3.4"': ['enum34']
