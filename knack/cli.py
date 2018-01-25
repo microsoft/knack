@@ -157,7 +157,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             func(self, **kwargs)
 
     def exception_handler(self, ex):  # pylint: disable=no-self-use
-        """ The default exception handler"""
+        """ The default exception handler """
         if isinstance(ex, CLIError):
             logger.error(ex)
         else:
