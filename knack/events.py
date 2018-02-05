@@ -8,6 +8,7 @@ EVENT_CLI_POST_EXECUTE = 'Cli.PostExecute'
 
 EVENT_INVOKER_PRE_CMD_TBL_CREATE = 'CommandInvoker.OnPreCommandTableCreate'
 EVENT_INVOKER_POST_CMD_TBL_CREATE = 'CommandInvoker.OnPostCommandTableCreate'
+EVENT_INVOKER_PRE_TRUNCATE_CMD_TBL = 'CommandInvoker.OnPreTruncateCommandTable'
 EVENT_INVOKER_CMD_TBL_LOADED = 'CommandInvoker.OnCommandTableLoaded'
 EVENT_INVOKER_PRE_PARSE_ARGS = 'CommandInvoker.OnPreParseArgs'
 EVENT_INVOKER_POST_PARSE_ARGS = 'CommandInvoker.OnPostParseArgs'
