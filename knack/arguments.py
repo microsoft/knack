@@ -164,7 +164,8 @@ class ArgumentsContext(object):
         :param argument_dest: The destination argument to apply the ignore type to
         :type argument_dest: str
         """
-        self.argument(argument_dest, arg_type=ignore_type)
+        dest_option = ['--__{}'.format(argument_dest.upper())]
+        self.argument(argument_dest, arg_type=ignore_type, options_list=dest_option)
 
     def extra(self, argument_dest, **kwargs):
         """Register extra parameters for the given command. Typically used to augment auto-command built
