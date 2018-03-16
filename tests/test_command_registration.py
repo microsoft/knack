@@ -220,6 +220,22 @@ class TestCommandRegistration(unittest.TestCase):
                                                   command_metadata.arguments[existing].options)
             self.assertTrue(contains_subset)
 
+    def test_register_ignore_cli_argument(self):
+        cl = CLICommandsLoader(self.mock_ctx)
+        command_name = 'test register sample-command'
+        with CommandGroup(cl, 'test register', '{}#{{}}'.format(__name__)) as g:
+            g.command('sample-command', '{}.{}'.format(TestCommandRegistration.__name__,
+                                                       TestCommandRegistration.sample_command_handler.__name__))
+        with ArgumentsContext(cl, 'test register') as ac:
+            ac.argument('resource_name', options_list=['--this'])
+        with ArgumentsContext(cl, 'test register sample-command') as ac:
+            ac.ignore('resource_name')
+            ac.argument('opt_param', options_list=['--this'])
+        cl.load_arguments(command_name)
+        self.assertNotEqual(cl.command_table[command_name].arguments['resource_name'].options_list,
+                            cl.command_table[command_name].arguments['opt_param'].options_list,
+                            "Name conflict in options list")
+
     def test_command_build_argument_help_text(self):
         def sample_sdk_method_with_weird_docstring(param_a, param_b, param_c):  # pylint: disable=unused-argument
             """
