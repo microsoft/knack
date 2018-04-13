@@ -7,6 +7,8 @@ import sys
 
 from collections import defaultdict
 
+from .deprecation import ImplicitDeprecated, resolve_deprecate_info
+from .log import get_logger
 from .util import CLIError, CtxTypeError, CommandResultItem, todict
 from .parser import CLICommandParser
 from .commands import CLICommandsLoader
@@ -15,6 +17,9 @@ from .events import (EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_INVOKER_POST_CMD_TB
                      EVENT_INVOKER_POST_PARSE_ARGS, EVENT_INVOKER_TRANSFORM_RESULT,
                      EVENT_INVOKER_FILTER_RESULT)
 from .help import CLIHelp
+
+
+logger = get_logger(__name__)
 
 
 class CommandInvoker(object):
@@ -116,7 +121,7 @@ class CommandInvoker(object):
         command = self._rudimentary_get_command(args)
         self.commands_loader.load_arguments(command)
         self.cli_ctx.raise_event(EVENT_INVOKER_POST_CMD_TBL_CREATE, cmd_tbl=cmd_tbl)
-        self.parser.load_command_table(cmd_tbl)
+        self.parser.load_command_table(self.commands_loader)
         self.cli_ctx.raise_event(EVENT_INVOKER_CMD_TBL_LOADED, parser=self.parser)
         if not args:
             self.cli_ctx.completion.enable_autocomplete(self.parser)
@@ -138,6 +143,28 @@ class CommandInvoker(object):
         self.data['command'] = parsed_args.command
 
         params = self._filter_params(parsed_args)
+
+        cmd = parsed_args.func
+        deprecations = [] + getattr(parsed_args, '_argument_deprecations', [])
+        if cmd.deprecate_info:
+            deprecations.append(cmd.deprecate_info)
+
+        # search for implicit deprecation
+        path_comps = cmd.name.split()[:-1]
+        implicit_deprecate_info = None
+        while path_comps and not implicit_deprecate_info:
+            implicit_deprecate_info = resolve_deprecate_info(self.cli_ctx, ' '.join(path_comps))
+            del path_comps[-1]
+
+        if implicit_deprecate_info:
+            deprecate_kwargs = implicit_deprecate_info.__dict__.copy()
+            deprecate_kwargs['object_type'] = 'command'
+            del deprecate_kwargs['_get_tag']
+            del deprecate_kwargs['_get_message']
+            deprecations.append(ImplicitDeprecated(**deprecate_kwargs))
+
+        for d in deprecations:
+            logger.warning(str(d.message))
 
         cmd_result = parsed_args.func(params)
         cmd_result = todict(cmd_result)

@@ -6,6 +6,7 @@
 import argparse
 from collections import defaultdict
 
+from .deprecation import Deprecated
 from .log import get_logger
 
 logger = get_logger(__name__)
@@ -39,7 +40,7 @@ class CLIArgumentType(object):
 
 class CLICommandArgument(object):  # pylint: disable=too-few-public-methods
 
-    NAMED_ARGUMENTS = ['options_list', 'validator', 'completer', 'arg_group']
+    NAMED_ARGUMENTS = ['options_list', 'validator', 'completer', 'arg_group', 'deprecate_info']
 
     def __init__(self, dest=None, argtype=None, **kwargs):
         """An argument that has a specific destination parameter.
@@ -100,8 +101,7 @@ class ArgumentRegistry(object):
         :type argtype: knack.arguments.CLIArgumentType
         :param kwargs: see knack.arguments.CLIArgumentType
         """
-        argument = CLIArgumentType(overrides=argtype,
-                                   **kwargs)
+        argument = CLIArgumentType(overrides=argtype, **kwargs)
         self.arguments[scope][dest] = argument
 
     def get_cli_argument(self, command, name):
@@ -143,6 +143,81 @@ class ArgumentsContext(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
+    def _get_arg_deprecation_action(self, kwargs, deprecate_info):
+
+        # wrap any existing action
+        action = kwargs.get('action', None)
+        derivative_class = argparse.Action
+        if isinstance(action, argparse.Action):
+            derivative_class = action
+        elif isinstance(action, str):
+            derivative_class = self.command_loader.cli_ctx.invocation.parser._registries['action'][action]  # pylint: disable=protected-access
+
+        class DeprecatedArgumentAction(derivative_class):
+
+            def __init__(self, **kwargs):
+                super(DeprecatedArgumentAction, self).__init__(**kwargs)
+
+            def __call__(self, parser, namespace, values, option_string=None):
+                if not hasattr(namespace, '_argument_deprecations'):
+                    setattr(namespace, '_argument_deprecations', [deprecate_info])
+                else:
+                    namespace._argument_deprecations.append(deprecate_info)  # pylint: disable=protected-access
+                try:
+                    super(DeprecatedArgumentAction, self).__call__(parser, namespace, values, option_string)
+                except NotImplementedError:
+                    pass
+
+        return DeprecatedArgumentAction
+
+    def _get_opt_deprecation_action(self, kwargs, deprecated_options):
+
+        if not isinstance(deprecated_options, list):
+            deprecated_options = [deprecated_options]
+
+        action = kwargs.get('action', None)
+        derivative_class = argparse.Action
+        if isinstance(action, argparse.Action):
+            derivative_class = action
+        elif isinstance(action, str):
+            derivative_class = self.command_loader.cli_ctx.invocation.parser._registries['action'][action]  # pylint: disable=protected-access
+
+        class DeprecatedOptionAction(derivative_class):
+
+            def __init__(self, **kwargs):
+                super(DeprecatedOptionAction, self).__init__(**kwargs)
+
+            def __call__(self, parser, namespace, values, option_string=None):
+                deprecated_opt = next((x for x in deprecated_options if option_string == x.target), None)
+                if deprecated_opt:
+                    if not hasattr(namespace, '_argument_deprecations'):
+                        setattr(namespace, '_argument_deprecations', [deprecated_opt])
+                    else:
+                        namespace._argument_deprecations.append(deprecated_opt)  # pylint: disable=protected-access
+                try:
+                    super(DeprecatedOptionAction, self).__call__(parser, namespace, values, option_string)
+                except NotImplementedError:
+                    pass
+
+        return DeprecatedOptionAction
+
+    def deprecate(self, **kwargs):
+
+        def _get_deprecated_arg_message(self):
+            message = "{} '{}' has been deprecated and will be removed ".format(
+                self.object_type, self.target).capitalize()
+            if self.expiration:
+                message += "in version '{}'. ".format(self.expiration)
+            else:
+                message += 'in a future release. '
+            message += "Use '{}' instead. ".format(self.redirect) if self.redirect else ''
+            return message.lstrip()
+
+        target = kwargs.get('target', '')
+        kwargs['object_type'] = 'option' if target.startswith('-') else 'argument'
+        kwargs['message_func'] = _get_deprecated_arg_message
+        return Deprecated(self.command_loader.cli_ctx, **kwargs)
+
     def argument(self, argument_dest, arg_type=None, **kwargs):
         """ Register an argument for the given command scope using a knack.arguments.CLIArgumentType
 
@@ -153,19 +228,26 @@ class ArgumentsContext(object):
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
                        `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
         """
+        deprecate_info = kwargs.get('deprecate_info', None)
+        if deprecate_info:
+            deprecate_info.target = deprecate_info.target or argument_dest
+            kwargs['action'] = self._get_arg_deprecation_action(kwargs, deprecate_info)
+        deprecated_opts = [x for x in kwargs.get('options_list', []) if isinstance(x, Deprecated)]
+        if deprecated_opts:
+            kwargs['action'] = self._get_opt_deprecation_action(kwargs, deprecated_opts)
         self.command_loader.argument_registry.register_cli_argument(self.command_scope,
                                                                     argument_dest,
                                                                     arg_type,
                                                                     **kwargs)
 
-    def ignore(self, argument_dest):
+    def ignore(self, argument_dest, **kwargs):
         """ Register an argument with type knack.arguments.ignore_type (hidden/ignored)
 
         :param argument_dest: The destination argument to apply the ignore type to
         :type argument_dest: str
         """
         dest_option = ['--__{}'.format(argument_dest.upper())]
-        self.argument(argument_dest, arg_type=ignore_type, options_list=dest_option)
+        self.argument(argument_dest, arg_type=ignore_type, options_list=dest_option, **kwargs)
 
     def extra(self, argument_dest, **kwargs):
         """Register extra parameters for the given command. Typically used to augment auto-command built
@@ -176,6 +258,13 @@ class ArgumentsContext(object):
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
                        `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
         """
+        deprecate_info = kwargs.get('deprecate_info', None)
+        if deprecate_info:
+            deprecate_info.target = deprecate_info.target or argument_dest
+            kwargs['action'] = self._get_arg_deprecation_action(kwargs, deprecate_info)
+        deprecated_opts = [x for x in kwargs.get('options_list', []) if isinstance(x, Deprecated)]
+        if deprecated_opts:
+            kwargs['action'] = self._get_opt_deprecation_action(kwargs, deprecated_opts)
         self.command_loader.extra_argument_registry[self.command_scope][argument_dest] = CLICommandArgument(
             argument_dest, **kwargs)
 

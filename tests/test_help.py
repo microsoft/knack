@@ -150,6 +150,22 @@ class TestHelp(unittest.TestCase):
             self.assertTrue(io.getvalue().startswith('\nCommand\n    {} n1: Short description.\n        Long description.'.format(self.cliname)))  # pylint: disable=line-too-long
 
     @redirect_io
+    def test_help_description_from_docstring(self):
+        def test_handler():
+            """ Short summary here. Long summary here. Still long summary. """
+            pass
+
+        command = CLICommand(self.mock_ctx, 'n1', test_handler)
+        cmd_table = {'n1': command}
+        with mock.patch.object(CLICommandsLoader, 'load_command_table', return_value=cmd_table):
+            with self.assertRaises(SystemExit):
+                self.mock_ctx.invoke('n1 -h'.split())
+            actual = io.getvalue()
+            expected = '\nCommand\n    {} n1: Short summary here.\n        Long summary here. Still long summary.'.format(self.cliname)
+            msg = 'ACT: {}\nEXP: {}'.format(actual, expected)
+            self.fail(msg)
+
+    @redirect_io
     def test_help_docstring_description_overrides_short_description(self):
         def test_handler():
             pass

@@ -30,9 +30,10 @@ class TestParser(unittest.TestCase):
         command = CLICommand(self.mock_ctx, 'command the-name', test_handler1)
         command2 = CLICommand(self.mock_ctx, 'sub-command the-second-name', test_handler2)
         cmd_table = {'command the-name': command, 'sub-command the-second-name': command2}
+        self.mock_ctx.commands_loader.command_table = cmd_table
 
         parser = CLICommandParser()
-        parser.load_command_table(cmd_table)
+        parser.load_command_table(self.mock_ctx.commands_loader)
         args = parser.parse_args('command the-name'.split())
         self.assertIs(args.func, command)
 
@@ -50,9 +51,10 @@ class TestParser(unittest.TestCase):
         command = CLICommand(self.mock_ctx, 'test command', test_handler)
         command.add_argument('req', '--req', required=True)
         cmd_table = {'test command': command}
+        self.mock_ctx.commands_loader.command_table = cmd_table
 
         parser = CLICommandParser()
-        parser.load_command_table(cmd_table)
+        parser.load_command_table(self.mock_ctx.commands_loader)
 
         args = parser.parse_args('test command --req yep'.split())
         self.assertIs(args.func, command)
@@ -68,9 +70,10 @@ class TestParser(unittest.TestCase):
         command = CLICommand(self.mock_ctx, 'test command', test_handler)
         command.add_argument('req', '--req', required=True, nargs=2)
         cmd_table = {'test command': command}
+        self.mock_ctx.commands_loader.command_table = cmd_table
 
         parser = CLICommandParser()
-        parser.load_command_table(cmd_table)
+        parser.load_command_table(self.mock_ctx.commands_loader)
 
         args = parser.parse_args('test command --req yep nope'.split())
         self.assertIs(args.func, command)
@@ -94,9 +97,10 @@ class TestParser(unittest.TestCase):
         command = CLICommand(self.mock_ctx, 'test command', test_handler)
         command.add_argument('opt', '--opt', required=True, **enum_choice_list(TestEnum))
         cmd_table = {'test command': command}
+        self.mock_ctx.commands_loader.command_table = cmd_table
 
         parser = CLICommandParser()
-        parser.load_command_table(cmd_table)
+        parser.load_command_table(self.mock_ctx.commands_loader)
 
         args = parser.parse_args('test command --opt alL_cAps'.split())
         self.assertEqual(args.opt, 'ALL_CAPS')
@@ -124,8 +128,9 @@ class TestParser(unittest.TestCase):
         command = CLICommand(self.mock_ctx, 'test command', test_handler)
         command.add_argument('req', '--req', required=True, mycustomarg=True)
         cmd_table = {'test command': command}
+        self.mock_ctx.commands_loader.command_table = cmd_table
         parser = CLICommandParser()
-        parser.load_command_table(cmd_table)
+        parser.load_command_table(self.mock_ctx.commands_loader)
 
 
 class VerifyError(object):  # pylint: disable=too-few-public-methods
