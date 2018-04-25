@@ -55,8 +55,9 @@ def to_snake_case(s):
 
 
 def todict(obj, value_filter=None):  # pylint: disable=too-many-return-statements
-    """ 
-    Convert an object to a dictionary. Use 'value_filter' to ignore specified values
+    """
+    Convert an object to a dictionary. Use 'value_filter' for custom logics,
+    e.g., to ignore specified properties
     """
     if isinstance(obj, dict):
         return {k: todict(v, value_filter) for (k, v) in obj.items() if (not value_filter or value_filter(obj, k, v))}
