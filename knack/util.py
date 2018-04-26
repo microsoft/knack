@@ -54,15 +54,16 @@ def to_snake_case(s):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
-def todict(obj, value_filter=None):  # pylint: disable=too-many-return-statements
+def todict(obj, post_processor=None):  # pylint: disable=too-many-return-statements
     """
-    Convert an object to a dictionary. Use 'value_filter' for custom logics,
-    e.g., to ignore specified properties
+    Convert an object to a dictionary. Use 'post_processor' for custom logics.
+    Note, the post_processor will be invoked after every elelment gets converted
     """
     if isinstance(obj, dict):
-        return {k: todict(v, value_filter) for (k, v) in obj.items() if (not value_filter or value_filter(obj, k, v))}
+        result = {k: todict(v, post_processor) for (k, v) in obj.items()}
+        return post_processor(obj, result) if post_processor else result
     elif isinstance(obj, list):
-        return [todict(a, value_filter) for a in obj]
+        return [todict(a, post_processor) for a in obj]
     elif isinstance(obj, Enum):
         return obj.value
     elif isinstance(obj, (date, time, datetime)):
@@ -70,9 +71,10 @@ def todict(obj, value_filter=None):  # pylint: disable=too-many-return-statement
     elif isinstance(obj, timedelta):
         return str(obj)
     elif hasattr(obj, '_asdict'):
-        return todict(obj._asdict(), value_filter)
+        return todict(obj._asdict(), post_processor)
     elif hasattr(obj, '__dict__'):
-        return dict([(to_camel_case(k), todict(v, value_filter))
-                     for k, v in obj.__dict__.items()
-                     if not callable(v) and not k.startswith('_') and (not value_filter or value_filter(obj, k, v))])
+        result = dict([(to_camel_case(k), todict(v, post_processor))
+                       for k, v in obj.__dict__.items()
+                       if not callable(v) and not k.startswith('_')])
+        return post_processor(obj, result) if post_processor else result
     return obj
