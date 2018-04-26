@@ -56,8 +56,8 @@ def to_snake_case(s):
 
 def todict(obj, post_processor=None):  # pylint: disable=too-many-return-statements
     """
-    Convert an object to a dictionary. Use 'post_processor' for custom logics.
-    Note, the post_processor will be invoked after every elelment gets converted
+    Convert an object to a dictionary. Use 'post_processor(original_obj, dictionary)' to update the
+    dictionary in the process
     """
     if isinstance(obj, dict):
         result = {k: todict(v, post_processor) for (k, v) in obj.items()}
