@@ -74,7 +74,7 @@ def extract_args_from_signature(operation, excluded_params=None):
         sig = inspect.signature(operation)
         args = sig.parameters
     except AttributeError:
-        sig = inspect.getargspec(operation)  # pylint: disable=deprecated-method
+        sig = inspect.getargspec(operation)  # pylint: disable=deprecated-method, useless-suppression
         args = sig.args
 
     arg_docstring_help = option_descriptions(operation)
@@ -84,7 +84,7 @@ def extract_args_from_signature(operation, excluded_params=None):
         try:
             # this works in python3
             default = args[arg_name].default
-            required = default == inspect.Parameter.empty  # pylint: disable=no-member
+            required = default == inspect.Parameter.empty  # pylint: disable=no-member, useless-suppression
         except TypeError:
             arg_defaults = (dict(zip(sig.args[-len(sig.defaults):], sig.defaults))
                             if sig.defaults
@@ -96,7 +96,7 @@ def extract_args_from_signature(operation, excluded_params=None):
 
         try:
             default = (default
-                       if default != inspect._empty  # pylint: disable=protected-access, no-member
+                       if default != inspect._empty  # pylint: disable=protected-access
                        else None)
         except AttributeError:
             pass
