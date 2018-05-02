@@ -83,11 +83,12 @@ class TestOutput(unittest.TestCase):
         obj = OrderedDict()
         obj['active'] = True
         obj['val'] = '0b1f6472'
+        obj['lun'] = 0
         output_producer.out(CommandResultItem(obj), formatter=format_table, out_file=self.io)
         self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
-            """Active    Val
---------  --------
-True      0b1f6472
+            """Active      Lun  Val
+--------  -----  --------
+True          0  0b1f6472
 """))
 
     def test_out_table_list_of_lists(self):

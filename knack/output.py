@@ -165,7 +165,7 @@ class _TableOutput(object):  # pylint: disable=too-few-public-methods
             for k in keys:
                 if k in _TableOutput.SKIP_KEYS:
                     continue
-                if item[k] and not isinstance(item[k], (list, dict, set)):
+                if item[k] is not None and not isinstance(item[k], (list, dict, set)):
                     new_entry[_TableOutput._capitalize_first_char(k)] = item[k]
         except AttributeError:
             # handles odd cases where a string/bool/etc. is returned
