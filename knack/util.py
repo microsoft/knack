@@ -54,12 +54,16 @@ def to_snake_case(s):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
-def todict(obj):  # pylint: disable=too-many-return-statements
-
+def todict(obj, post_processor=None):  # pylint: disable=too-many-return-statements
+    """
+    Convert an object to a dictionary. Use 'post_processor(original_obj, dictionary)' to update the
+    dictionary in the process
+    """
     if isinstance(obj, dict):
-        return {k: todict(v) for (k, v) in obj.items()}
+        result = {k: todict(v, post_processor) for (k, v) in obj.items()}
+        return post_processor(obj, result) if post_processor else result
     elif isinstance(obj, list):
-        return [todict(a) for a in obj]
+        return [todict(a, post_processor) for a in obj]
     elif isinstance(obj, Enum):
         return obj.value
     elif isinstance(obj, (date, time, datetime)):
@@ -67,9 +71,10 @@ def todict(obj):  # pylint: disable=too-many-return-statements
     elif isinstance(obj, timedelta):
         return str(obj)
     elif hasattr(obj, '_asdict'):
-        return todict(obj._asdict())
+        return todict(obj._asdict(), post_processor)
     elif hasattr(obj, '__dict__'):
-        return dict([(to_camel_case(k), todict(v))
-                     for k, v in obj.__dict__.items()
-                     if not callable(v) and not k.startswith('_')])
+        result = dict([(to_camel_case(k), todict(v, post_processor))
+                       for k, v in obj.__dict__.items()
+                       if not callable(v) and not k.startswith('_')])
+        return post_processor(obj, result) if post_processor else result
     return obj
