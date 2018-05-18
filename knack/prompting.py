@@ -77,7 +77,6 @@ def prompt_t_f(msg, default=None, help_string=None):
     return _prompt_bool(msg, 't', 'f', default=default, help_string=help_string)
 
 
-# pylint: disable=inconsistent-return-statements
 def _prompt_bool(msg, true_str, false_str, default=None, help_string=None):
     verify_is_a_tty()
     if default not in [None, true_str, false_str]:
@@ -97,7 +96,6 @@ def _prompt_bool(msg, true_str, false_str, default=None, help_string=None):
             return default == y.lower()
 
 
-# pylint: disable=inconsistent-return-statements
 def prompt_choice_list(msg, a_list, default=1, help_string=None):
     """Prompt user to select from a list of possible choices.
 

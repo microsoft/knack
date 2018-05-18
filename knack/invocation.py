@@ -120,6 +120,7 @@ class CommandInvoker(object):
         cmd_tbl = self.commands_loader.load_command_table(args)
         command = self._rudimentary_get_command(args)
         self.commands_loader.load_arguments(command)
+
         self.cli_ctx.raise_event(EVENT_INVOKER_POST_CMD_TBL_CREATE, cmd_tbl=cmd_tbl)
         self.parser.load_command_table(self.commands_loader)
         self.cli_ctx.raise_event(EVENT_INVOKER_CMD_TBL_LOADED, parser=self.parser)

@@ -19,7 +19,7 @@ from .help_files import _load_help_file
 logger = get_logger(__name__)
 
 
-FIRST_LINE_PREFIX = ':'
+FIRST_LINE_PREFIX = ' : '
 
 PREVIEW_TAG = colorama.Fore.CYAN + '[Preview]' + colorama.Fore.RESET
 PREVIEW_TAG_LEN = len(PREVIEW_TAG) - 2 * len(colorama.Fore.RESET)
@@ -28,7 +28,19 @@ REQUIRED_TAG = '[Required]'
 
 
 def _get_hanging_indent(max_length, indent):
-    return max_length + (indent * 4) + len(FIRST_LINE_PREFIX)
+    return max_length + (indent * 4) + len(FIRST_LINE_PREFIX) - 1
+
+
+def _get_padding_len(max_len, layout):
+    if layout['tags']:
+        pad_len = max_len - layout['line_len'] + 1
+    else:
+        pad_len = max_len - layout['line_len']
+    return pad_len
+
+
+def _get_line_len(name, tags_len):
+    return len(name) + tags_len + (2 if tags_len else 1)
 
 
 def _print_indent(s, indent=0, subsequent_spaces=-1):
@@ -327,11 +339,14 @@ class CLIHelp(object):
         _print_indent('Command' if help_file.type == 'command' else 'Group', indent)
 
         indent += 1
-        LINE_FORMAT = '{name} {separator} {summary}'
-        _print_indent(LINE_FORMAT.format(
-            name=cli_name + ' ' + help_file.command,
-            separator=FIRST_LINE_PREFIX,
-            summary=help_file.short_summary if help_file.short_summary else ''), indent)
+        LINE_FORMAT = '{cli}{name}{separator}{summary}'
+        line = LINE_FORMAT.format(
+            cli=cli_name,
+            name=' ' + help_file.command if help_file.command else '',
+            separator=FIRST_LINE_PREFIX if help_file.short_summary else '',
+            summary=help_file.short_summary if help_file.short_summary else ''
+        )
+        _print_indent(line, indent)
 
         def _build_long_summary(item):
             long_summary = item.long_summary or ''
@@ -344,7 +359,7 @@ class CLIHelp(object):
 
     def _print_groups(self, help_file):
 
-        LINE_FORMAT = '{name}{padding}{tags} {separator} {summary}'
+        LINE_FORMAT = '{name}{padding}{tags}{separator}{summary}'
         indent = 1
 
         self.max_line_len = 0
@@ -361,6 +376,8 @@ class CLIHelp(object):
                 len(required),
                 tags.count(' ')
             ])
+            if not tags_len:
+                tags = ''
             return tags, tags_len
 
         def _layout_items(items):
@@ -368,26 +385,24 @@ class CLIHelp(object):
             layouts = []
             for c in sorted(items, key=lambda h: h.name):
                 tags, tags_len = _build_tags_string(c)
-                line_length = len(c.name) + tags_len
-
+                line_len = _get_line_len(c.name, tags_len)
                 layout = {
                     'name': c.name,
                     'tags': tags,
-                    'separator': FIRST_LINE_PREFIX,
+                    'separator': FIRST_LINE_PREFIX if (c.short_summary or tags) else '',
                     'summary': c.short_summary or '',
-                    'line_length': line_length
+                    'line_len': line_len
                 }
                 layout['summary'] = layout['summary'].replace('\n', ' ')
-                if line_length > self.max_line_len:
-                    self.max_line_len = line_length
+                if line_len > self.max_line_len:
+                    self.max_line_len = line_len
                 layouts.append(layout)
             return layouts
 
         def _print_items(layouts):
             for layout in layouts:
-                hanging_indent = self.max_line_len + (indent * 4) + 4
-                layout['padding'] = ' ' * (self.max_line_len - layout['line_length'] + 1)
-                _print_indent(LINE_FORMAT.format(**layout), indent, hanging_indent)
+                layout['padding'] = ' ' * _get_padding_len(self.max_line_len, layout)
+                _print_indent(LINE_FORMAT.format(**layout), indent, _get_hanging_indent(self.max_line_len, indent))
             _print_indent('')
 
         groups = [c for c in help_file.children if isinstance(c, self.group_help_cls)]
@@ -431,7 +446,6 @@ class CLIHelp(object):
     @staticmethod
     def _print_examples(help_file):
         indent = 0
-        print('')
         _print_indent('Examples', indent)
         for e in help_file.examples:
             indent = 1
@@ -442,7 +456,7 @@ class CLIHelp(object):
 
     def _print_arguments(self, help_file):
 
-        LINE_FORMAT = '{name}{padding}{tags} {separator} {short_summary}'
+        LINE_FORMAT = '{name}{padding}{tags}{separator}{short_summary}'
         indent = 1
         self.max_line_len = 0
 
@@ -463,6 +477,8 @@ class CLIHelp(object):
                 len(required),
                 tags.count(' ')
             ])
+            if not tags_len:
+                tags = ''
             return tags, tags_len
 
         def _layout_items(items):
@@ -475,28 +491,27 @@ class CLIHelp(object):
                     continue
 
                 tags, tags_len = _build_tags_string(c)
-                line_length = len(c.name) + tags_len
-
+                short_summary = _build_short_summary(c)
+                long_summary = _build_long_summary(c)
+                line_len = _get_line_len(c.name, tags_len)
                 layout = {
                     'name': c.name,
                     'tags': tags,
-                    'separator': FIRST_LINE_PREFIX,
-                    'short_summary': _build_short_summary(c),
-                    'long_summary': _build_long_summary(c),
+                    'separator': FIRST_LINE_PREFIX if (short_summary or tags) else '',
+                    'short_summary': short_summary,
+                    'long_summary': long_summary,
                     'group_name': c.group_name,
-                    'line_length': line_length
+                    'line_len': line_len
                 }
-                if line_length > self.max_line_len:
-                    self.max_line_len = line_length
+                if line_len > self.max_line_len:
+                    self.max_line_len = line_len
                 layouts.append(layout)
             return layouts
 
         def _print_items(layouts):
-
             last_group_name = ''
 
             for layout in layouts:
-
                 indent = 1
                 if layout['group_name'] != last_group_name:
                     if layout['group_name']:
@@ -504,9 +519,8 @@ class CLIHelp(object):
                         print(layout['group_name'])
                     last_group_name = layout['group_name']
 
-                hanging_indent = self.max_line_len + (indent * 4) + 5
-                layout['padding'] = ' ' * (self.max_line_len - layout['line_length'] + 1)
-                _print_indent(LINE_FORMAT.format(**layout), indent, hanging_indent)
+                layout['padding'] = ' ' * _get_padding_len(self.max_line_len, layout)
+                _print_indent(LINE_FORMAT.format(**layout), indent, _get_hanging_indent(self.max_line_len, indent))
 
                 indent = 2
                 long_summary = layout.get('long_summary', None)
@@ -545,6 +559,9 @@ class CLIHelp(object):
 
     def _print_detailed_help(self, cli_name, help_file):
         self._print_header(cli_name, help_file)
+        if help_file.long_summary:
+            _print_indent('')
+
         if help_file.type == 'command':
             _print_indent('Arguments')
             self._print_arguments(help_file)
