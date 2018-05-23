@@ -17,6 +17,9 @@ class MockContext(CLI):
 
 class TestCLI(CLI):
 
+    def get_cli_version(self):
+        return '0.1.0'
+
     def __init__(self, **kwargs):
         kwargs['config_dir'] = tempfile.mkdtemp()
         super(TestCLI, self).__init__(**kwargs)
