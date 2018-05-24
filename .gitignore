@@ -70,3 +70,5 @@ $RECYCLE.BIN/
 .project
 .pydevproject
 .pytest_cache/
+env3/
+env2/
