@@ -97,13 +97,15 @@ class Deprecated(object):
         self.expiration = expiration
 
         def _default_get_message(self):
-            message = "This {} has been deprecated and will be removed ".format(self.object_type)
+            line1 = "This {} has been deprecated and will be removed ".format(self.object_type)
             if self.expiration:
-                message += "in version '{}'. ".format(self.expiration)
+                line1 += "in version '{}'.".format(self.expiration)
             else:
-                message += 'in a future release. '
-            message += "Use '{}' instead. ".format(self.redirect) if self.redirect else ''
-            return message.lstrip()
+                line1 += 'in a future release.'
+            lines = [line1]
+            if self.redirect:
+                lines.append("Use '{}' instead.".format(self.redirect))
+            return ' '.join(lines)
 
         # pylint: disable=unused-argument
         def _default_get_tag(self):
@@ -163,14 +165,16 @@ class ImplicitDeprecated(Deprecated):
     def __init__(self, **kwargs):
 
         def get_implicit_deprecation_message(self):
-            message = "This {} is implicitly deprecated because command group '{}' is deprecated " \
-                "and will be removed ".format(self.object_type, self.target)
+            line1 = "This {} is implicitly deprecated because command group '{}' is deprecated " \
+                    "and will be removed ".format(self.object_type, self.target)
             if self.expiration:
-                message += "in version '{}'. ".format(self.expiration)
+                line1 += "in version '{}'.".format(self.expiration)
             else:
-                message += 'in a future release. '
-            message += "Use '{}' instead. ".format(self.redirect) if self.redirect else ''
-            return message.lstrip()
+                line1 += 'in a future release.'
+            lines = [line1]
+            if self.redirect:
+                lines.append("Use '{}' instead.".format(self.redirect))
+            return ' '.join(lines)
 
         kwargs.update({
             'tag_func': lambda _: '',

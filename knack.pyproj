@@ -11,7 +11,8 @@
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>MSBuild|{d507db9a-6cd5-43f5-b01e-b261519c3cf1}|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>{7393b5c6-e58e-4149-98f6-354e3a48ee70}</InterpreterId>
+    <InterpreterVersion>3.5</InterpreterVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -56,6 +57,9 @@
     <Compile Include="tests\test_command_registration.py" />
     <Compile Include="tests\test_completion.py" />
     <Compile Include="tests\test_config.py" />
+    <Compile Include="tests\test_deprecation.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tests\test_help.py" />
     <Compile Include="tests\test_introspection.py" />
     <Compile Include="tests\test_log.py" />
@@ -93,15 +97,6 @@
       <LibraryPath>Lib\</LibraryPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
       <Architecture>Amd64</Architecture>
-    </Interpreter>
-    <Interpreter Include="env\">
-      <Id>knack</Id>
-      <Description>env (Python 3.6 (32-bit))</Description>
-      <InterpreterPath>Scripts\python.exe</InterpreterPath>
-      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
-      <Version>3.6</Version>
-      <Architecture>X86</Architecture>
-      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
     </Interpreter>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

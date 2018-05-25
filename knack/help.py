@@ -349,13 +349,16 @@ class CLIHelp(object):
         _print_indent(line, indent)
 
         def _build_long_summary(item):
-            long_summary = item.long_summary or ''
+            lines = []
+            if item.long_summary:
+                lines.append(item.long_summary)
             if item.deprecate_info:
-                long_summary += ' ' + str(item.deprecate_info.message)
-            return long_summary.lstrip().rstrip()
+                lines.append(str(item.deprecate_info.message))
+            return ' '.join(lines)
 
         indent += 1
-        _print_indent(_build_long_summary(help_file), indent)
+        long_sum = _build_long_summary(help_file)
+        _print_indent(long_sum, indent)
 
     def _print_groups(self, help_file):
 
@@ -539,11 +542,13 @@ class CLIHelp(object):
             return short_summary
 
         def _build_long_summary(item):
-            long_summary = item.long_summary.rstrip()
+            lines = []
+            if item.long_summary:
+                lines.append(item.long_summary)
             deprecate_info = getattr(item, 'deprecate_info', None)
             if deprecate_info:
-                long_summary += ' ' + str(deprecate_info.message)
-            return long_summary.lstrip().rstrip()
+                lines.append(str(item.deprecate_info.message))
+            return ' '.join(lines)
 
         group_registry = ArgumentGroupRegistry([p.group_name for p in help_file.parameters if p.group_name])
 
@@ -559,7 +564,7 @@ class CLIHelp(object):
 
     def _print_detailed_help(self, cli_name, help_file):
         self._print_header(cli_name, help_file)
-        if help_file.long_summary:
+        if help_file.long_summary or getattr(help_file, 'deprecate_info', None):
             _print_indent('')
 
         if help_file.type == 'command':

@@ -143,75 +143,80 @@ class ArgumentsContext(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def _get_arg_deprecation_action(self, kwargs, deprecate_info):
-
+    def _get_parent_class(self, **kwargs):
         # wrap any existing action
         action = kwargs.get('action', None)
-        derivative_class = argparse.Action
+        parent_class = argparse.Action
         if isinstance(action, argparse.Action):
-            derivative_class = action
+            parent_class = action
         elif isinstance(action, str):
-            derivative_class = self.command_loader.cli_ctx.invocation.parser._registries['action'][action]  # pylint: disable=protected-access
+            parent_class = self.command_loader.cli_ctx.invocation.parser._registries['action'][action]  # pylint: disable=protected-access
+        return parent_class
 
-        class DeprecatedArgumentAction(derivative_class):
+    def _handle_deprecations(self, argument_dest, **kwargs):
 
-            def __init__(self, **kwargs):
-                super(DeprecatedArgumentAction, self).__init__(**kwargs)
+        def _handle_argument_deprecation(deprecate_info):
 
-            def __call__(self, parser, namespace, values, option_string=None):
-                if not hasattr(namespace, '_argument_deprecations'):
-                    setattr(namespace, '_argument_deprecations', [deprecate_info])
-                else:
-                    namespace._argument_deprecations.append(deprecate_info)  # pylint: disable=protected-access
-                try:
-                    super(DeprecatedArgumentAction, self).__call__(parser, namespace, values, option_string)
-                except NotImplementedError:
-                    pass
+            parent_class = self._get_parent_class(**kwargs)
 
-        return DeprecatedArgumentAction
+            class DeprecatedArgumentAction(parent_class):
 
-    def _get_opt_deprecation_action(self, kwargs, deprecated_options):
-
-        if not isinstance(deprecated_options, list):
-            deprecated_options = [deprecated_options]
-
-        action = kwargs.get('action', None)
-        derivative_class = argparse.Action
-        if isinstance(action, argparse.Action):
-            derivative_class = action
-        elif isinstance(action, str):
-            derivative_class = self.command_loader.cli_ctx.invocation.parser._registries['action'][action]  # pylint: disable=protected-access
-
-        class DeprecatedOptionAction(derivative_class):
-
-            def __init__(self, **kwargs):
-                super(DeprecatedOptionAction, self).__init__(**kwargs)
-
-            def __call__(self, parser, namespace, values, option_string=None):
-                deprecated_opt = next((x for x in deprecated_options if option_string == x.target), None)
-                if deprecated_opt:
+                def __call__(self, parser, namespace, values, option_string=None):
                     if not hasattr(namespace, '_argument_deprecations'):
-                        setattr(namespace, '_argument_deprecations', [deprecated_opt])
+                        setattr(namespace, '_argument_deprecations', [deprecate_info])
                     else:
-                        namespace._argument_deprecations.append(deprecated_opt)  # pylint: disable=protected-access
-                try:
-                    super(DeprecatedOptionAction, self).__call__(parser, namespace, values, option_string)
-                except NotImplementedError:
-                    pass
+                        namespace._argument_deprecations.append(deprecate_info)  # pylint: disable=protected-access
+                    try:
+                        super(DeprecatedArgumentAction, self).__call__(parser, namespace, values, option_string)
+                    except NotImplementedError:
+                        pass
 
-        return DeprecatedOptionAction
+            return DeprecatedArgumentAction
+
+        def _handle_option_deprecation(deprecated_options):
+
+            if not isinstance(deprecated_options, list):
+                deprecated_options = [deprecated_options]
+
+            parent_class = self._get_parent_class(**kwargs)
+
+            class DeprecatedOptionAction(parent_class):
+
+                def __call__(self, parser, namespace, values, option_string=None):
+                    deprecated_opt = next((x for x in deprecated_options if option_string == x.target), None)
+                    if deprecated_opt:
+                        if not hasattr(namespace, '_argument_deprecations'):
+                            setattr(namespace, '_argument_deprecations', [deprecated_opt])
+                        else:
+                            namespace._argument_deprecations.append(deprecated_opt)  # pylint: disable=protected-access
+                    try:
+                        super(DeprecatedOptionAction, self).__call__(parser, namespace, values, option_string)
+                    except NotImplementedError:
+                        pass
+
+            return DeprecatedOptionAction
+
+        deprecate_info = kwargs.get('deprecate_info', None)
+        if deprecate_info:
+            deprecate_info.target = deprecate_info.target or argument_dest
+            kwargs['action'] = _handle_argument_deprecation(deprecate_info)
+        deprecated_opts = [x for x in kwargs.get('options_list', []) if isinstance(x, Deprecated)]
+        if deprecated_opts:
+            kwargs['action'] = _handle_option_deprecation(deprecated_opts)
 
     def deprecate(self, **kwargs):
 
         def _get_deprecated_arg_message(self):
-            message = "{} '{}' has been deprecated and will be removed ".format(
+            line1 = "{} '{}' has been deprecated and will be removed ".format(
                 self.object_type, self.target).capitalize()
             if self.expiration:
-                message += "in version '{}'. ".format(self.expiration)
+                line1 += "in version '{}'.".format(self.expiration)
             else:
-                message += 'in a future release. '
-            message += "Use '{}' instead. ".format(self.redirect) if self.redirect else ''
-            return message.lstrip()
+                line1 += 'in a future release.'
+            lines = [line1]
+            if self.redirect:
+                lines.append("Use '{}' instead.".format(self.redirect))
+            return ' '.join(lines)
 
         target = kwargs.get('target', '')
         kwargs['object_type'] = 'option' if target.startswith('-') else 'argument'
@@ -228,13 +233,7 @@ class ArgumentsContext(object):
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
                        `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
         """
-        deprecate_info = kwargs.get('deprecate_info', None)
-        if deprecate_info:
-            deprecate_info.target = deprecate_info.target or argument_dest
-            kwargs['action'] = self._get_arg_deprecation_action(kwargs, deprecate_info)
-        deprecated_opts = [x for x in kwargs.get('options_list', []) if isinstance(x, Deprecated)]
-        if deprecated_opts:
-            kwargs['action'] = self._get_opt_deprecation_action(kwargs, deprecated_opts)
+        self._handle_deprecations(argument_dest, **kwargs)
         self.command_loader.argument_registry.register_cli_argument(self.command_scope,
                                                                     argument_dest,
                                                                     arg_type,
@@ -258,13 +257,7 @@ class ArgumentsContext(object):
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
                        `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
         """
-        deprecate_info = kwargs.get('deprecate_info', None)
-        if deprecate_info:
-            deprecate_info.target = deprecate_info.target or argument_dest
-            kwargs['action'] = self._get_arg_deprecation_action(kwargs, deprecate_info)
-        deprecated_opts = [x for x in kwargs.get('options_list', []) if isinstance(x, Deprecated)]
-        if deprecated_opts:
-            kwargs['action'] = self._get_opt_deprecation_action(kwargs, deprecated_opts)
+        self._handle_deprecations(argument_dest, **kwargs)
         self.command_loader.extra_argument_registry[self.command_scope][argument_dest] = CLICommandArgument(
             argument_dest, **kwargs)
 

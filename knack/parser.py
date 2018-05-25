@@ -155,7 +155,7 @@ class CLICommandParser(argparse.ArgumentParser):
         """
         group_table = group_table or {}
         for length in range(0, len(path)):
-            parent_path = path[0:length]
+            parent_path = path[:length]
             parent_subparser = self.subparsers.get(tuple(parent_path), None)
             if not parent_subparser:
                 # No subparser exists for the given subpath - create and register
@@ -171,7 +171,7 @@ class CLICommandParser(argparse.ArgumentParser):
                     deprecate_info = command_group.group_kwargs.get('deprecate_info', None)
                     if deprecate_info and deprecate_info.expired():
                         continue
-                grandparent_path = path[0:length - 1]
+                grandparent_path = path[:length - 1]
                 grandparent_subparser = self.subparsers[tuple(grandparent_path)]
                 new_path = path[length - 1]
                 new_parser = grandparent_subparser.add_parser(new_path, cli_help=self.cli_help)
