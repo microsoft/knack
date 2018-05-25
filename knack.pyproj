@@ -11,8 +11,7 @@
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>{7393b5c6-e58e-4149-98f6-354e3a48ee70}</InterpreterId>
-    <InterpreterVersion>3.5</InterpreterVersion>
+    <InterpreterId>MSBuild|env2|$(MSBuildProjectFullPath)</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -79,7 +78,16 @@
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env2\">
-      <Id>{d507db9a-6cd5-43f5-b01e-b261519c3cf1}</Id>
+      <Id>env2</Id>
+      <Version>2.7</Version>
+      <Description>env2 (Python 2.7 (32-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X86</Architecture>
+    </Interpreter>
+    <Interpreter Include="env2\">
+      <Id>{52196499-2eb9-4ba7-924a-ca67b294886b}</Id>
       <Version>2.7</Version>
       <Description>env2 (Python 2.7)</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
@@ -89,14 +97,13 @@
       <Architecture>X86</Architecture>
     </Interpreter>
     <Interpreter Include="env3\">
-      <Id>{7393b5c6-e58e-4149-98f6-354e3a48ee70}</Id>
-      <Version>3.5</Version>
-      <Description>env3 (Python 3.6)</Description>
+      <Id>env3</Id>
+      <Version>3.6</Version>
+      <Description>env3 (Python 3.6 (64-bit))</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
-      <LibraryPath>Lib\</LibraryPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
-      <Architecture>Amd64</Architecture>
+      <Architecture>X64</Architecture>
     </Interpreter>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

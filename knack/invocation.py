@@ -3,6 +3,8 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
+from __future__ import print_function
+
 import sys
 
 from collections import defaultdict
@@ -165,7 +167,8 @@ class CommandInvoker(object):
             deprecations.append(ImplicitDeprecated(**deprecate_kwargs))
 
         for d in deprecations:
-            logger.warning(str(d.message))
+            msg = str(d.message)
+            print(msg, file=sys.stderr)
 
         cmd_result = parsed_args.func(params)
         cmd_result = todict(cmd_result)

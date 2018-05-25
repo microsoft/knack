@@ -196,13 +196,16 @@ class ArgumentsContext(object):
 
             return DeprecatedOptionAction
 
+        action = kwargs.get('action', None)
+
         deprecate_info = kwargs.get('deprecate_info', None)
         if deprecate_info:
             deprecate_info.target = deprecate_info.target or argument_dest
-            kwargs['action'] = _handle_argument_deprecation(deprecate_info)
+            action = _handle_argument_deprecation(deprecate_info)
         deprecated_opts = [x for x in kwargs.get('options_list', []) if isinstance(x, Deprecated)]
         if deprecated_opts:
-            kwargs['action'] = _handle_option_deprecation(deprecated_opts)
+            action = _handle_option_deprecation(deprecated_opts)
+        return action
 
     def deprecate(self, **kwargs):
 
@@ -233,7 +236,7 @@ class ArgumentsContext(object):
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
                        `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
         """
-        self._handle_deprecations(argument_dest, **kwargs)
+        kwargs['action'] = self._handle_deprecations(argument_dest, **kwargs)
         self.command_loader.argument_registry.register_cli_argument(self.command_scope,
                                                                     argument_dest,
                                                                     arg_type,
@@ -257,7 +260,7 @@ class ArgumentsContext(object):
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
                        `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
         """
-        self._handle_deprecations(argument_dest, **kwargs)
+        kwargs['action'] = self._handle_deprecations(argument_dest, **kwargs)
         self.command_loader.extra_argument_registry[self.command_scope][argument_dest] = CLICommandArgument(
             argument_dest, **kwargs)
 

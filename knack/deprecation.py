@@ -4,6 +4,7 @@
 # --------------------------------------------------------------------------------------------
 
 import colorama
+from six import string_types as STRING_TYPES
 
 from knack.log import get_logger
 
@@ -58,7 +59,7 @@ class Deprecated(object):
         deprecate_info = kwargs.get('deprecate_info', None)
         if isinstance(deprecate_info, Deprecated):
             deprecate_info.object_type = object_type
-        elif isinstance(deprecate_info, str):
+        elif isinstance(deprecate_info, STRING_TYPES):
             deprecate_info = Deprecated(cli_ctx, redirect=deprecate_info, object_type=object_type)
         kwargs['deprecate_info'] = deprecate_info
         return deprecate_info
@@ -107,11 +108,7 @@ class Deprecated(object):
                 lines.append("Use '{}' instead.".format(self.redirect))
             return ' '.join(lines)
 
-        # pylint: disable=unused-argument
-        def _default_get_tag(self):
-            return DEFAULT_DEPRECATED_TAG
-
-        self._get_tag = tag_func or _default_get_tag
+        self._get_tag = tag_func or (lambda _: DEFAULT_DEPRECATED_TAG)
         self._get_message = message_func or _default_get_message
 
     # pylint: disable=no-self-use
@@ -141,7 +138,7 @@ class Deprecated(object):
         hidden = False
         if isinstance(self.hide, bool):
             hidden = self.hide
-        elif isinstance(self.hide, str):
+        elif isinstance(self.hide, STRING_TYPES):
             cli_version = self.cli_ctx.get_cli_version()
             hidden = self._version_less_than_or_equal_to(self.hide, cli_version)
         return hidden
