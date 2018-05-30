@@ -8,8 +8,6 @@ import argparse
 import sys
 import textwrap
 
-import colorama
-
 from .deprecation import ImplicitDeprecated, resolve_deprecate_info
 from .log import get_logger
 from .util import CtxTypeError
@@ -20,11 +18,14 @@ logger = get_logger(__name__)
 
 
 FIRST_LINE_PREFIX = ' : '
-
-PREVIEW_TAG = colorama.Fore.CYAN + '[Preview]' + colorama.Fore.RESET
-PREVIEW_TAG_LEN = len(PREVIEW_TAG) - 2 * len(colorama.Fore.RESET)
-
 REQUIRED_TAG = '[Required]'
+
+
+def _get_preview_tag():
+    import colorama
+    PREVIEW_TAG = colorama.Fore.CYAN + '[Preview]' + colorama.Fore.RESET
+    PREVIEW_TAG_LEN = len(PREVIEW_TAG) - 2 * len(colorama.Fore.RESET)
+    return (PREVIEW_TAG, PREVIEW_TAG_LEN)
 
 
 def _get_hanging_indent(max_length, indent):
@@ -368,6 +369,7 @@ class CLIHelp(object):
         self.max_line_len = 0
 
         def _build_tags_string(item):
+            PREVIEW_TAG, PREVIEW_TAG_LEN = _get_preview_tag()
             deprecate_info = getattr(item, 'deprecate_info', None)
             deprecated = deprecate_info.tag if deprecate_info else ''
             preview = PREVIEW_TAG if getattr(item, 'preview_info', None) else ''
@@ -469,6 +471,7 @@ class CLIHelp(object):
             return None
 
         def _build_tags_string(item):
+            PREVIEW_TAG, PREVIEW_TAG_LEN = _get_preview_tag()
             deprecate_info = getattr(item, 'deprecate_info', None)
             deprecated = deprecate_info.tag if deprecate_info else ''
             preview = PREVIEW_TAG if getattr(item, 'preview_info', None) else ''
@@ -621,6 +624,7 @@ class CLIHelp(object):
         self.print_description_list(help_file.children)
 
     def show_help(self, cli_name, nouns, parser, is_group):
+        import colorama
         colorama.init(autoreset=True)
         delimiters = ' '.join(nouns)
         help_file = self.command_help_cls(self, delimiters, parser) if not is_group \

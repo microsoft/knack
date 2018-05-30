@@ -3,7 +3,6 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-import colorama
 from six import string_types as STRING_TYPES
 
 from knack.log import get_logger
@@ -37,6 +36,7 @@ def resolve_deprecate_info(cli_ctx, name):
 class ColorizedString(object):
 
     def __init__(self, message, color):
+        import colorama
         self._message = message
         self._color = getattr(colorama.Fore, color.upper(), None)
 
@@ -44,6 +44,7 @@ class ColorizedString(object):
         return len(self._message)
 
     def __str__(self):
+        import colorama
         if not self._color:
             return self._message
         return self._color + self._message + colorama.Fore.RESET
@@ -111,22 +112,29 @@ class Deprecated(object):
         self._get_tag = tag_func or (lambda _: DEFAULT_DEPRECATED_TAG)
         self._get_message = message_func or _default_get_message
 
+    def __deepcopy__(self, memo):
+        import copy
+
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            try:
+                setattr(result, k, copy.deepcopy(v, memo))
+            except TypeError:
+                if k == 'cli_ctx':
+                    setattr(result, k, self.cli_ctx)
+                else:
+                    raise
+        return result
+
     # pylint: disable=no-self-use
     def _version_less_than_or_equal_to(self, v1, v2):
         """ Returns true if v1 <= v2. """
-        if v1 == v2:
-            return True
-        v1_comps = v1.split('.')
-        v2_comps = v2.split('.')
-        if len(v1_comps) != len(v2_comps):
-            from knack.util import CLIError
-            raise CLIError("Unable to compare version '{}' to version '{}'. Check version format.".format(v1, v2))
-        for i, _ in enumerate(v1_comps):
-            if v1_comps[i] < v2_comps[i]:
-                return True
-            elif v1_comps[i] > v2_comps[i]:
-                return False
-        return False
+        from pkg_resources import parse_version
+        v1_ver = parse_version(v1)
+        v2_ver = parse_version(v2)
+        return v1_ver <= v2_ver
 
     def expired(self):
         if self.expiration:

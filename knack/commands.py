@@ -265,8 +265,10 @@ class CommandGroup(object):
                        Possible values: `client_factory`, `arguments_loader`, `description_loader`, `description`,
                        `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`.
         """
+        import copy
+
         command_name = '{} {}'.format(self.group_name, name) if self.group_name else name
-        command_kwargs = self.group_kwargs.copy()
+        command_kwargs = copy.deepcopy(self.group_kwargs)
         command_kwargs.update(kwargs)
         # don't inherit deprecation info from command group
         command_kwargs['deprecate_info'] = kwargs.get('deprecate_info', None)
