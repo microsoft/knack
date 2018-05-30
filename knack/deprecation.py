@@ -5,10 +5,6 @@
 
 from six import string_types as STRING_TYPES
 
-from knack.log import get_logger
-
-logger = get_logger(__name__)
-
 
 DEFAULT_DEPRECATED_TAG = '[Deprecated]'
 
@@ -99,15 +95,14 @@ class Deprecated(object):
         self.expiration = expiration
 
         def _default_get_message(self):
-            line1 = "This {} has been deprecated and will be removed ".format(self.object_type)
+            msg = "This {} has been deprecated and will be removed ".format(self.object_type)
             if self.expiration:
-                line1 += "in version '{}'.".format(self.expiration)
+                msg += "in version '{}'.".format(self.expiration)
             else:
-                line1 += 'in a future release.'
-            lines = [line1]
+                msg += 'in a future release.'
             if self.redirect:
-                lines.append("Use '{}' instead.".format(self.redirect))
-            return ' '.join(lines)
+                msg += " Use '{}' instead.".format(self.redirect)
+            return msg
 
         self._get_tag = tag_func or (lambda _: DEFAULT_DEPRECATED_TAG)
         self._get_message = message_func or _default_get_message
@@ -170,16 +165,15 @@ class ImplicitDeprecated(Deprecated):
     def __init__(self, **kwargs):
 
         def get_implicit_deprecation_message(self):
-            line1 = "This {} is implicitly deprecated because command group '{}' is deprecated " \
-                    "and will be removed ".format(self.object_type, self.target)
+            msg = "This {} is implicitly deprecated because command group '{}' is deprecated " \
+                  "and will be removed ".format(self.object_type, self.target)
             if self.expiration:
-                line1 += "in version '{}'.".format(self.expiration)
+                msg += "in version '{}'.".format(self.expiration)
             else:
-                line1 += 'in a future release.'
-            lines = [line1]
+                msg += 'in a future release.'
             if self.redirect:
-                lines.append("Use '{}' instead.".format(self.redirect))
-            return ' '.join(lines)
+                msg += " Use '{}' instead.".format(self.redirect)
+            return msg
 
         kwargs.update({
             'tag_func': lambda _: '',

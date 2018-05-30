@@ -210,16 +210,15 @@ class ArgumentsContext(object):
     def deprecate(self, **kwargs):
 
         def _get_deprecated_arg_message(self):
-            line1 = "{} '{}' has been deprecated and will be removed ".format(
+            msg = "{} '{}' has been deprecated and will be removed ".format(
                 self.object_type, self.target).capitalize()
             if self.expiration:
-                line1 += "in version '{}'.".format(self.expiration)
+                msg += "in version '{}'.".format(self.expiration)
             else:
-                line1 += 'in a future release.'
-            lines = [line1]
+                msg += 'in a future release.'
             if self.redirect:
-                lines.append("Use '{}' instead.".format(self.redirect))
-            return ' '.join(lines)
+                msg += " Use '{}' instead.".format(self.redirect)
+            return msg
 
         target = kwargs.get('target', '')
         kwargs['object_type'] = 'option' if target.startswith('-') else 'argument'

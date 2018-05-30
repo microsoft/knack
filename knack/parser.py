@@ -39,10 +39,9 @@ class CLICommandParser(argparse.ArgumentParser):
     @staticmethod
     def _add_argument(obj, arg):
         """ Only pass valid argparse kwargs to argparse.ArgumentParser.add_argument """
-        options_list = arg.options_list
         argparse_options = {name: value for name, value in arg.options.items() if name in ARGPARSE_SUPPORTED_KWARGS}
         scrubbed_options_list = []
-        for item in options_list:
+        for item in arg.options_list:
             if isinstance(item, Deprecated):
                 # don't add expired options to the parser
                 if item.expired():
@@ -120,7 +119,7 @@ class CLICommandParser(argparse.ArgumentParser):
             command_validator = metadata.validator
             argument_validators = []
             argument_groups = {}
-            for _, arg in metadata.arguments.items():
+            for arg in metadata.arguments.values():
 
                 # don't add deprecated arguments to the parser
                 deprecate_info = arg.type.settings.get('deprecate_info', None)

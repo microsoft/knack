@@ -10,7 +10,6 @@ import sys
 from collections import defaultdict
 
 from .deprecation import ImplicitDeprecated, resolve_deprecate_info
-from .log import get_logger
 from .util import CLIError, CtxTypeError, CommandResultItem, todict
 from .parser import CLICommandParser
 from .commands import CLICommandsLoader
@@ -19,9 +18,6 @@ from .events import (EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_INVOKER_POST_CMD_TB
                      EVENT_INVOKER_POST_PARSE_ARGS, EVENT_INVOKER_TRANSFORM_RESULT,
                      EVENT_INVOKER_FILTER_RESULT)
 from .help import CLIHelp
-
-
-logger = get_logger(__name__)
 
 
 class CommandInvoker(object):
@@ -118,6 +114,8 @@ class CommandInvoker(object):
         :return: The command result
         :rtype: knack.util.CommandResultItem
         """
+        import colorama
+
         self.cli_ctx.raise_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, args=args)
         cmd_tbl = self.commands_loader.load_command_table(args)
         command = self._rudimentary_get_command(args)
@@ -148,7 +146,7 @@ class CommandInvoker(object):
         params = self._filter_params(parsed_args)
 
         cmd = parsed_args.func
-        deprecations = [] + getattr(parsed_args, '_argument_deprecations', [])
+        deprecations = getattr(parsed_args, '_argument_deprecations', [])
         if cmd.deprecate_info:
             deprecations.append(cmd.deprecate_info)
 
@@ -166,9 +164,10 @@ class CommandInvoker(object):
             del deprecate_kwargs['_get_message']
             deprecations.append(ImplicitDeprecated(**deprecate_kwargs))
 
+        colorama.init()
         for d in deprecations:
-            msg = str(d.message)
-            print(msg, file=sys.stderr)
+            print(d.message, file=sys.stderr)
+            colorama.deinit()
 
         cmd_result = parsed_args.func(params)
         cmd_result = todict(cmd_result)
