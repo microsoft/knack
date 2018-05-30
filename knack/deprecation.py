@@ -126,10 +126,9 @@ class Deprecated(object):
     # pylint: disable=no-self-use
     def _version_less_than_or_equal_to(self, v1, v2):
         """ Returns true if v1 <= v2. """
-        from pkg_resources import parse_version
-        v1_ver = parse_version(v1)
-        v2_ver = parse_version(v2)
-        return v1_ver <= v2_ver
+        # pylint: disable=no-name-in-module, import-error
+        from distutils.version import LooseVersion
+        return LooseVersion(v1) <= LooseVersion(v2)
 
     def expired(self):
         if self.expiration:
