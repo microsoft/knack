@@ -167,7 +167,7 @@ class CommandInvoker(object):
         colorama.init()
         for d in deprecations:
             print(d.message, file=sys.stderr)
-            colorama.deinit()
+        colorama.deinit()
 
         cmd_result = parsed_args.func(params)
         cmd_result = todict(cmd_result)
