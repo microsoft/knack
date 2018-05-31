@@ -69,3 +69,6 @@ $RECYCLE.BIN/
 .vscode/cSpell.json
 .project
 .pydevproject
+.pytest_cache/
+env3/
+env2/

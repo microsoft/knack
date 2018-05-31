@@ -3,24 +3,45 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import argparse
 import sys
 import textwrap
 
+from .deprecation import ImplicitDeprecated, resolve_deprecate_info
+from .log import get_logger
 from .util import CtxTypeError
 from .help_files import _load_help_file
 
 
-FIRST_LINE_PREFIX = ': '
+logger = get_logger(__name__)
 
 
-def _get_column_indent(text, max_name_length):
-    return ' ' * (max_name_length - len(text))
+FIRST_LINE_PREFIX = ' : '
+REQUIRED_TAG = '[Required]'
+
+
+def _get_preview_tag():
+    import colorama
+    PREVIEW_TAG = colorama.Fore.CYAN + '[Preview]' + colorama.Fore.RESET
+    PREVIEW_TAG_LEN = len(PREVIEW_TAG) - 2 * len(colorama.Fore.RESET)
+    return (PREVIEW_TAG, PREVIEW_TAG_LEN)
 
 
 def _get_hanging_indent(max_length, indent):
-    return max_length + (indent * 4) + len(FIRST_LINE_PREFIX)
+    return max_length + (indent * 4) + len(FIRST_LINE_PREFIX) - 1
+
+
+def _get_padding_len(max_len, layout):
+    if layout['tags']:
+        pad_len = max_len - layout['line_len'] + 1
+    else:
+        pad_len = max_len - layout['line_len']
+    return pad_len
+
+
+def _get_line_len(name, tags_len):
+    return len(name) + tags_len + (2 if tags_len else 1)
 
 
 def _print_indent(s, indent=0, subsequent_spaces=-1):
@@ -95,6 +116,7 @@ class HelpObject(object):
         self._long_summary = self._normalize_text(value)
 
 
+# pylint: disable=too-many-instance-attributes
 class HelpFile(HelpObject):
 
     @staticmethod
@@ -105,8 +127,9 @@ class HelpFile(HelpObject):
         except Exception:  # pylint: disable=broad-except
             return text
 
-    def __init__(self, delimiters):
+    def __init__(self, help_ctx, delimiters):
         super(HelpFile, self).__init__()
+        self.help_ctx = help_ctx
         self.delimiters = delimiters
         self.name = delimiters.split()[-1] if delimiters else delimiters
         self.command = delimiters
@@ -114,6 +137,27 @@ class HelpFile(HelpObject):
         self.short_summary = ''
         self.long_summary = ''
         self.examples = []
+        self.deprecate_info = None
+        self.preview_info = None
+
+        direct_deprecate_info = resolve_deprecate_info(help_ctx.cli_ctx, delimiters)
+        if direct_deprecate_info:
+            self.deprecate_info = direct_deprecate_info
+
+        # search for implicit deprecation
+        path_comps = delimiters.split()[:-1]
+        implicit_deprecate_info = None
+        while path_comps and not implicit_deprecate_info:
+            implicit_deprecate_info = resolve_deprecate_info(help_ctx.cli_ctx, ' '.join(path_comps))
+            del path_comps[-1]
+
+        if implicit_deprecate_info:
+            deprecate_kwargs = implicit_deprecate_info.__dict__.copy()
+            deprecate_kwargs['object_type'] = 'command' if delimiters in \
+                help_ctx.cli_ctx.invocation.commands_loader.command_table else 'command group'
+            del deprecate_kwargs['_get_tag']
+            del deprecate_kwargs['_get_message']
+            self.deprecate_info = ImplicitDeprecated(**deprecate_kwargs)
 
     def load(self, options):
         description = getattr(options, 'description', None)
@@ -160,38 +204,72 @@ class HelpFile(HelpObject):
 
 class GroupHelpFile(HelpFile):
 
-    def __init__(self, delimiters, parser):
-        super(GroupHelpFile, self).__init__(delimiters)
+    def __init__(self, help_ctx, delimiters, parser):
+
+        super(GroupHelpFile, self).__init__(help_ctx, delimiters)
         self.type = 'group'
+        self.preview_info = getattr(parser, 'preview_info', None)
 
         self.children = []
         if getattr(parser, 'choices', None):
             for options in parser.choices.values():
                 delimiters = ' '.join(options.prog.split()[1:])
-                child = (GroupHelpFile(delimiters, options) if options.is_group()
-                         else HelpFile(delimiters))
+                child = (help_ctx.group_help_cls(self.help_ctx, delimiters, options) if options.is_group()
+                         else help_ctx.help_cls(self.help_ctx, delimiters))
                 child.load(options)
+                try:
+                    # don't hide implicitly deprecated commands
+                    if not isinstance(child.deprecate_info, ImplicitDeprecated) and \
+                            not child.deprecate_info.show_in_help():
+                        continue
+                except AttributeError:
+                    pass
                 self.children.append(child)
 
 
 class CommandHelpFile(HelpFile):
 
-    def __init__(self, delimiters, parser):
-        super(CommandHelpFile, self).__init__(delimiters)
+    def __init__(self, help_ctx, delimiters, parser):
+
+        super(CommandHelpFile, self).__init__(help_ctx, delimiters)
         self.type = 'command'
 
         self.parameters = []
 
         for action in [a for a in parser._actions if a.help != argparse.SUPPRESS]:  # pylint: disable=protected-access
-            self.parameters.append(HelpParameter(' '.join(sorted(action.option_strings)),
-                                                 action.help,
-                                                 required=action.required,
-                                                 choices=action.choices,
-                                                 default=action.default,
-                                                 group_name=action.container.description))
+            self._add_parameter_help(action)
 
         help_param = next(p for p in self.parameters if p.name == '--help -h')
         help_param.group_name = 'Global Arguments'
+
+    def _add_parameter_help(self, param):
+        param_kwargs = {
+            'description': param.help,
+            'choices': param.choices,
+            'required': param.required,
+            'default': param.default,
+            'group_name': param.container.description
+        }
+        normal_options = []
+        deprecated_options = []
+        for item in param.option_strings:
+            deprecated_info = getattr(item, 'deprecate_info', None)
+            if deprecated_info:
+                if deprecated_info.show_in_help():
+                    deprecated_options.append(item)
+            else:
+                normal_options.append(item)
+        if deprecated_options:
+            param_kwargs.update({
+                'name_source': deprecated_options,
+                'deprecate_info': deprecated_options[0].deprecate_info
+            })
+            self.parameters.append(HelpParameter(**param_kwargs))
+        param_kwargs.update({
+            'name_source': normal_options,
+            'deprecate_info': getattr(param, 'deprecate_info', None)
+        })
+        self.parameters.append(HelpParameter(**param_kwargs))
 
     def _load_from_data(self, data):
         super(CommandHelpFile, self)._load_from_data(data)
@@ -212,10 +290,11 @@ class CommandHelpFile(HelpFile):
 
 class HelpParameter(HelpObject):  # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, param_name, description, required, choices=None,
-                 default=None, group_name=None):
+    def __init__(self, name_source, description, required, choices=None,
+                 default=None, group_name=None, deprecate_info=None):
         super(HelpParameter, self).__init__()
-        self.name = param_name
+        self.name_source = name_source
+        self.name = ' '.join(sorted(name_source))
         self.required = required
         self.type = 'string'
         self.short_summary = description
@@ -224,10 +303,11 @@ class HelpParameter(HelpObject):  # pylint: disable=too-many-instance-attributes
         self.choices = choices
         self.default = default
         self.group_name = group_name
+        self.deprecate_info = deprecate_info
 
     def update_from_data(self, data):
         if self.name != data.get('name'):
-            raise HelpAuthoringException("mismatched name {0} vs. {1}"
+            raise HelpAuthoringException(u"mismatched name {0} vs. {1}"
                                          .format(self.name,
                                                  data.get('name')))
 
@@ -253,155 +333,254 @@ class HelpExample(object):  # pylint: disable=too-few-public-methods
 
 class CLIHelp(object):
 
-    @staticmethod
-    def _print_header(cli_name, help_file):
+    # pylint: disable=no-self-use
+    def _print_header(self, cli_name, help_file):
         indent = 0
         _print_indent('')
         _print_indent('Command' if help_file.type == 'command' else 'Group', indent)
 
         indent += 1
-        _print_indent('{0}{1}'.format(cli_name + ' ' + help_file.command,
-                                      FIRST_LINE_PREFIX + help_file.short_summary
-                                      if help_file.short_summary
-                                      else ''),
-                      indent)
+        LINE_FORMAT = u'{cli}{name}{separator}{summary}'
+        line = LINE_FORMAT.format(
+            cli=cli_name,
+            name=' ' + help_file.command if help_file.command else '',
+            separator=FIRST_LINE_PREFIX if help_file.short_summary else '',
+            summary=help_file.short_summary if help_file.short_summary else ''
+        )
+        _print_indent(line, indent)
+
+        def _build_long_summary(item):
+            lines = []
+            if item.long_summary:
+                lines.append(item.long_summary)
+            if item.deprecate_info:
+                lines.append(str(item.deprecate_info.message))
+            return ' '.join(lines)
 
         indent += 1
-        if help_file.long_summary:
-            _print_indent('{0}'.format(help_file.long_summary.rstrip()), indent)
-        _print_indent('')
+        long_sum = _build_long_summary(help_file)
+        _print_indent(long_sum, indent)
 
-    @staticmethod
-    def _print_groups(help_file):
+    def _print_groups(self, help_file):
 
-        def _print_items(items):
+        LINE_FORMAT = u'{name}{padding}{tags}{separator}{summary}'
+        indent = 1
+
+        self.max_line_len = 0
+
+        def _build_tags_string(item):
+            PREVIEW_TAG, PREVIEW_TAG_LEN = _get_preview_tag()
+            deprecate_info = getattr(item, 'deprecate_info', None)
+            deprecated = deprecate_info.tag if deprecate_info else ''
+            preview = PREVIEW_TAG if getattr(item, 'preview_info', None) else ''
+            required = REQUIRED_TAG if getattr(item, 'required', None) else ''
+            tags = ' '.join([x for x in [str(deprecated), preview, required] if x])
+            tags_len = sum([
+                len(deprecated),
+                PREVIEW_TAG_LEN if preview else 0,
+                len(required),
+                tags.count(' ')
+            ])
+            if not tags_len:
+                tags = ''
+            return tags, tags_len
+
+        def _layout_items(items):
+
+            layouts = []
             for c in sorted(items, key=lambda h: h.name):
-                column_indent = _get_column_indent(c.name, max_name_length)
-                summary = FIRST_LINE_PREFIX + c.short_summary if c.short_summary else ''
-                summary = summary.replace('\n', ' ')
-                hanging_indent = max_name_length + indent * 4 + 2
-                _print_indent(
-                    '{0}{1}{2}'.format(c.name, column_indent, summary), indent, hanging_indent)
+                tags, tags_len = _build_tags_string(c)
+                line_len = _get_line_len(c.name, tags_len)
+                layout = {
+                    'name': c.name,
+                    'tags': tags,
+                    'separator': FIRST_LINE_PREFIX if c.short_summary else '',
+                    'summary': c.short_summary or '',
+                    'line_len': line_len
+                }
+                layout['summary'] = layout['summary'].replace('\n', ' ')
+                if line_len > self.max_line_len:
+                    self.max_line_len = line_len
+                layouts.append(layout)
+            return layouts
+
+        def _print_items(layouts):
+            for layout in layouts:
+                layout['padding'] = ' ' * _get_padding_len(self.max_line_len, layout)
+                _print_indent(LINE_FORMAT.format(**layout), indent, _get_hanging_indent(self.max_line_len, indent))
             _print_indent('')
 
-        indent = 1
-        max_name_length = max(len(c.name) for c in help_file.children) \
-            if help_file.children \
-            else 0
-        subgroups = [c for c in help_file.children if isinstance(c, GroupHelpFile)]
-        subcommands = [c for c in help_file.children if c not in subgroups]
+        groups = [c for c in help_file.children if isinstance(c, self.group_help_cls)]
+        group_layouts = _layout_items(groups)
 
-        if subgroups:
+        commands = [c for c in help_file.children if c not in groups]
+        command_layouts = _layout_items(commands)
+
+        if groups:
             _print_indent('Subgroups:')
-            _print_items(subgroups)
+            _print_items(group_layouts)
 
-        if subcommands:
+        if commands:
             _print_indent('Commands:')
-            _print_items(subcommands)
+            _print_items(command_layouts)
 
     @staticmethod
     def _get_choices_defaults_sources_str(p):
-        choice_str = '  Allowed values: {0}.'.format(', '.join(sorted([str(x) for x in p.choices]))) \
+        choice_str = u'  Allowed values: {0}.'.format(', '.join(sorted([str(x) for x in p.choices]))) \
             if p.choices else ''
-        default_str = '  Default: {0}.'.format(p.default) \
+        default_str = u'  Default: {0}.'.format(p.default) \
             if p.default and p.default != argparse.SUPPRESS else ''
-        value_sources_str = '  Values from: {0}.'.format(', '.join(p.value_sources)) \
+        value_sources_str = u'  Values from: {0}.'.format(', '.join(p.value_sources)) \
             if p.value_sources else ''
-        return '{0}{1}{2}'.format(choice_str, default_str, value_sources_str)
+        return u'{0}{1}{2}'.format(choice_str, default_str, value_sources_str)
 
     @staticmethod
     def print_description_list(help_files):
         indent = 1
-        max_name_length = max(len(f.name) for f in help_files) if help_files else 0
+        max_length = max(len(f.name) for f in help_files) if help_files else 0
         for help_file in sorted(help_files, key=lambda h: h.name):
-            _print_indent('{0}{1}{2}'.format(help_file.name,
-                                             _get_column_indent(help_file.name, max_name_length),
-                                             FIRST_LINE_PREFIX + help_file.short_summary
-                                             if help_file.short_summary
-                                             else ''),
+            column_indent = max_length - len(help_file.name)
+            _print_indent(u'{0}{1}{2}'.format(help_file.name,
+                                              ' ' * column_indent,
+                                              FIRST_LINE_PREFIX + help_file.short_summary
+                                              if help_file.short_summary
+                                              else ''),
                           indent,
-                          _get_hanging_indent(max_name_length, indent))
+                          _get_hanging_indent(max_length, indent))
 
     @staticmethod
     def _print_examples(help_file):
         indent = 0
-        print('')
         _print_indent('Examples', indent)
         for e in help_file.examples:
             indent = 1
-            _print_indent('{0}'.format(e.name), indent)
+            _print_indent(u'{0}'.format(e.name), indent)
             indent = 2
-            _print_indent('{0}'.format(e.text), indent)
+            _print_indent(u'{0}'.format(e.text), indent)
             print('')
 
-    @classmethod
-    def _print_arguments(cls, help_file):
+    def _print_arguments(self, help_file):
+
+        LINE_FORMAT = u'{name}{padding}{tags}{separator}{short_summary}'
         indent = 1
+        self.max_line_len = 0
+
         if not help_file.parameters:
             _print_indent('None', indent)
             _print_indent('')
             return None
 
-        if not help_file.parameters:
-            _print_indent('none', indent)
-        required_tag = ' [Required]'
-        max_name_length = max(len(p.name) + (len(required_tag) if p.required else 0)
-                              for p in help_file.parameters)
-        last_group_name = None
+        def _build_tags_string(item):
+            PREVIEW_TAG, PREVIEW_TAG_LEN = _get_preview_tag()
+            deprecate_info = getattr(item, 'deprecate_info', None)
+            deprecated = deprecate_info.tag if deprecate_info else ''
+            preview = PREVIEW_TAG if getattr(item, 'preview_info', None) else ''
+            required = REQUIRED_TAG if getattr(item, 'required', None) else ''
+            tags = ' '.join([x for x in [str(deprecated), preview, required] if x])
+            tags_len = sum([
+                len(deprecated),
+                PREVIEW_TAG_LEN if preview else 0,
+                len(required),
+                tags.count(' ')
+            ])
+            if not tags_len:
+                tags = ''
+            return tags, tags_len
 
-        group_registry = ArgumentGroupRegistry(
-            [p.group_name for p in help_file.parameters if p.group_name])
+        def _layout_items(items):
 
-        def _get_parameter_key(parameter):
-            return '{}{}{}'.format(group_registry.get_group_priority(parameter.group_name),
-                                   str(not parameter.required),
-                                   parameter.name)
+            layouts = []
+            for c in sorted(items, key=_get_parameter_key):
 
-        for p in sorted(help_file.parameters, key=_get_parameter_key):
-            indent = 1
-            required_text = required_tag if p.required else ''
+                deprecate_info = getattr(c, 'deprecate_info', None)
+                if deprecate_info and not deprecate_info.show_in_help():
+                    continue
 
-            short_summary = p.short_summary if p.short_summary else ''
+                tags, tags_len = _build_tags_string(c)
+                short_summary = _build_short_summary(c)
+                long_summary = _build_long_summary(c)
+                line_len = _get_line_len(c.name, tags_len)
+                layout = {
+                    'name': c.name,
+                    'tags': tags,
+                    'separator': FIRST_LINE_PREFIX if short_summary else '',
+                    'short_summary': short_summary,
+                    'long_summary': long_summary,
+                    'group_name': c.group_name,
+                    'line_len': line_len
+                }
+                if line_len > self.max_line_len:
+                    self.max_line_len = line_len
+                layouts.append(layout)
+            return layouts
+
+        def _print_items(layouts):
+            last_group_name = ''
+
+            for layout in layouts:
+                indent = 1
+                if layout['group_name'] != last_group_name:
+                    if layout['group_name']:
+                        print('')
+                        print(layout['group_name'])
+                    last_group_name = layout['group_name']
+
+                layout['padding'] = ' ' * _get_padding_len(self.max_line_len, layout)
+                _print_indent(LINE_FORMAT.format(**layout), indent, _get_hanging_indent(self.max_line_len, indent))
+
+                indent = 2
+                long_summary = layout.get('long_summary', None)
+                if long_summary:
+                    _print_indent(long_summary, indent)
+
+            _print_indent('')
+
+        def _build_short_summary(item):
+            short_summary = item.short_summary
             possible_values_index = short_summary.find(' Possible values include')
             short_summary = short_summary[0:possible_values_index
                                           if possible_values_index >= 0 else len(short_summary)]
-            short_summary += cls._get_choices_defaults_sources_str(p)
+            short_summary += self._get_choices_defaults_sources_str(item)
             short_summary = short_summary.strip()
+            return short_summary
 
-            if p.group_name != last_group_name:
-                if p.group_name:
-                    print('')
-                    print(p.group_name)
-                last_group_name = p.group_name
-            _print_indent(
-                '{0}{1}{2}{3}'.format(
-                    p.name,
-                    _get_column_indent(p.name + required_text, max_name_length),
-                    required_text,
-                    FIRST_LINE_PREFIX + short_summary if short_summary else ''
-                ),
-                indent,
-                _get_hanging_indent(max_name_length, indent)
-            )
+        def _build_long_summary(item):
+            lines = []
+            if item.long_summary:
+                lines.append(item.long_summary)
+            deprecate_info = getattr(item, 'deprecate_info', None)
+            if deprecate_info:
+                lines.append(str(item.deprecate_info.message))
+            return ' '.join(lines)
 
-            indent = 2
-            if p.long_summary:
-                _print_indent('{0}'.format(p.long_summary.rstrip()), indent)
+        group_registry = ArgumentGroupRegistry([p.group_name for p in help_file.parameters if p.group_name])
+
+        def _get_parameter_key(parameter):
+            return u'{}{}{}'.format(group_registry.get_group_priority(parameter.group_name),
+                                    str(not parameter.required),
+                                    parameter.name)
+
+        parameter_layouts = _layout_items(help_file.parameters)
+        _print_items(parameter_layouts)
 
         return indent
 
-    @classmethod
-    def _print_detailed_help(cls, cli_name, help_file):
-        cls._print_header(cli_name, help_file)
+    def _print_detailed_help(self, cli_name, help_file):
+        self._print_header(cli_name, help_file)
+        if help_file.long_summary or getattr(help_file, 'deprecate_info', None):
+            _print_indent('')
+
         if help_file.type == 'command':
             _print_indent('Arguments')
-            cls._print_arguments(help_file)
+            self._print_arguments(help_file)
         elif help_file.type == 'group':
-            cls._print_groups(help_file)
+            self._print_groups(help_file)
         if help_file.examples:
-            cls._print_examples(help_file)
+            self._print_examples(help_file)
 
-    def __init__(self, cli_ctx=None, privacy_statement='', welcome_message=''):
+    def __init__(self, cli_ctx=None, privacy_statement='', welcome_message='',
+                 group_help_cls=GroupHelpFile, command_help_cls=CommandHelpFile,
+                 help_cls=HelpFile):
         """ Manages the generation and production of help in the CLI
 
         :param cli_ctx: CLI Context
@@ -410,6 +589,12 @@ class CLIHelp(object):
         :type privacy_statement: str
         :param welcome_message: A welcome message for the CLI
         :type welcome_message: str
+        :param group_help_cls: Class to use for formatting group help.
+        :type group_help_cls: HelpFile
+        :param command_help_cls: Class to use for formatting command help.
+        :type command_help_cls: HelpFile
+        :param command_help_cls: Class to use for formatting generic help.
+        :type command_help_cls: HelpFile
         """
         from .cli import CLI
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
@@ -417,6 +602,10 @@ class CLIHelp(object):
         self.cli_ctx = cli_ctx
         self.privacy_statement = privacy_statement
         self.welcome_message = welcome_message
+        self.max_line_len = 0
+        self.group_help_cls = group_help_cls
+        self.command_help_cls = command_help_cls
+        self.help_cls = help_cls
 
     def show_privacy_statement(self):
         ran_before = self.cli_ctx.config.getboolean('core', 'first_run', fallback=False)
@@ -431,16 +620,16 @@ class CLIHelp(object):
     def show_welcome(self, parser):
         self.show_privacy_statement()
         self.show_welcome_message()
-        help_file = GroupHelpFile('', parser)
+        help_file = self.group_help_cls(self, '', parser)
         self.print_description_list(help_file.children)
 
-    @classmethod
-    def show_help(cls, cli_name, nouns, parser, is_group):
+    def show_help(self, cli_name, nouns, parser, is_group):
+        import colorama
+        colorama.init(autoreset=True)
         delimiters = ' '.join(nouns)
-        help_file = CommandHelpFile(delimiters, parser) \
-            if not is_group \
-            else GroupHelpFile(delimiters, parser)
+        help_file = self.command_help_cls(self, delimiters, parser) if not is_group \
+            else self.group_help_cls(self, delimiters, parser)
         help_file.load(parser)
         if not nouns:
             help_file.command = ''
-        cls._print_detailed_help(cli_name, help_file)
+        self._print_detailed_help(cli_name, help_file)

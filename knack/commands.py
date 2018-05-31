@@ -4,12 +4,12 @@
 # --------------------------------------------------------------------------------------------
 
 import types
-import copy
 from collections import OrderedDict, defaultdict
 from importlib import import_module
 
 import six
 
+from .deprecation import Deprecated
 from .prompting import prompt_y_n, NoTTYException
 from .util import CLIError, CtxTypeError
 from .arguments import ArgumentRegistry, CLICommandArgument
@@ -93,12 +93,8 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         return self(**kwargs)
 
     def __call__(self, *args, **kwargs):
+
         cmd_args = args[0]
-        if self.deprecate_info is not None:
-            text = 'This command is deprecating and will be removed in future releases.'
-            if self.deprecate_info:
-                text += " Use '{}' instead.".format(self.deprecate_info)
-            logger.warning(text)
 
         confirm = self.confirmation and not cmd_args.pop('yes', None) \
             and not self.cli_ctx.config.getboolean('core', 'disable_confirm_prompt', fallback=False)
@@ -142,6 +138,8 @@ class CLICommandsLoader(object):
         self.excluded_command_handler_args = excluded_command_handler_args
         # A command table is a dictionary of name -> CLICommand instances
         self.command_table = dict()
+        # A command group table is a dictionary of names -> CommandGroup instances
+        self.command_group_table = dict()
         # An argument registry stores all arguments for commands
         self.argument_registry = ArgumentRegistry()
         self.extra_argument_registry = defaultdict(lambda: {})
@@ -221,8 +219,13 @@ class CLICommandsLoader(object):
         except (ValueError, AttributeError):
             raise ValueError("The operation '{}' is invalid.".format(operation))
 
+    def deprecate(self, **kwargs):
+        kwargs['object_type'] = 'command group'
+        return Deprecated(self.cli_ctx, **kwargs)
+
 
 class CommandGroup(object):
+
     def __init__(self, command_loader, group_name, operations_tmpl, **kwargs):
         """ Context manager for registering commands that share common properties.
 
@@ -240,6 +243,10 @@ class CommandGroup(object):
         self.group_name = group_name
         self.operations_tmpl = operations_tmpl
         self.group_kwargs = kwargs
+        Deprecated.ensure_new_style_deprecation(self.command_loader.cli_ctx, self.group_kwargs, 'command group')
+        if kwargs['deprecate_info']:
+            kwargs['deprecate_info'].target = group_name
+        self.command_loader.command_group_table[group_name] = self
 
     def __enter__(self):
         return self
@@ -258,10 +265,19 @@ class CommandGroup(object):
                        Possible values: `client_factory`, `arguments_loader`, `description_loader`, `description`,
                        `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`.
         """
+        import copy
+
         command_name = '{} {}'.format(self.group_name, name) if self.group_name else name
         command_kwargs = copy.deepcopy(self.group_kwargs)
         command_kwargs.update(kwargs)
+        # don't inherit deprecation info from command group
+        command_kwargs['deprecate_info'] = kwargs.get('deprecate_info', None)
+
         self.command_loader.command_table[command_name] = self.command_loader.create_command(
             command_name,
             self.operations_tmpl.format(handler_name),
             **command_kwargs)
+
+    def deprecate(self, **kwargs):
+        kwargs['object_type'] = 'command'
+        return Deprecated(self.command_loader.cli_ctx, **kwargs)

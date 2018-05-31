@@ -20,6 +20,11 @@ class TestCLIScenarios(unittest.TestCase):
     def setUp(self):
         self.mock_ctx = MockContext()
 
+    def invoke_with_command_table(self, command, command_table):
+        self.mock_ctx.invocation = CommandInvoker(cli_ctx=self.mock_ctx)
+        self.mock_ctx.invocation.commands_loader.command_table = command_table
+        self.mock_ctx.invocation.execute(command.split())
+
     def test_list_value_parameter(self):
         handler_args = {}
         def handler(args):
@@ -29,8 +34,7 @@ class TestCLIScenarios(unittest.TestCase):
         command.add_argument('hello', '--hello', nargs='+')
         command.add_argument('something', '--something')
         cmd_table = {'test command': command}
-        with mock.patch.object(CLICommandsLoader, 'load_command_table', return_value=cmd_table):
-            self.mock_ctx.invoke('test command --hello world sir --something else'.split())
+        self.invoke_with_command_table('test command --hello world sir --something else', cmd_table)
         self.assertEqual(handler_args['something'], 'else')
         self.assertEqual(handler_args['hello'][0], 'world')
         self.assertEqual(handler_args['hello'][1], 'sir')
@@ -43,11 +47,12 @@ class TestCLIScenarios(unittest.TestCase):
         command.add_argument('var', '--var', '-v')
         cmd_table = {'test command': command}
 
+
         def _test(cmd_line):
-            with mock.patch.object(CLICommandsLoader, 'load_command_table', return_value=cmd_table):
-                ci = CommandInvoker(cli_ctx=self.mock_ctx)
-                self.mock_ctx.invocation = ci
-                return ci.execute(cmd_line.split())
+            ci = CommandInvoker(cli_ctx=self.mock_ctx)
+            self.mock_ctx.invocation = ci
+            self.mock_ctx.invocation.commands_loader.command_table = cmd_table
+            return self.mock_ctx.invocation.execute(cmd_line.split())
 
         # case insensitive command paths
         result = _test('TEST command --var blah')

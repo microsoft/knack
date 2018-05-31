@@ -5,6 +5,7 @@
 
 import argparse
 
+from .deprecation import Deprecated
 from .events import EVENT_PARSER_GLOBAL_CREATE
 from .util import CtxTypeError
 
@@ -38,9 +39,24 @@ class CLICommandParser(argparse.ArgumentParser):
     @staticmethod
     def _add_argument(obj, arg):
         """ Only pass valid argparse kwargs to argparse.ArgumentParser.add_argument """
-        options_list = arg.options_list
         argparse_options = {name: value for name, value in arg.options.items() if name in ARGPARSE_SUPPORTED_KWARGS}
-        return obj.add_argument(*options_list, **argparse_options)
+        scrubbed_options_list = []
+        for item in arg.options_list:
+            if isinstance(item, Deprecated):
+                # don't add expired options to the parser
+                if item.expired():
+                    continue
+
+                class _DeprecatedOption(str):
+                    def __new__(cls, *args, **kwargs):
+                        instance = str.__new__(cls, *args, **kwargs)
+                        return instance
+
+                option = _DeprecatedOption(item.target)
+                setattr(option, 'deprecate_info', item)
+                item = option
+            scrubbed_options_list.append(item)
+        return obj.add_argument(*scrubbed_options_list, **argparse_options)
 
     def __init__(self, cli_ctx=None, cli_help=None, **kwargs):
         """ Create the argument parser
@@ -63,12 +79,14 @@ class CLICommandParser(argparse.ArgumentParser):
         self._description = kwargs.pop('description', None)
         super(CLICommandParser, self).__init__(**kwargs)
 
-    def load_command_table(self, cmd_tbl):
+    def load_command_table(self, command_loader):
         """ Process the command table and load it into the parser
 
         :param cmd_tbl: A dictionary containing the commands
         :type cmd_tbl: dict
         """
+        cmd_tbl = command_loader.command_table
+        grp_tbl = command_loader.command_group_table
         if not cmd_tbl:
             raise ValueError('The command table is empty. At least one command is required.')
         # If we haven't already added a subparser, we
@@ -77,12 +95,16 @@ class CLICommandParser(argparse.ArgumentParser):
             sp = self.add_subparsers(dest='_command')
             sp.required = True
             self.subparsers = {(): sp}
+
         for command_name, metadata in cmd_tbl.items():
-            subparser = self._get_subparser(command_name.split())
+            subparser = self._get_subparser(command_name.split(), grp_tbl)
             command_verb = command_name.split()[-1]
             # To work around http://bugs.python.org/issue9253, we artificially add any new
             # parsers we add to the "choices" section of the subparser.
-            subparser.choices[command_verb] = command_verb
+            subparser = self._get_subparser(command_name.split(), grp_tbl)
+            deprecate_info = metadata.deprecate_info
+            if not subparser or (deprecate_info and deprecate_info.expired()):
+                continue
             # inject command_module designer's help formatter -- default is HelpFormatter
             fc = metadata.formatter_class or argparse.HelpFormatter
 
@@ -93,11 +115,17 @@ class CLICommandParser(argparse.ArgumentParser):
                                                   help_file=metadata.help,
                                                   formatter_class=fc,
                                                   cli_help=self.cli_help)
-
+            command_parser.cli_ctx = self.cli_ctx
             command_validator = metadata.validator
             argument_validators = []
             argument_groups = {}
             for arg in metadata.arguments.values():
+
+                # don't add deprecated arguments to the parser
+                deprecate_info = arg.type.settings.get('deprecate_info', None)
+                if deprecate_info and deprecate_info.expired():
+                    continue
+
                 if arg.validator:
                     argument_validators.append(arg.validator)
                 if arg.arg_group:
@@ -112,7 +140,7 @@ class CLICommandParser(argparse.ArgumentParser):
                 else:
                     param = CLICommandParser._add_argument(command_parser, arg)
                 param.completer = arg.completer
-
+                param.deprecate_info = arg.deprecate_info
             command_parser.set_defaults(
                 func=metadata,
                 command=command_name,
@@ -120,12 +148,14 @@ class CLICommandParser(argparse.ArgumentParser):
                 _argument_validators=argument_validators,
                 _parser=command_parser)
 
-    def _get_subparser(self, path):
+    def _get_subparser(self, path, group_table=None):
         """For each part of the path, walk down the tree of
         subparsers, creating new ones if one doesn't already exist.
         """
+        group_table = group_table or {}
         for length in range(0, len(path)):
-            parent_subparser = self.subparsers.get(tuple(path[0:length]), None)
+            parent_path = path[:length]
+            parent_subparser = self.subparsers.get(tuple(parent_path), None)
             if not parent_subparser:
                 # No subparser exists for the given subpath - create and register
                 # a new subparser.
@@ -135,13 +165,25 @@ class CLICommandParser(argparse.ArgumentParser):
                 # with ensuring that a subparser for cmd exists, then for subcmd1,
                 # subcmd2 and so on), we know we can always back up one step and
                 # add a subparser if one doesn't exist
-                grandparent_subparser = self.subparsers[tuple(path[0:length - 1])]
-                new_parser = grandparent_subparser.add_parser(path[length - 1], cli_help=self.cli_help)
+                command_group = group_table.get(' '.join(parent_path))
+                if command_group:
+                    deprecate_info = command_group.group_kwargs.get('deprecate_info', None)
+                    if deprecate_info and deprecate_info.expired():
+                        continue
+                grandparent_path = path[:length - 1]
+                grandparent_subparser = self.subparsers[tuple(grandparent_path)]
+                new_path = path[length - 1]
+                new_parser = grandparent_subparser.add_parser(new_path, cli_help=self.cli_help)
 
                 # Due to http://bugs.python.org/issue9253, we have to give the subparser
                 # a destination and set it to required in order to get a meaningful error
                 parent_subparser = new_parser.add_subparsers(dest='_subcommand')
+                command_group = group_table.get(' '.join(parent_path), None)
+                deprecate_info = None
+                if command_group:
+                    deprecate_info = command_group.group_kwargs.get('deprecate_info', None)
                 parent_subparser.required = True
+                parent_subparser.deprecate_info = deprecate_info
                 self.subparsers[tuple(path[0:length])] = parent_subparser
         return parent_subparser
 
