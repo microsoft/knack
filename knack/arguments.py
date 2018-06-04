@@ -235,7 +235,9 @@ class ArgumentsContext(object):
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
                        `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
         """
-        kwargs['action'] = self._handle_deprecations(argument_dest, **kwargs)
+        deprecate_action = self._handle_deprecations(argument_dest, **kwargs)
+        if deprecate_action:
+            kwargs['action'] = deprecate_action
         self.command_loader.argument_registry.register_cli_argument(self.command_scope,
                                                                     argument_dest,
                                                                     arg_type,
@@ -259,7 +261,9 @@ class ArgumentsContext(object):
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
                        `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
         """
-        kwargs['action'] = self._handle_deprecations(argument_dest, **kwargs)
+        deprecate_action = self._handle_deprecations(argument_dest, **kwargs)
+        if deprecate_action:
+            kwargs['action'] = deprecate_action
         self.command_loader.extra_argument_registry[self.command_scope][argument_dest] = CLICommandArgument(
             argument_dest, **kwargs)
 
