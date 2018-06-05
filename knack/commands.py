@@ -144,6 +144,17 @@ class CLICommandsLoader(object):
         self.argument_registry = ArgumentRegistry()
         self.extra_argument_registry = defaultdict(lambda: {})
 
+    def _populate_command_group_table_with_subgroups(self, name):
+        if not name:
+            return
+
+        # ensure all subgroups have some entry in the command group table
+        name_components = name.split()
+        for i, _ in enumerate(name_components):
+            subgroup_name = ' '.join(name_components[:i + 1])
+            if subgroup_name not in self.command_group_table:
+                self.command_group_table[subgroup_name] = {}
+
     def load_command_table(self, args):  # pylint: disable=unused-argument
         """ Load commands into the command table
 
@@ -246,6 +257,7 @@ class CommandGroup(object):
         Deprecated.ensure_new_style_deprecation(self.command_loader.cli_ctx, self.group_kwargs, 'command group')
         if kwargs['deprecate_info']:
             kwargs['deprecate_info'].target = group_name
+        command_loader._populate_command_group_table_with_subgroups(group_name)  # pylint: disable=protected-access
         self.command_loader.command_group_table[group_name] = self
 
     def __enter__(self):
@@ -273,6 +285,7 @@ class CommandGroup(object):
         # don't inherit deprecation info from command group
         command_kwargs['deprecate_info'] = kwargs.get('deprecate_info', None)
 
+        self.command_loader._populate_command_group_table_with_subgroups(' '.join(command_name.split()[:-1]))  # pylint: disable=protected-access
         self.command_loader.command_table[command_name] = self.command_loader.create_command(
             command_name,
             self.operations_tmpl.format(handler_name),
