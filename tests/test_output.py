@@ -160,6 +160,21 @@ qwerty  0b1f6472qwerty  True      0b1f6472
 qwerty  0b1f6472qwerty  True
 """))
 
+    def test_out_table_with_number(self):
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        obj = OrderedDict()
+        obj['offer'] = 'RHEL'
+        obj['Publisher'] = 'RedHat'
+        obj['Sku'] = '6.10'
+        obj['Urn'] = 'RedHat:RHEL:6.10:6.10.2018071006'
+        obj['Version'] = '6.10.2018071006'
+        output_producer.out(CommandResultItem(obj), formatter=format_table, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """Publisher    Sku    Urn                               Version          Offer
+-----------  -----  --------------------------------  ---------------  -------
+RedHat       6.10   RedHat:RHEL:6.10:6.10.2018071006  6.10.2018071006  RHEL
+"""))
+
     # TSV output tests
     def test_output_format_dict(self):
         obj = {}
