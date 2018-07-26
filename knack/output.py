@@ -187,7 +187,8 @@ class _TableOutput(object):  # pylint: disable=too-few-public-methods
     def dump(self, data):
         from tabulate import tabulate
         table_data = self._auto_table(data)
-        table_str = tabulate(table_data, headers="keys", tablefmt="simple") if table_data else ''
+        table_str = tabulate(table_data, headers="keys", tablefmt="simple",
+                             disable_numparse=True) if table_data else ''
         if table_str == '\n':
             raise ValueError('Unable to extract fields for table.')
         return table_str + '\n'
