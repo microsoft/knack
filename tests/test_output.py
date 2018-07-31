@@ -86,9 +86,9 @@ class TestOutput(unittest.TestCase):
         obj['lun'] = 0
         output_producer.out(CommandResultItem(obj), formatter=format_table, out_file=self.io)
         self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
-            """Active      Lun  Val
+            """Active    Lun    Val
 --------  -----  --------
-True          0  0b1f6472
+True      0      0b1f6472
 """))
 
     def test_out_table_list_of_lists(self):
@@ -158,6 +158,17 @@ qwerty  0b1f6472qwerty  True      0b1f6472
             """Name    Val             Active
 ------  --------------  --------
 qwerty  0b1f6472qwerty  True
+"""))
+
+    def test_out_table_with_number(self):
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        obj = OrderedDict()
+        obj['Sku'] = '6.10'
+        output_producer.out(CommandResultItem(obj), formatter=format_table, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """Sku
+-----
+6.10
 """))
 
     # TSV output tests
