@@ -33,6 +33,7 @@ class CLIConfig(object):
         :type config_env_var_prefix: str
         """
         config_dir = config_dir or CLIConfig._DEFAULT_CONFIG_DIR
+        ensure_dir(config_dir)
         config_env_var_prefix = config_env_var_prefix or CLIConfig._DEFAULT_CONFIG_ENV_VAR_PREFIX
         self.config_parser = get_config_parser()
         env_var_prefix = '{}_'.format(config_env_var_prefix.upper())
