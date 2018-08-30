@@ -13,7 +13,7 @@ Logging
 - `--verbose` - This flag changes the logging level to Info and above.
 - `--debug` - This flag changes the logging level to Debug and above.
 
-* All log message to to STDERR (not STDOUT)
+* All log messages go to STDERR (not STDOUT)
 * Log to Error or Warning for user messages instead of using the `print()` function
 * If file logging has been enabled by the user, full Debug logs are saved to rotating log files.
     * File logging is enabled if section=logging, option=enable_log_file is set in config (see [config](config.md)).
