@@ -192,7 +192,7 @@ class ArgumentsContext(object):
                     try:
                         super(DeprecatedOptionAction, self).__call__(parser, namespace, values, option_string)
                     except NotImplementedError:
-                        setattr(namespace, dest, values)
+                        setattr(namespace, self.dest, values)
 
             return DeprecatedOptionAction
 
