@@ -46,15 +46,19 @@ Usage
 
     import sys
     from collections import OrderedDict
-    from knack import CLI, CLICommandsLoader, ArgumentsContext
+
+    from knack import CLI, ArgumentsContext, CLICommandsLoader
+    from knack.commands import CommandGroup
+
 
     def abc_list(myarg):
         import string
         return list(string.ascii_lowercase)
 
+
     class MyCommandsLoader(CLICommandsLoader):
         def load_command_table(self, args):
-            with CommandGroup(__name__, self, 'abc', '__main__#{}') as g:
+            with CommandGroup(self, 'abc', '__main__#{}') as g:
                 g.command('list', 'abc_list')
             return OrderedDict(self.command_table)
 
@@ -62,6 +66,7 @@ Usage
             with ArgumentsContext(self, 'abc list') as ac:
                 ac.argument('myarg', type=int, default=100)
             super(MyCommandsLoader, self).load_arguments(command)
+
 
     mycli = CLI(cli_name='mycli', commands_loader_cls=MyCommandsLoader)
     exit_code = mycli.invoke(sys.argv[1:])
