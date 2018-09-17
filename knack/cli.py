@@ -164,7 +164,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             logger.exception(ex)
         return 1
 
-    def invoke(self, args, initial_invocation_data=None, out_file=None):
+    def _invoke(self, args, initial_invocation_data=None, out_file=None, return_output=False):
         """ Invoke a command.
 
         :param args: The arguments that represent the command
@@ -172,12 +172,16 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         :param initial_invocation_data: Prime the in memory collection of key-value data for this invocation.
         :type initial_invocation_data: dict
         :param out_file: The file to send output to. If not used, we use out_file for knack.cli.CLI instance
-        :type out_file: file-like object
-        :return: The exit code of the invocation
-        :rtype: int
+        :type out_file: file-like object. For example, stderr.
+        :return: The exit code of the invocation. If return_output is true, return a tuple, where
+            the first value is the exit code, and the second value is what is ouputted to out_file
+        :rtype: tuple(int, str)
         """
         if not isinstance(args, (list, tuple)):
             raise TypeError('args should be a list or tuple.')
+
+        cmd_result = None
+
         try:
             args = self.completion.get_completion_args() or args
             out_file = out_file or self.out_file
@@ -194,6 +198,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
                                                       commands_loader_cls=self.commands_loader_cls,
                                                       help_cls=self.help_cls,
                                                       initial_data=initial_invocation_data)
+
                 cmd_result = self.invocation.execute(args)
                 output_type = self.invocation.data['output']
                 if cmd_result and cmd_result.result is not None:
@@ -204,7 +209,20 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         except KeyboardInterrupt:
             exit_code = 1
         except Exception as ex:  # pylint: disable=broad-except
+            from os import linesep
+            import traceback
+            cmd_result = str(ex) + linesep + traceback.format_exc()
+
             exit_code = self.exception_handler(ex)
         finally:
             pass
-        return exit_code
+
+        return (exit_code, cmd_result)
+
+    def invoke(self, args, initial_invocation_data=None, out_file=None):
+
+        return self._invoke(args, initial_invocation_data, out_file)[0]
+
+    def invoke_and_return_output(self, args, initial_invocation_data=None, out_file=None):
+
+        return self._invoke(args, initial_invocation_data, out_file, return_output=True)
