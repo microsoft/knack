@@ -73,13 +73,13 @@ Usage
     sys.exit(exit_code)
 
 
-More samples and snippets available at `examples <examples>`__.
+More samples and snippets available at `examples <https://github.com/Microsoft/knack/tree/master/examples>`__.
 
 
 Documentation
 =============
 
-Documentation is available at `docs <docs>`__.
+Documentation is available at `docs <https://github.com/Microsoft/knack/tree/master/docs>`__.
 
 Developer Setup
 ===============
