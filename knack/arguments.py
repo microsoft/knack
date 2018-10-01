@@ -58,7 +58,7 @@ class CLICommandArgument(object):  # pylint: disable=too-few-public-methods
         # We'll do an early fault detection to find any instances where we have inconsistent
         # set of parameters for argparse
         if not self.options_list and 'required' in self.options:  # pylint: disable=access-member-before-definition
-            raise ValueError(message="You can't specify both required and an options_list")
+            raise ValueError('You can\'t specify both required and an options_list')
         if not self.options.get('dest', False):
             raise ValueError('Missing dest')
         if not self.options_list:  # pylint: disable=access-member-before-definition
