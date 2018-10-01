@@ -22,15 +22,17 @@ class CLIConfig(object):
 
     _DEFAULT_CONFIG_ENV_VAR_PREFIX = 'CLI'
     _DEFAULT_CONFIG_DIR = os.path.join('~', '.{}'.format('cli'))
-    _CONFIG_FILE_NAME = 'config'
+    _DEFAULT_CONFIG_FILE_NAME = 'config'
 
-    def __init__(self, config_dir=None, config_env_var_prefix=None):
+    def __init__(self, config_dir=None, config_env_var_prefix=None, config_file_name=None):
         """ Manages configuration options available in the CLI
 
         :param config_dir: The directory to store config files
         :type config_dir: str
         :param config_env_var_prefix: The prefix for config environment variables
         :type config_env_var_prefix: str
+        :param config_file_name: The name given to the config file to be created
+        :type config_file_name: str
         """
         config_dir = config_dir or CLIConfig._DEFAULT_CONFIG_DIR
         ensure_dir(config_dir)
@@ -39,7 +41,8 @@ class CLIConfig(object):
         env_var_prefix = '{}_'.format(config_env_var_prefix.upper())
         default_config_dir = os.path.expanduser(config_dir)
         self.config_dir = os.environ.get('{}CONFIG_DIR'.format(env_var_prefix), default_config_dir)
-        self.config_path = os.path.join(self.config_dir, CLIConfig._CONFIG_FILE_NAME)
+        configuration_file_name = config_file_name or CLIConfig._DEFAULT_CONFIG_FILE_NAME
+        self.config_path = os.path.join(self.config_dir, configuration_file_name)
         self._env_var_format = env_var_prefix + '{section}_{option}'
         self.config_parser.read(self.config_path)
 
