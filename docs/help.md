@@ -2,7 +2,7 @@
 
 Help authoring for commands is done in a number of places. The YAML-based system is the recommended way to update command and group help text.
 
-Command help starts with the docstring text on the handler, if available.   Code can specify values that replace the docstring contents.  YAML is the final override for help content and is the recommended way for authoring command and group help.  Note that group help can only be authored via YAML.  
+Command help starts with the docstring text on the handler, if available. Code can specify values that replace the docstring contents. YAML is the final override for help content and is the recommended way for authoring command and group help. Note that group help can only be authored via YAML.
 
 Here are the layers of help, with each layer overriding the layer below it:
 
@@ -15,7 +15,7 @@ Here are the layers of help, with each layer overriding the layer below it:
 
 The YAML syntax is described [here](http://www.yaml.org/spec/1.2/spec.html "here").
 
-Authoring note: it is not recommended to use the product code to author command/group help--YAML is the recommended way (see above).  This information is provided for completeness and may be useful for fixing small typos in existing help text.
+Authoring note: it is not recommended to use the product code to author command/group help--YAML is the recommended way (see above). This information is provided for completeness and may be useful for fixing small typos in existing help text.
 
 ### Example YAML help ###
 
@@ -28,13 +28,13 @@ helps['hello world'] = """
             type: command
             short-summary: Say hello to the world.
             long-summary: Longer summary of saying hello.
-            parameters: 
+            parameters:
                 - name: --language -l
                   type: string
                   short-summary: 'Language to say hello in'
                   long-summary: |
-                      Longer summary with newlines preserved.  Preserving newlines is helpful for paragraph breaks.
-                  populator-commands: 
+                      Longer summary with newlines preserved. Preserving newlines is helpful for paragraph breaks.
+                  populator-commands:
                   - mycli hello languages
                   - These indicate where values can be retrieved for input to this command
                 - name: --another-parameter
@@ -55,7 +55,7 @@ You can also document groups using the same format.
 helps['hello'] = """
             type: group
             short-summary: Commands to say hello
-            long-summary: Longer summary of the hello group            
+            long-summary: Longer summary of the hello group
             examples:
                 - name: Example name
                   text: Description
@@ -73,6 +73,6 @@ helps['hello'] = """
 
 # Testing Authored Help #
 
-To verify the YAML help is correctly formatted, the command/group's help command must be executed at runtime.  For example, to verify "mycli hello world", run the command "mycli hello world -h" and verify the text.  
+To verify the YAML help is correctly formatted, the command/group's help command must be executed at runtime. For example, to verify `mycli hello world`, run the command `mycli hello world -h` and verify the text.
 
-Runtime is also when help authoring errors will be reported, such as documenting a parameter that doesn't exist.  Errors will only show when the CLI help is executed, so verifying the CLI help is required to ensure your authoring is correct.   
+Runtime is also when help authoring errors will be reported, such as documenting a parameter that doesn't exist. Errors will only show when the CLI help is executed, so verifying the CLI help is required to ensure your authoring is correct.

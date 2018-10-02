@@ -3,7 +3,7 @@ Events
 
 An extensible event framework is built-in.
 
-Things to keep in mind:  
+Things to keep in mind:
 - The order of event handler calls is not guaranteed.
 - Event handlers cannot return anything. However, they can modify the arguments they receive.
 
@@ -25,7 +25,7 @@ self.cli_ctx.register_event(EVENT_NAME, event_handler)
 Raise your own events
 ---------------------
 
-The framework has some events built-in.  
+The framework has some events built-in.
 For the full list of events, see [events](../knack/events.py).
 
 You can also add your own events.

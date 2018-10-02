@@ -3,7 +3,7 @@ Prompting
 
 We provide some utilities for prompting during command execution.
 
-Use this sparingly and provide non-interactive ways to specific such arguments also.
+Use this sparingly and provide non-interactive ways to specify such arguments.
 
 Each of these utility methods does a TTY check and raises a `NoTTYException`.
 Handle this appropriately in each case.
@@ -73,7 +73,7 @@ How many do you want to create? 10
 from knack.prompting import prompt_pass
 ```
 
-This is a simply password prompt. As you can see, the entered password is not printed to the screen but is saved in the variable.
+This is a simple password prompt. As you can see, the entered password is not printed to the screen but is saved in the variable.
 
 ```Python
 >>> userpassword = prompt_pass()
@@ -150,7 +150,7 @@ from knack.prompting import prompt_t_f
 from knack.prompting import prompt_choice_list
 ```
 
-Prompt the user to choose from a choice list.  
+Prompt the user to choose from a choice list.
 You will be given the index of the list item the user selected.
 
 ```Python

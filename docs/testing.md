@@ -3,7 +3,7 @@ Command Testing
 
 ## Overview
 
-There are two types of automated tests you can add. They are the [unit tests](https://en.wikipedia.org/wiki/Unit_testing) and the [integration tests](https://en.wikipedia.org/wiki/Integration_testing). 
+There are two types of automated tests you can add. They are the [unit tests](https://en.wikipedia.org/wiki/Unit_testing) and the [integration tests](https://en.wikipedia.org/wiki/Integration_testing).
 
 For unit tests, we support unit tests written in the forms of both standard [unittest](https://docs.python.org/3/library/unittest.html) and [nosetest](http://nose.readthedocs.io/en/latest/writing_tests.html).
 
@@ -34,9 +34,10 @@ Note:
 
 1. When the test is run without recording file, the test will be run under live mode. A recording file will be created at `recording/<test_method_name>.yaml`
 2. Wrap the command in `self.cmd` method. It will assert the exit code of the command to be zero.
-3. All the functions and classes your need for writing tests are included in `knack.testsdk` namespace. It is recommended __not__ to refrenced to the sub-namespace to avoid breaking changes.
+3. All the functions and classes your need for writing tests are included in `knack.testsdk` namespace. It is recommended __not__ to reference the sub-namespace to avoid breaking changes.
 
 ### Sample 2. Validate the return value in JSON
+
 ``` Python
 class TestMyScenarios(ScenarioTest):
     def __init__(self, method_name):
@@ -46,6 +47,7 @@ class TestMyScenarios(ScenarioTest):
         result_list = self.cmd('abc list').get_output_in_json()
         assert len(result_list) > 0
 ```
+
 Note:
 
 1. The return value of `self.cmd` is an instance of class `ExecutionResult`. It has the exit code and stdout as its properties.
@@ -67,7 +69,7 @@ class TestMyScenarios(ScenarioTest):
     def test_abc_list(self):
         self.cmd('abc list', checks=[JMESPathCheck('length(@)', 26)])
 ```
-Note: 
+Note:
 
 1. What is JMESPath? [JMESPath is a query language for JSON](http://jmespath.org/)
 2. If a command is return value in JSON, multiple JMESPath based check can be added to the checks list to validate the result.
@@ -87,7 +89,7 @@ If the replay passes, you can commit the tests as well as recordings.
 
 ### Run test live
 
-When recording file is missing, the test framework will execute the test in live mode. You can force tests to be run live by set following environment variable:
+When the recording file is missing, the test framework will execute the test in live mode. You can force tests to be run live by set following environment variable:
 ```
 export CLI_TEST_RUN_LIVE='True'
 ```

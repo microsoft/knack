@@ -10,8 +10,9 @@ You will then get tab completion for all command names, command arguments and gl
 
 With the PyPI package of your CLI, you can include a shell script.
 
-For example:  
+For example:
 `mycli.completion.sh`
+
 ```Bash
 case $SHELL in
 */zsh)
@@ -47,8 +48,8 @@ The method above will not work for other installers as `register-python-argcompl
 `register-python-argcomplete` is a command that produces a shell script that you can consume directly; you can see this with running `register-python-argcomplete --no-defaults mycli`.
 
 We directly use the output of the above command.
-
 `mycli.completion`
+
 ```Bash
 _python_argcomplete() {
     local IFS=$'\013'
