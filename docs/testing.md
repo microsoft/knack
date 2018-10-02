@@ -37,6 +37,7 @@ Note:
 3. All the functions and classes your need for writing tests are included in `knack.testsdk` namespace. It is recommended __not__ to reference the sub-namespace to avoid breaking changes.
 
 ### Sample 2. Validate the return value in JSON
+
 ``` Python
 class TestMyScenarios(ScenarioTest):
     def __init__(self, method_name):
@@ -46,6 +47,7 @@ class TestMyScenarios(ScenarioTest):
         result_list = self.cmd('abc list').get_output_in_json()
         assert len(result_list) > 0
 ```
+
 Note:
 
 1. The return value of `self.cmd` is an instance of class `ExecutionResult`. It has the exit code and stdout as its properties.
