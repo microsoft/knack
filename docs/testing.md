@@ -34,7 +34,7 @@ Note:
 
 1. When the test is run without recording file, the test will be run under live mode. A recording file will be created at `recording/<test_method_name>.yaml`
 2. Wrap the command in `self.cmd` method. It will assert the exit code of the command to be zero.
-3. All the functions and classes your need for writing tests are included in `knack.testsdk` namespace. It is recommended __not__ to refrenced to the sub-namespace to avoid breaking changes.
+3. All the functions and classes your need for writing tests are included in `knack.testsdk` namespace. It is recommended __not__ to reference the sub-namespace to avoid breaking changes.
 
 ### Sample 2. Validate the return value in JSON
 ``` Python
@@ -87,7 +87,7 @@ If the replay passes, you can commit the tests as well as recordings.
 
 ### Run test live
 
-When recording file is missing, the test framework will execute the test in live mode. You can force tests to be run live by set following environment variable:
+When the recording file is missing, the test framework will execute the test in live mode. You can force tests to be run live by set following environment variable:
 ```
 export CLI_TEST_RUN_LIVE='True'
 ```

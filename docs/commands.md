@@ -8,7 +8,7 @@ A command table is a dictionary from command name to a `CLICommand` instance.
 
 Write your command as a simple function, specifying your arguments as the parameter names.
 
-When choosing names, it is recommended that you look at similiar commands and follow those naming conventions to take advantage of any aliasing that may already be in place.
+When choosing names, it is recommended that you look at similar commands and follow those naming conventions to take advantage of any aliasing that may already be in place.
 
 If you specify a default value in your function signature, this will flag the argument as optional and will automatically display the default value in the help text for the command. Any parameters that do not have a default value are required and will automatically appear in help with the [Required] label. The required and default behaviors for arguments can be overridden if needed with the `ArgumentsContext` function but this is not generally needed.
 
