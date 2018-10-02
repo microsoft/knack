@@ -3,7 +3,7 @@ Command Testing
 
 ## Overview
 
-There are two types of automated tests you can add. They are the [unit tests](https://en.wikipedia.org/wiki/Unit_testing) and the [integration tests](https://en.wikipedia.org/wiki/Integration_testing). 
+There are two types of automated tests you can add. They are the [unit tests](https://en.wikipedia.org/wiki/Unit_testing) and the [integration tests](https://en.wikipedia.org/wiki/Integration_testing).
 
 For unit tests, we support unit tests written in the forms of both standard [unittest](https://docs.python.org/3/library/unittest.html) and [nosetest](http://nose.readthedocs.io/en/latest/writing_tests.html).
 
@@ -67,7 +67,7 @@ class TestMyScenarios(ScenarioTest):
     def test_abc_list(self):
         self.cmd('abc list', checks=[JMESPathCheck('length(@)', 26)])
 ```
-Note: 
+Note:
 
 1. What is JMESPath? [JMESPath is a query language for JSON](http://jmespath.org/)
 2. If a command is return value in JSON, multiple JMESPath based check can be added to the checks list to validate the result.

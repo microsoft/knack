@@ -1,7 +1,7 @@
 Commands
 ========
 
-The commands loader contains a command table.  
+The commands loader contains a command table.
 A command table is a dictionary from command name to a `CLICommand` instance.
 
 **Writing a Command**
@@ -12,7 +12,7 @@ When choosing names, it is recommended that you look at similar commands and fol
 
 If you specify a default value in your function signature, this will flag the argument as optional and will automatically display the default value in the help text for the command. Any parameters that do not have a default value are required and will automatically appear in help with the [Required] label. The required and default behaviors for arguments can be overridden if needed with the `ArgumentsContext` function but this is not generally needed.
 
-There are a few different ways to register commands (see the examples directory for working samples).  
+There are a few different ways to register commands (see the examples directory for working samples).
 Typically, you would use `CommandGroup` to register commands.
 
 For example:
@@ -39,5 +39,4 @@ class MyCommandsLoader(CLICommandsLoader):
 
     def __init__(self, cli_ctx=None):
         super(MyCommandsLoader, self).__init__(cli_ctx=cli_ctx, command_cls=MyCustomCLICommand)
-
 ```

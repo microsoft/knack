@@ -150,7 +150,7 @@ from knack.prompting import prompt_t_f
 from knack.prompting import prompt_choice_list
 ```
 
-Prompt the user to choose from a choice list.  
+Prompt the user to choose from a choice list.
 You will be given the index of the list item the user selected.
 
 ```Python
