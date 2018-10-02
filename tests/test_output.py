@@ -80,15 +80,23 @@ class TestOutput(unittest.TestCase):
 
     def test_out_table(self):
         output_producer = OutputProducer(cli_ctx=self.mock_ctx)
-        obj = OrderedDict()
-        obj['active'] = True
-        obj['val'] = '0b1f6472'
-        obj['lun'] = 0
-        output_producer.out(CommandResultItem(obj), formatter=format_table, out_file=self.io)
+
+        obj1 = OrderedDict()
+        obj1['active'] = True
+        obj1['val'] = '0b1f6472'
+        obj1['lun'] = 0
+
+        obj2 = OrderedDict()
+        obj2['active'] = False
+        obj2['val'] = '0b1f6485'
+        obj2['lun'] = 0
+
+        output_producer.out(CommandResultItem([obj1, obj2]), formatter=format_table, out_file=self.io)
         self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
-            """Active    Lun    Val
---------  -----  --------
-True      0      0b1f6472
+            """Active    Val    Lun
+--------  --------  -----
+True      0b1f6472  0
+False     0b1f6485  0
 """))
 
     def test_out_table_list_of_lists(self):

@@ -63,6 +63,10 @@ $RECYCLE.BIN/
 # Mac desktop service store files
 .DS_Store
 
+# Unsupported tooling
+Pipfile
+Pipfile.lock
+
 .idea
 .vscode/settings.json
 .vscode/.ropeproject/
