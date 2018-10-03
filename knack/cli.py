@@ -164,7 +164,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             logger.exception(ex)
         return 1
 
-    def _invoke(self, args, initial_invocation_data=None, out_file=None, return_output=False):
+    def _invoke(self, args, initial_invocation_data=None, out_file=None):
         """ Invoke a command.
 
         :param args: The arguments that represent the command
@@ -173,7 +173,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         :type initial_invocation_data: dict
         :param out_file: The file to send output to. If not used, we use out_file for knack.cli.CLI instance
         :type out_file: file-like object. For example, stderr.
-        :return: The exit code of the invocation. If return_output is true, return a tuple, where
+        :return: Return a tuple, where
             the first value is the exit code, and the second value is what is ouputted to out_file
         :rtype: tuple(int, str)
         """
@@ -225,4 +225,4 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
 
     def invoke_and_return_output(self, args, initial_invocation_data=None, out_file=None):
 
-        return self._invoke(args, initial_invocation_data, out_file, return_output=True)
+        return self._invoke(args, initial_invocation_data, out_file)
