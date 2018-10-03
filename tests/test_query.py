@@ -78,5 +78,6 @@ class TestQuery(unittest.TestCase):
         with self.assertRaises(ValueError):
             CLIQuery.jmespath_type(query)
 
+
 if __name__ == '__main__':
     unittest.main()

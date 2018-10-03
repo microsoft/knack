@@ -10,6 +10,7 @@ from knack.commands import CLICommandsLoader, CommandGroup
 from knack.arguments import CLIArgumentType, CLICommandArgument, ArgumentsContext
 from tests.util import MockContext
 
+
 def _dictContainsSubset(expected, actual):
     """Checks whether actual is a superset of expected.
        Helper for deprecated assertDictContainsSubset"""
@@ -53,7 +54,6 @@ class TestCommandRegistration(unittest.TestCase):
                                 raw=False, **operation_config):
         pass
 
-
     def test_register_cli_argument(self):
         cl = CLICommandsLoader(self.mock_ctx)
         command_name = 'test register sample-command'
@@ -62,9 +62,9 @@ class TestCommandRegistration(unittest.TestCase):
                                                        TestCommandRegistration.sample_command_handler.__name__))
         with ArgumentsContext(cl, command_name) as ac:
             ac.argument('resource_name', CLIArgumentType(
-            options_list=('--wonky-name', '-n'), metavar='RNAME', help='Completely WONKY name...',
-            required=False
-        ))
+                options_list=('--wonky-name', '-n'), metavar='RNAME', help='Completely WONKY name...',
+                required=False
+            ))
         cl.load_arguments(command_name)
         self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
         command_metadata = cl.command_table[command_name]
@@ -92,7 +92,6 @@ class TestCommandRegistration(unittest.TestCase):
         command_metadata = cl.command_table[command_name]
         self.assertEqual(len(command_metadata.arguments), 4, 'We expected exactly 4 arguments')
         self.assertIn(command_name, cl.command_table)
-
 
     def test_register_command(self):
         cl = CLICommandsLoader(self.mock_ctx)
@@ -151,6 +150,7 @@ class TestCommandRegistration(unittest.TestCase):
 
     def test_register_command_confirmation_callable(self):
         cl = CLICommandsLoader(self.mock_ctx)
+
         def confirm_callable(_):
             pass
         command_name = 'test sample-command'
@@ -308,10 +308,10 @@ class TestCommandRegistration(unittest.TestCase):
             g.command('foo', sample_sdk_method.__name__)
         with ArgumentsContext(cl, 'override_using_register_cli_argument') as ac:
             ac.argument('param_a',
-                                 options_list=('--overridden', '-r'),
-                                 validator=test_validator_completer,
-                                 completer=test_validator_completer,
-                                 required=False)
+                        options_list=('--overridden', '-r'),
+                        validator=test_validator_completer,
+                        completer=test_validator_completer,
+                        required=False)
         cl.load_arguments(command_name)
 
         command_metadata = cl.command_table[command_name]
@@ -344,6 +344,7 @@ class TestCommandRegistration(unittest.TestCase):
     def test_cli_ctx_type_error(self):
         with self.assertRaises(TypeError):
             CLICommandsLoader(cli_ctx=object())
+
 
 if __name__ == '__main__':
     unittest.main()

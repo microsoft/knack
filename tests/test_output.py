@@ -13,6 +13,7 @@ from knack.output import OutputProducer, format_json, format_table, format_tsv
 from knack.util import CommandResultItem, normalize_newlines
 from tests.util import MockContext
 
+
 class TestOutput(unittest.TestCase):
 
     def setUp(self):
