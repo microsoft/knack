@@ -113,7 +113,7 @@ Arguments
     --arg -a      : Allowed values: 1, 2, 3.
     --arg3
 """.format(self.cli_ctx.name)
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_command_plain_execute(self):
@@ -121,7 +121,7 @@ Arguments
         self.cli_ctx.invoke('cmd1 -b b'.split())
         actual = self.io.getvalue()
         expected = "This command has been deprecated and will be removed in a future release. Use 'alt-cmd1' instead."
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_command_hidden_execute(self):
@@ -129,7 +129,7 @@ Arguments
         self.cli_ctx.invoke('cmd3 -b b'.split())
         actual = self.io.getvalue()
         expected = "This command has been deprecated and will be removed in a future release. Use 'alt-cmd3' instead."
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_command_expiring_execute(self):
@@ -137,7 +137,7 @@ Arguments
         self.cli_ctx.invoke('cmd4 -b b'.split())
         actual = self.io.getvalue()
         expected = "This command has been deprecated and will be removed in version '1.0.0'. Use 'alt-cmd4' instead."
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_command_expired_execute(self):
@@ -222,7 +222,7 @@ Commands:
     cmd1 : Short summary here.
 
 """.format(self.cli_ctx.name)
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_command_group_help_expiring(self):
@@ -236,7 +236,7 @@ Group
         This command group has been deprecated and will be removed in version '1.0.0'. Use
         'alt-group4' instead.
 """.format(self.cli_ctx.name)
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_command_group_expired(self):
@@ -259,7 +259,7 @@ Command
         command group 'group1' is deprecated and will be removed in a future release. Use 'alt-
         group1' instead.
 """.format(self.cli_ctx.name)
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
 
 class TestArgumentDeprecation(unittest.TestCase):
@@ -337,7 +337,7 @@ Arguments
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar'.split())
         actual = self.io.getvalue()
         expected = "Argument 'arg1' has been deprecated and will be removed in a future release."
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_arguments_execute_hidden(self):
@@ -345,7 +345,7 @@ Arguments
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar --arg3 bar'.split())
         actual = self.io.getvalue()
         expected = "Argument 'arg3' has been deprecated and will be removed in a future release."
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_arguments_execute_expiring(self):
@@ -353,7 +353,7 @@ Arguments
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar --arg4 bar'.split())
         actual = self.io.getvalue()
         expected = "Argument 'arg4' has been deprecated and will be removed in version '1.0.0'."
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_arguments_execute_expired(self):
@@ -362,7 +362,7 @@ Arguments
             self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar --arg5 foo'.split())
         actual = self.io.getvalue()
         expected = 'unrecognized arguments: --arg5 foo'
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_options_execute(self):
@@ -370,7 +370,7 @@ Arguments
         self.cli_ctx.invoke('arg-test --arg1 foo --alt1 bar'.split())
         actual = self.io.getvalue()
         expected = "Option '--alt1' has been deprecated and will be removed in a future release. Use '--opt1' instead."
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_options_execute_non_deprecated(self):
@@ -378,7 +378,7 @@ Arguments
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar'.split())
         actual = self.io.getvalue()
         expected = "Option '--alt1' has been deprecated and will be removed in a future release. Use '--opt1' instead."
-        self.assertTrue(expected not in actual)
+        self.assertNotIn(expected, actual)
 
     @redirect_io
     def test_deprecate_options_execute_hidden(self):
@@ -386,7 +386,7 @@ Arguments
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar --alt3 bar'.split())
         actual = self.io.getvalue()
         expected = "Option '--alt3' has been deprecated and will be removed in a future release. Use '--opt3' instead."
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_options_execute_hidden_non_deprecated(self):
@@ -394,7 +394,7 @@ Arguments
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar --opt3 bar'.split())
         actual = self.io.getvalue()
         expected = "Option '--alt3' has been deprecated and will be removed in a future release. Use '--opt3' instead."
-        self.assertTrue(expected not in actual)
+        self.assertNotIn(expected, actual)
 
     @redirect_io
     def test_deprecate_options_execute_expired(self):
@@ -403,7 +403,7 @@ Arguments
             self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar --alt5 foo'.split())
         actual = self.io.getvalue()
         expected = 'unrecognized arguments: --alt5 foo'
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_options_execute_expired_non_deprecated(self):
@@ -418,7 +418,7 @@ Arguments
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar --alt4 bar'.split())
         actual = self.io.getvalue()
         expected = "Option '--alt4' has been deprecated and will be removed in version '1.0.0'. Use '--opt4' instead."
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_options_execute_expiring_non_deprecated(self):
@@ -426,7 +426,7 @@ Arguments
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar --opt4 bar'.split())
         actual = self.io.getvalue()
         expected = "Option '--alt4' has been deprecated and will be removed in version '1.0.0'. Use '--opt4' instead."
-        self.assertTrue(expected not in actual)
+        self.assertNotIn(expected, actual)
 
 
 if __name__ == '__main__':

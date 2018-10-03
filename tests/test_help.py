@@ -208,7 +208,7 @@ class TestHelp(unittest.TestCase):
             self.cli_ctx.invoke('n1 -h'.split())
         actual = io.getvalue()
         expected = 'Allowed values: 1, 2, 3'
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_help_param(self):
@@ -393,7 +393,7 @@ Subgroups:
 
         actual = io.getvalue()
         expected = 'unrecognized arguments: -c extra'
-        self.assertTrue(expected in actual)
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_help_group_help(self):
