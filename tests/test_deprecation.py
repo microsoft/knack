@@ -81,7 +81,7 @@ class TestCommandDeprecation(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('-h'.split())
         actual = self.io.getvalue()
-        expected = u"""
+        expected = """
 Group
     {}
 
@@ -145,7 +145,7 @@ Arguments
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('cmd5 -h'.split())
         actual = self.io.getvalue()
-        self.assertTrue(u'invalid choice' in actual and u'cmd5' in actual)
+        self.assertTrue('invalid choice' in actual and 'cmd5' in actual)
 
 
 class TestCommandGroupDeprecation(unittest.TestCase):
@@ -244,7 +244,7 @@ Group
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('group5 -h'.split())
         actual = self.io.getvalue()
-        self.assertTrue(u'invalid choice' in actual and u'group5' in actual)
+        self.assertTrue('invalid choice' in actual and 'group5' in actual)
 
     @redirect_io
     def test_deprecate_command_implicitly(self):
@@ -410,7 +410,7 @@ Arguments
         """ Ensure non-expired options can be used without warning. """
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar --opt5 foo'.split())
         actual = self.io.getvalue()
-        self.assertTrue(u'--alt5' not in actual and u'--opt5' not in actual)
+        self.assertTrue('--alt5' not in actual and '--opt5' not in actual)
 
     @redirect_io
     def test_deprecate_options_execute_expiring(self):
