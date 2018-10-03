@@ -33,7 +33,7 @@ Knack
 
 ------------
 
-.. note:: The project is in `initial development phase <https://semver.org/#how-should-i-deal-with-revisions-in-the-0yz-initial-development-phase>`__ . We recommend pinning to at least a specific minor version when marking **knack** as a dependency in your project.
+.. note:: The project is in `initial development phase <https://semver.org/#how-should-i-deal-with-revisions-in-the-0yz-initial-development-phase>`__. We recommend pinning to at least a specific minor version when marking **knack** as a dependency in your project.
 
 ------------
 
@@ -126,7 +126,7 @@ This project has adopted the `Microsoft Open Source Code of Conduct <https://ope
 For more information see the `Code of Conduct FAQ <https://opensource.microsoft.com/codeofconduct/faq/>`__ or contact `opencode@microsoft.com <mailto:opencode@microsoft.com>`__ with any additional questions or comments.
 
 If you would like to become an active contributor to this project please
-follow the instructions provided in `Contribution License Agreement <https://cla.microsoft.com/>`__
+follow the instructions provided in `Contribution License Agreement <https://cla.microsoft.com/>`__.
 
 
 License
