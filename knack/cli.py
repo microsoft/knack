@@ -226,4 +226,3 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
     def invoke_and_return_output(self, args, initial_invocation_data=None, out_file=None):
 
         return self._invoke(args, initial_invocation_data, out_file, return_output=True)
-    
