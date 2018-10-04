@@ -25,11 +25,17 @@ Knack
 
 **A Command-Line Interface framework**
 
+Installation is easy via pip:
 
 .. code-block:: bash
 
     pip install knack
 
+You can install knack as a non-privilaged user to your home directory by adding "--user" as below:
+
+.. code-block:: bash
+    
+    pip install knack --user
 
 ------------
 
