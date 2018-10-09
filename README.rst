@@ -51,9 +51,9 @@ Usage
     from knack.commands import CommandGroup
 
 
-    def abc_str(size=100):
+    def abc_str(length=3):
         import string
-        return string.ascii_lowercase[:size]
+        return string.ascii_lowercase[:length]
 
 
     class MyCommandsLoader(CLICommandsLoader):
@@ -64,7 +64,7 @@ Usage
 
         def load_arguments(self, command):
             with ArgumentsContext(self, 'abc str') as ac:
-                ac.argument('size', type=int)
+                ac.argument('length', type=int)
             super(MyCommandsLoader, self).load_arguments(command)
 
 
@@ -73,10 +73,13 @@ Usage
     sys.exit(exit_code)
 
     # $ python mycli.py abc str
-    # "abcdefghijklmnopqrstuvwxyz"
+    # "abc"
 
-    # $ python mycli.py abc str --size 5
+    # $ python mycli.py abc str --length 5
     # "abcde"
+
+    # $ python mycli.py abc str --length 100
+    # "abcdefghijklmnopqrstuvwxyz"
 
 
 More samples and snippets available at `examples <https://github.com/Microsoft/knack/tree/master/examples>`__.
