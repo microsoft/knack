@@ -16,10 +16,10 @@ Knack
 
 ::
 
-    _                     _    
+    _                     _
    | | ___ __   __ _  ___| | __
    | |/ / '_ \ / _` |/ __| |/ /
-   |   <| | | | (_| | (__|   < 
+   |   <| | | | (_| | (__|   <
    |_|\_\_| |_|\__,_|\___|_|\_\
 
 
@@ -51,26 +51,35 @@ Usage
     from knack.commands import CommandGroup
 
 
-    def abc_list(myarg):
+    def abc_str(length=3):
         import string
-        return list(string.ascii_lowercase)
+        return string.ascii_lowercase[:length]
 
 
     class MyCommandsLoader(CLICommandsLoader):
         def load_command_table(self, args):
             with CommandGroup(self, 'abc', '__main__#{}') as g:
-                g.command('list', 'abc_list')
+                g.command('str', 'abc_str')
             return OrderedDict(self.command_table)
 
         def load_arguments(self, command):
-            with ArgumentsContext(self, 'abc list') as ac:
-                ac.argument('myarg', type=int, default=100)
+            with ArgumentsContext(self, 'abc str') as ac:
+                ac.argument('length', type=int)
             super(MyCommandsLoader, self).load_arguments(command)
 
 
     mycli = CLI(cli_name='mycli', commands_loader_cls=MyCommandsLoader)
     exit_code = mycli.invoke(sys.argv[1:])
     sys.exit(exit_code)
+
+    # $ python mycli.py abc str
+    # "abc"
+
+    # $ python mycli.py abc str --length 5
+    # "abcde"
+
+    # $ python mycli.py abc str --length 100
+    # "abcdefghijklmnopqrstuvwxyz"
 
 
 More samples and snippets available at `examples <https://github.com/Microsoft/knack/tree/master/examples>`__.
@@ -112,7 +121,7 @@ Real-world uses
 Do you use knack in your CLI as well? Open a pull request to include it here. We would love to have it in our list.
 
 
-Release History		
+Release History
 ===============
 
 See `GitHub Releases <https://github.com/Microsoft/knack/releases>`__.
