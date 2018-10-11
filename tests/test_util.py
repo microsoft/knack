@@ -9,6 +9,7 @@ from datetime import date, time, datetime
 
 from knack.util import todict, to_snake_case
 
+
 class TestUtils(unittest.TestCase):
 
     def test_application_todict_none(self):
@@ -85,6 +86,7 @@ class TestUtils(unittest.TestCase):
         expected = 'this_is_snake_cased'
         actual = to_snake_case(the_input)
         self.assertEqual(expected, actual)
+
 
 if __name__ == '__main__':
     unittest.main()

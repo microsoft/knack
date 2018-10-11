@@ -11,6 +11,7 @@ from knack.commands import CLICommand
 from knack.arguments import enum_choice_list
 from tests.util import MockContext
 
+
 class TestParser(unittest.TestCase):
 
     def setUp(self):

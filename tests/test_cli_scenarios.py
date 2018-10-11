@@ -15,6 +15,7 @@ from knack.commands import CLICommand, CLICommandsLoader
 from knack.invocation import CommandInvoker
 from tests.util import MockContext
 
+
 class TestCLIScenarios(unittest.TestCase):
 
     def setUp(self):
@@ -27,6 +28,7 @@ class TestCLIScenarios(unittest.TestCase):
 
     def test_list_value_parameter(self):
         handler_args = {}
+
         def handler(args):
             handler_args.update(args)
 
@@ -46,7 +48,6 @@ class TestCLIScenarios(unittest.TestCase):
         command = CLICommand(self.mock_ctx, 'test command', handler)
         command.add_argument('var', '--var', '-v')
         cmd_table = {'test command': command}
-
 
         def _test(cmd_line):
             ci = CommandInvoker(cli_ctx=self.mock_ctx)
@@ -120,6 +121,7 @@ class TestCLIScenarios(unittest.TestCase):
         mycli.invoke(['abc', 'list', '--query', '[0].a'], out_file=mock_stdout)
         self.assertEqual(expected_output, mock_stdout.getvalue())
         self.assertEqual(0, exit_code)
+
 
 if __name__ == '__main__':
     unittest.main()

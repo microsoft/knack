@@ -43,7 +43,7 @@ class CLIConfig(object):
         self.config_dir = os.environ.get('{}CONFIG_DIR'.format(env_var_prefix), default_config_dir)
         configuration_file_name = config_file_name or CLIConfig._DEFAULT_CONFIG_FILE_NAME
         self.config_path = os.path.join(self.config_dir, configuration_file_name)
-        self._env_var_format = env_var_prefix + '{section}_{option}'
+        self._env_var_format = '{}{}'.format(env_var_prefix, '{section}_{option}')
         self.config_parser.read(self.config_path)
 
     def env_var_name(self, section, option):

@@ -23,7 +23,7 @@ REQUIRED_TAG = '[Required]'
 
 def _get_preview_tag():
     import colorama
-    PREVIEW_TAG = colorama.Fore.CYAN + '[Preview]' + colorama.Fore.RESET
+    PREVIEW_TAG = '{}[Preview]{}'.format(colorama.Fore.CYAN, colorama.Fore.RESET)
     PREVIEW_TAG_LEN = len(PREVIEW_TAG) - 2 * len(colorama.Fore.RESET)
     return (PREVIEW_TAG, PREVIEW_TAG_LEN)
 

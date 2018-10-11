@@ -10,6 +10,7 @@ from knack.commands import CLICommandsLoader, CommandGroup
 from knack.arguments import CLIArgumentType, CLICommandArgument, ArgumentsContext
 from tests.util import MockContext
 
+
 def _dictContainsSubset(expected, actual):
     """Checks whether actual is a superset of expected.
        Helper for deprecated assertDictContainsSubset"""
@@ -53,7 +54,6 @@ class TestCommandRegistration(unittest.TestCase):
                                 raw=False, **operation_config):
         pass
 
-
     def test_register_cli_argument(self):
         cl = CLICommandsLoader(self.mock_ctx)
         command_name = 'test register sample-command'
@@ -92,7 +92,6 @@ class TestCommandRegistration(unittest.TestCase):
         command_metadata = cl.command_table[command_name]
         self.assertEqual(len(command_metadata.arguments), 4, 'We expected exactly 4 arguments')
         self.assertIn(command_name, cl.command_table)
-
 
     def test_register_command(self):
         cl = CLICommandsLoader(self.mock_ctx)
@@ -151,6 +150,7 @@ class TestCommandRegistration(unittest.TestCase):
 
     def test_register_command_confirmation_callable(self):
         cl = CLICommandsLoader(self.mock_ctx)
+
         def confirm_callable(_):
             pass
         command_name = 'test sample-command'
@@ -344,6 +344,7 @@ class TestCommandRegistration(unittest.TestCase):
     def test_cli_ctx_type_error(self):
         with self.assertRaises(TypeError):
             CLICommandsLoader(cli_ctx=object())
+
 
 if __name__ == '__main__':
     unittest.main()
