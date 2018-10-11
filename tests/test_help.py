@@ -58,7 +58,7 @@ class TestHelpObject(unittest.TestCase):
         obj = HelpObject()
         original_summary = 'This summary has no fullstop'
         obj.short_summary = original_summary
-        self.assertEqual(obj.short_summary, original_summary + '.')
+        self.assertEqual(obj.short_summary, '{}.'.format(original_summary))
 
     def test_short_summary_fullstop(self):
         obj = HelpObject()

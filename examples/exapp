@@ -28,6 +28,7 @@ helps['abc list'] = """
           text: {cli_name} abc list
 """.format(cli_name=cli_name)
 
+
 def a_test_command_handler():
     return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
 
@@ -35,6 +36,7 @@ def a_test_command_handler():
 def abc_list_command_handler():
     import string
     return list(string.ascii_lowercase)
+
 
 def hello_command_handler(myarg=None, abc=None):
     return ['hello', 'world', myarg, abc]
@@ -51,12 +53,14 @@ WELCOME_MESSAGE = r"""
 Welcome to the cool new CLI!
 """
 
+
 class MyCLIHelp(CLIHelp):
 
     def __init__(self, cli_ctx=None):
         super(MyCLIHelp, self).__init__(cli_ctx=cli_ctx,
                                         privacy_statement='My privacy statement.',
                                         welcome_message=WELCOME_MESSAGE)
+
 
 class MyCommandsLoader(CLICommandsLoader):
 
@@ -72,6 +76,7 @@ class MyCommandsLoader(CLICommandsLoader):
         with ArgumentsContext(self, 'hello world') as ac:
             ac.argument('myarg', type=int, default=100)
         super(MyCommandsLoader, self).load_arguments(command)
+
 
 mycli = CLI(cli_name=cli_name,
             config_dir=os.path.join('~', '.{}'.format(cli_name)),

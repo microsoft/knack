@@ -25,7 +25,7 @@ def get_logger(module_name=None):
     :rtype: logger
     """
     if module_name:
-        logger_name = '{}.'.format(CLI_LOGGER_NAME) + module_name
+        logger_name = '{}.{}'.format(CLI_LOGGER_NAME, module_name)
     else:
         logger_name = CLI_LOGGER_NAME
     return logging.getLogger(logger_name)
@@ -41,7 +41,7 @@ class _CustomStreamHandler(logging.StreamHandler):
 
             def _color_wrapper(color_marker):
                 def wrap_msg_with_color(msg):
-                    return color_marker + msg + colorama.Style.RESET_ALL
+                    return '{}{}{}'.format(color_marker, msg, colorama.Style.RESET_ALL)
                 return wrap_msg_with_color
 
             cls.COLOR_MAP = {

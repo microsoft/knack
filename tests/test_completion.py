@@ -10,6 +10,7 @@ import mock
 from knack.completion import CLICompletion, CaseInsensitiveChoicesCompleter, ARGCOMPLETE_ENV_NAME
 from tests.util import MockContext
 
+
 class TestCompletion(unittest.TestCase):
 
     def setUp(self):
@@ -72,6 +73,7 @@ class TestCompletion(unittest.TestCase):
         # Casing is returned the same as the original choice list
         expected_result = ['YelLoW']
         self.assertListEqual(actual_result, expected_result)
+
 
 if __name__ == '__main__':
     unittest.main()

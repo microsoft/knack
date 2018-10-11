@@ -12,17 +12,21 @@ from knack import CLI
 from knack.commands import CLICommandsLoader, CommandGroup
 from knack.arguments import ArgumentsContext
 
-## DEFINE MY CLI
+# DEFINE MY CLI
+
 
 def a_test_command_handler():
     return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
+
 
 def abc_list_command_handler():
     import string
     return list(string.ascii_lowercase)
 
+
 def hello_command_handler(myarg=None, abc=None):
     return ['hello', 'world', myarg, abc]
+
 
 class MyCommandsLoader(CLICommandsLoader):
 
@@ -39,6 +43,7 @@ class MyCommandsLoader(CLICommandsLoader):
             ac.argument('myarg', type=int, default=100)
         super(MyCommandsLoader, self).load_arguments(command)
 
+
 name = 'exapp4'
 
 mycli = CLI(cli_name=name,
@@ -46,11 +51,13 @@ mycli = CLI(cli_name=name,
             config_env_var_prefix=name,
             commands_loader_cls=MyCommandsLoader)
 
-## END OF - DEFINE MY CLI
 
-## DEFINE MY TESTS
+# END OF - DEFINE MY CLI
+
+# DEFINE MY TESTS
 
 from knack.testsdk import ScenarioTest, JMESPathCheck
+
 
 class TestMyScenarios(ScenarioTest):
 
@@ -72,7 +79,8 @@ class TestMyScenarios(ScenarioTest):
             JMESPathCheck('length(@)', 2),
         ])
 
-## END OF - DEFINE MY TESTS
+# END OF - DEFINE MY TESTS
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -316,5 +316,6 @@ class TestPrompting(unittest.TestCase):
                 self.assertEqual(0, actual_result)
             self.assertTrue('Your real favourite.' in mock_stdout.getvalue())
 
+
 if __name__ == '__main__':
     unittest.main()

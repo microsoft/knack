@@ -7,6 +7,7 @@ import tempfile
 
 from knack.cli import CLI, CLICommandsLoader
 
+
 class MockContext(CLI):
 
     def __init__(self):
