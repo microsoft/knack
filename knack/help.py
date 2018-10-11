@@ -307,7 +307,7 @@ class HelpParameter(HelpObject):  # pylint: disable=too-many-instance-attributes
 
     def update_from_data(self, data):
         if self.name != data.get('name'):
-            raise HelpAuthoringException(u"mismatched name {0} vs. {1}"
+            raise HelpAuthoringException(u"mismatched name {} vs. {}"
                                          .format(self.name,
                                                  data.get('name')))
 
@@ -426,13 +426,13 @@ class CLIHelp(object):
 
     @staticmethod
     def _get_choices_defaults_sources_str(p):
-        choice_str = u'  Allowed values: {0}.'.format(', '.join(sorted([str(x) for x in p.choices]))) \
+        choice_str = u'  Allowed values: {}.'.format(', '.join(sorted([str(x) for x in p.choices]))) \
             if p.choices else ''
-        default_str = u'  Default: {0}.'.format(p.default) \
+        default_str = u'  Default: {}.'.format(p.default) \
             if p.default and p.default != argparse.SUPPRESS else ''
-        value_sources_str = u'  Values from: {0}.'.format(', '.join(p.value_sources)) \
+        value_sources_str = u'  Values from: {}.'.format(', '.join(p.value_sources)) \
             if p.value_sources else ''
-        return u'{0}{1}{2}'.format(choice_str, default_str, value_sources_str)
+        return u'{}{}{}'.format(choice_str, default_str, value_sources_str)
 
     @staticmethod
     def print_description_list(help_files):
@@ -440,7 +440,7 @@ class CLIHelp(object):
         max_length = max(len(f.name) for f in help_files) if help_files else 0
         for help_file in sorted(help_files, key=lambda h: h.name):
             column_indent = max_length - len(help_file.name)
-            _print_indent(u'{0}{1}{2}'.format(help_file.name,
+            _print_indent(u'{}{}{}'.format(help_file.name,
                                               ' ' * column_indent,
                                               FIRST_LINE_PREFIX + help_file.short_summary
                                               if help_file.short_summary
