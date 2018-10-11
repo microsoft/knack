@@ -169,7 +169,7 @@ class ArgumentsContext(object):
                     try:
                         super(DeprecatedArgumentAction, self).__call__(parser, namespace, values, option_string)
                     except NotImplementedError:
-                        pass
+                        setattr(namespace, self.dest, values)
 
             return DeprecatedArgumentAction
 
