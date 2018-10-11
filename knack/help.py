@@ -441,10 +441,10 @@ class CLIHelp(object):
         for help_file in sorted(help_files, key=lambda h: h.name):
             column_indent = max_length - len(help_file.name)
             _print_indent(u'{}{}{}'.format(help_file.name,
-                                              ' ' * column_indent,
-                                              FIRST_LINE_PREFIX + help_file.short_summary
-                                              if help_file.short_summary
-                                              else ''),
+                                           ' ' * column_indent,
+                                           FIRST_LINE_PREFIX + help_file.short_summary
+                                           if help_file.short_summary
+                                           else ''),
                           indent,
                           _get_hanging_indent(max_length, indent))
 
