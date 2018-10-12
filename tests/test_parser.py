@@ -143,7 +143,7 @@ class VerifyError(object):  # pylint: disable=too-few-public-methods
 
     def __call__(self, message):
         if self.substr:
-            self.test.assertTrue(message.find(self.substr) >= 0)
+            self.test.assertGreaterEqual(message.find(self.substr), 0)
         self.called = True
 
 

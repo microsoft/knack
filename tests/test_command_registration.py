@@ -62,9 +62,9 @@ class TestCommandRegistration(unittest.TestCase):
                                                        TestCommandRegistration.sample_command_handler.__name__))
         with ArgumentsContext(cl, command_name) as ac:
             ac.argument('resource_name', CLIArgumentType(
-            options_list=('--wonky-name', '-n'), metavar='RNAME', help='Completely WONKY name...',
-            required=False
-        ))
+                options_list=('--wonky-name', '-n'), metavar='RNAME', help='Completely WONKY name...',
+                required=False
+            ))
         cl.load_arguments(command_name)
         self.assertEqual(len(cl.command_table), 1, 'We expect exactly one command in the command table')
         command_metadata = cl.command_table[command_name]
@@ -192,9 +192,9 @@ class TestCommandRegistration(unittest.TestCase):
         command1 = cl.command_table['test sample-get'].arguments['resource_name']
         command2 = cl.command_table['test command sample-get-1'].arguments['resource_name']
         command3 = cl.command_table['test command sample-get-2'].arguments['resource_name']
-        self.assertTrue(command1.options['help'] == 'foo help')
-        self.assertTrue(command2.options['help'] == 'first modification')
-        self.assertTrue(command3.options['help'] == 'second modification')
+        self.assertEqual(command1.options['help'], 'foo help')
+        self.assertEqual(command2.options['help'], 'first modification')
+        self.assertEqual(command3.options['help'], 'second modification')
 
     def test_register_extra_cli_argument(self):
         cl = CLICommandsLoader(self.mock_ctx)
@@ -308,10 +308,10 @@ class TestCommandRegistration(unittest.TestCase):
             g.command('foo', sample_sdk_method.__name__)
         with ArgumentsContext(cl, 'override_using_register_cli_argument') as ac:
             ac.argument('param_a',
-                                 options_list=('--overridden', '-r'),
-                                 validator=test_validator_completer,
-                                 completer=test_validator_completer,
-                                 required=False)
+                        options_list=('--overridden', '-r'),
+                        validator=test_validator_completer,
+                        completer=test_validator_completer,
+                        required=False)
         cl.load_arguments(command_name)
 
         command_metadata = cl.command_table[command_name]
@@ -331,15 +331,15 @@ class TestCommandRegistration(unittest.TestCase):
                                              completer=None, overrides=arg, help='overridden',
                                              required=CLIArgumentType.REMOVE)
         self.assertEqual(overriding_argtype.settings['validator'], 'overridden')
-        self.assertEqual(overriding_argtype.settings['completer'], None)
+        self.assertIsNone(overriding_argtype.settings['completer'])
         self.assertEqual(overriding_argtype.settings['options_list'], ('--overridden',))
         self.assertEqual(overriding_argtype.settings['help'], 'overridden')
         self.assertEqual(overriding_argtype.settings['required'], CLIArgumentType.REMOVE)
 
         cmd_arg = CLICommandArgument(dest='whatever', argtype=overriding_argtype,
                                      help=CLIArgumentType.REMOVE)
-        self.assertFalse('required' in cmd_arg.options)
-        self.assertFalse('help' in cmd_arg.options)
+        self.assertNotIn('required', cmd_arg.options)
+        self.assertNotIn('help', cmd_arg.options)
 
     def test_cli_ctx_type_error(self):
         with self.assertRaises(TypeError):

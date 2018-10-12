@@ -110,7 +110,7 @@ class TestCLIConfig(unittest.TestCase):
         value = 'true'
         self.cli_config.config_parser.add_section(section)
         self.cli_config.config_parser.set(section, option, value)
-        self.assertEqual(self.cli_config.getboolean(section, option), True)
+        self.assertTrue(self.cli_config.getboolean(section, option))
 
     def test_getboolean_error(self):
         section = 'MySection'

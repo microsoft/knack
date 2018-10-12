@@ -52,7 +52,7 @@ class TestPrompting(unittest.TestCase):
             with mock.patch('sys.stdout', new_callable=StringIO) as mock_stdout:
                 actual_result = prompt('Please enter some text: ', help_string='Anything you want!')
                 self.assertEqual(expected_result, actual_result)
-                self.assertTrue('Anything you want!' in mock_stdout.getvalue())
+                self.assertIn('Anything you want!', mock_stdout.getvalue())
 
     @mock.patch('sys.stdin.isatty', return_value=True)
     def test_prompt_int(self, _):
@@ -95,7 +95,7 @@ class TestPrompting(unittest.TestCase):
             with mock.patch('sys.stdout', new_callable=StringIO) as mock_stdout:
                 actual_result = prompt_int('Please enter a number: ', help_string='Anything you want!')
                 self.assertEqual(int(my_response), actual_result)
-                self.assertTrue('Anything you want!' in mock_stdout.getvalue())
+                self.assertIn('Anything you want!', mock_stdout.getvalue())
 
     @mock.patch('sys.stdin.isatty', return_value=True)
     def test_prompt_pass(self, _):
@@ -132,7 +132,7 @@ class TestPrompting(unittest.TestCase):
             with mock.patch('sys.stdout', new_callable=StringIO) as mock_stdout:
                 actual_result = prompt_pass(help_string='Anything you want!')
                 self.assertEqual(my_password, actual_result)
-                self.assertTrue('Anything you want!' in mock_stdout.getvalue())
+                self.assertIn('Anything you want!', mock_stdout.getvalue())
 
     @mock.patch('sys.stdin.isatty', return_value=True)
     def test_prompt_pass_confirm_valid(self, _):
@@ -207,7 +207,7 @@ class TestPrompting(unittest.TestCase):
             with mock.patch('sys.stdout', new_callable=StringIO) as mock_stdout:
                 actual_result = prompt_y_n('Do you accept?', help_string='y to accept conditions; no otherwise')
                 self.assertTrue(actual_result)
-                self.assertTrue('y to accept conditions; no otherwise' in mock_stdout.getvalue())
+                self.assertIn('y to accept conditions; no otherwise', mock_stdout.getvalue())
 
     @mock.patch('sys.stdin.isatty', return_value=True)
     def test_prompt_y_n_default(self, _):
@@ -262,7 +262,7 @@ class TestPrompting(unittest.TestCase):
             with mock.patch('sys.stdout', new_callable=StringIO) as mock_stdout:
                 actual_result = prompt_t_f('Do you accept?', help_string='t to accept conditions; no otherwise')
                 self.assertTrue(actual_result)
-                self.assertTrue('t to accept conditions; no otherwise' in mock_stdout.getvalue())
+                self.assertIn('t to accept conditions; no otherwise', mock_stdout.getvalue())
 
     @mock.patch('sys.stdin.isatty', return_value=True)
     def test_prompt_t_f_default(self, _):
@@ -314,7 +314,8 @@ class TestPrompting(unittest.TestCase):
                                                    a_list,
                                                    help_string='Your real favourite.')
                 self.assertEqual(0, actual_result)
-            self.assertTrue('Your real favourite.' in mock_stdout.getvalue())
+            self.assertIn('Your real favourite.', mock_stdout.getvalue())
+
 
 
 if __name__ == '__main__':
