@@ -40,7 +40,7 @@ class CLIArgumentType(object):
         self.settings.update(**kwargs)
 
 
-class CLICommandArgument(object):  # pylint: disable=too-few-public-methods
+class CLICommandArgument(object):
 
     NAMED_ARGUMENTS = ['options_list', 'validator', 'completer', 'arg_group', 'deprecate_info']
 
@@ -69,16 +69,16 @@ class CLICommandArgument(object):  # pylint: disable=too-few-public-methods
     def __getattr__(self, name):
         if name in self.NAMED_ARGUMENTS:
             return self.type.settings.get(name, None)
-        elif name == 'name':
+        if name == 'name':
             return self.type.settings.get('dest', None)
-        elif name == 'options':
+        if name == 'options':
             return {key: value for key, value in self.type.settings.items()
                     if key != 'options' and key not in self.NAMED_ARGUMENTS and
                     not value == CLIArgumentType.REMOVE}
-        elif name == 'choices':
+        if name == 'choices':
             return self.type.settings.get(name, None)
-        else:
-            raise AttributeError(name)
+
+        raise AttributeError(name)
 
     def __setattr__(self, name, value):  # pylint: disable=inconsistent-return-statements
         if name == 'type':

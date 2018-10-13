@@ -476,7 +476,7 @@ class CLIHelp(object):
             _print_indent(u'{0}'.format(e.text), indent)
             print('')
 
-    def _print_arguments(self, help_file):
+    def _print_arguments(self, help_file):  # pylint: disable=too-many-statements
 
         LINE_FORMAT = u'{name}{padding}{tags}{separator}{short_summary}'
         indent = 1

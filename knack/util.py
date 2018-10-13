@@ -65,17 +65,17 @@ def todict(obj, post_processor=None):  # pylint: disable=too-many-return-stateme
     if isinstance(obj, dict):
         result = {k: todict(v, post_processor) for (k, v) in obj.items()}
         return post_processor(obj, result) if post_processor else result
-    elif isinstance(obj, list):
+    if isinstance(obj, list):
         return [todict(a, post_processor) for a in obj]
-    elif isinstance(obj, Enum):
+    if isinstance(obj, Enum):
         return obj.value
-    elif isinstance(obj, (date, time, datetime)):
+    if isinstance(obj, (date, time, datetime)):
         return obj.isoformat()
-    elif isinstance(obj, timedelta):
+    if isinstance(obj, timedelta):
         return str(obj)
-    elif hasattr(obj, '_asdict'):
+    if hasattr(obj, '_asdict'):
         return todict(obj._asdict(), post_processor)
-    elif hasattr(obj, '__dict__'):
+    if hasattr(obj, '__dict__'):
         result = {to_camel_case(k): todict(v, post_processor)
                   for k, v in obj.__dict__.items()
                   if not callable(v) and not k.startswith('_')}
