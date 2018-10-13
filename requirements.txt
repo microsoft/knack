@@ -3,7 +3,8 @@ colorama==0.3.9
 flake8==3.2.1
 jmespath==0.9.2
 mock==2.0.0
-pylint==2.1.1
+pylint==1.8.4; python_version <= '2.7'
+pylint==2.1.1; python_version >= '3.5'
 pygments==2.2.0
 pyyaml==3.12
 six==1.10.0
