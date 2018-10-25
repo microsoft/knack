@@ -96,8 +96,6 @@ class OutputProducer(object):
         args = kwargs.get('args')
         # Set the output type for this invocation
         cli_ctx.invocation.data['output'] = getattr(args, OutputProducer.ARG_DEST)
-        # We've handled the argument so remove it
-        delattr(args, OutputProducer.ARG_DEST)
 
     def __init__(self, cli_ctx=None):
         """ Manages the production of output from the result of a command invocation
