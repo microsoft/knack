@@ -8,7 +8,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 from .util import CtxTypeError, ensure_dir
-from .events import EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_PARSER_GLOBAL_CREATE
+from .events import EVENT_PARSER_GLOBAL_CREATE
 
 CLI_LOGGER_NAME = 'cli'
 
@@ -98,18 +98,6 @@ class CLILogging(object):
         arg_group.add_argument(CLILogging.DEBUG_FLAG, dest='_log_verbosity_debug', action='store_true',
                                help='Increase logging verbosity to show all debug logs.')
 
-    @staticmethod
-    def remove_logger_flags(_, **kwargs):
-        args = kwargs.get('args')
-        try:
-            args.remove(CLILogging.VERBOSE_FLAG)
-        except ValueError:
-            pass
-        try:
-            args.remove(CLILogging.DEBUG_FLAG)
-        except ValueError:
-            pass
-
     def __init__(self, name, cli_ctx=None):
         """
 
@@ -128,7 +116,6 @@ class CLILogging(object):
         self.console_log_format = CLILogging._get_console_log_format()
         self.cli_ctx = cli_ctx
         self.cli_ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, CLILogging.on_global_arguments)
-        self.cli_ctx.register_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, CLILogging.remove_logger_flags)
 
     def configure(self, args):
         """ Configure the loggers with the appropriate log level etc.

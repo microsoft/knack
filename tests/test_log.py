@@ -30,12 +30,6 @@ class TestLoggingEventHandling(unittest.TestCase):
         parser_arg_group_mock.add_argument.assert_any_call(CLILogging.DEBUG_FLAG, dest=mock.ANY, action=mock.ANY,
                                                            help=mock.ANY)
 
-    def test_logging_arguments_removed(self):
-        arguments = [CLILogging.VERBOSE_FLAG, CLILogging.DEBUG_FLAG]
-        self.mock_ctx.raise_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, args=arguments)
-        # After the event is raised, the arguments should have been removed
-        self.assertFalse(arguments)
-
 
 class TestLoggingLevel(unittest.TestCase):
     def setUp(self):
