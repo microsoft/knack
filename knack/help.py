@@ -191,7 +191,13 @@ class HelpFile(HelpObject):
             return
 
         if 'type' in data:
-            self.type = data['type']
+            builtin_types = ['command', 'group']
+            help_type = data['type']
+            if help_type in builtin_types and help_type != self.type:
+                raise TypeError("Help type for '{}' should be '{}', not '{}'".format(self.command, self.type,
+                                                                                     help_type))
+            else:
+                self.type = help_type
 
         if 'short-summary' in data:
             self.short_summary = data['short-summary']
