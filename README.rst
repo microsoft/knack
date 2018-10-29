@@ -31,7 +31,7 @@ Installation is easy via pip:
 
     pip install knack
 
-You can install knack as a non-privilaged user to your home directory by adding "--user" as below:
+You can install knack as a non-privileged user to your home directory by adding "--user" as below:
 
 .. code-block:: bash
     
