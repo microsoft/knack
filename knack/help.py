@@ -44,13 +44,13 @@ def _get_line_len(name, tags_len):
     return len(name) + tags_len + (2 if tags_len else 1)
 
 
-def _print_indent(s, indent=0, subsequent_spaces=-1):
+def _print_indent(s, indent=0, subsequent_spaces=-1, width=100):
     tw = textwrap.TextWrapper(initial_indent='    ' * indent,
                               subsequent_indent=('    ' * indent
                                                  if subsequent_spaces == -1
                                                  else ' ' * subsequent_spaces),
                               replace_whitespace=False,
-                              width=100)
+                              width=width)
     paragraphs = s.split('\n')
     for p in paragraphs:
         try:
@@ -353,7 +353,7 @@ class CLIHelp(object):
             separator=FIRST_LINE_PREFIX if help_file.short_summary else '',
             summary=help_file.short_summary if help_file.short_summary else ''
         )
-        _print_indent(line, indent)
+        _print_indent(line, indent, width=self.textwrap_width)
 
         def _build_long_summary(item):
             lines = []
@@ -365,7 +365,7 @@ class CLIHelp(object):
 
         indent += 1
         long_sum = _build_long_summary(help_file)
-        _print_indent(long_sum, indent)
+        _print_indent(long_sum, indent, width=self.textwrap_width)
 
     def _print_groups(self, help_file):
 
@@ -413,7 +413,12 @@ class CLIHelp(object):
         def _print_items(layouts):
             for layout in layouts:
                 layout['padding'] = ' ' * _get_padding_len(self.max_line_len, layout)
-                _print_indent(LINE_FORMAT.format(**layout), indent, _get_hanging_indent(self.max_line_len, indent))
+                _print_indent(
+                    LINE_FORMAT.format(**layout),
+                    indent,
+                    _get_hanging_indent(self.max_line_len, indent),
+                    width=self.textwrap_width,
+                )
             _print_indent('')
 
         groups = [c for c in help_file.children if isinstance(c, self.group_help_cls)]
@@ -532,12 +537,17 @@ class CLIHelp(object):
                     last_group_name = layout['group_name']
 
                 layout['padding'] = ' ' * _get_padding_len(self.max_line_len, layout)
-                _print_indent(LINE_FORMAT.format(**layout), indent, _get_hanging_indent(self.max_line_len, indent))
+                _print_indent(
+                    LINE_FORMAT.format(**layout),
+                    indent,
+                    _get_hanging_indent(self.max_line_len, indent),
+                    width=self.textwrap_width,
+                )
 
                 indent = 2
                 long_summary = layout.get('long_summary', None)
                 if long_summary:
-                    _print_indent(long_summary, indent)
+                    _print_indent(long_summary, indent, width=self.textwrap_width)
 
             _print_indent('')
 
@@ -586,7 +596,7 @@ class CLIHelp(object):
 
     def __init__(self, cli_ctx=None, privacy_statement='', welcome_message='',
                  group_help_cls=GroupHelpFile, command_help_cls=CommandHelpFile,
-                 help_cls=HelpFile):
+                 help_cls=HelpFile, textwrap_width=100):
         """ Manages the generation and production of help in the CLI
 
         :param cli_ctx: CLI Context
@@ -601,6 +611,8 @@ class CLIHelp(object):
         :type command_help_cls: HelpFile
         :param command_help_cls: Class to use for formatting generic help.
         :type command_help_cls: HelpFile
+        :param textwrap_width: Line length to which text will be wrapped.
+        :type textwrap_width: int
         """
         from .cli import CLI
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
@@ -612,6 +624,7 @@ class CLIHelp(object):
         self.group_help_cls = group_help_cls
         self.command_help_cls = command_help_cls
         self.help_cls = help_cls
+        self.textwrap_width = textwrap_width
 
     def show_privacy_statement(self):
         ran_before = self.cli_ctx.config.getboolean('core', 'first_run', fallback=False)
@@ -621,7 +634,7 @@ class CLIHelp(object):
             self.cli_ctx.config.set_value('core', 'first_run', 'yes')
 
     def show_welcome_message(self):
-        _print_indent(self.welcome_message)
+        _print_indent(self.welcome_message, width=self.textwrap_width)
 
     def show_welcome(self, parser):
         self.show_privacy_statement()
