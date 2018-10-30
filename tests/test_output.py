@@ -31,12 +31,14 @@ class TestOutput(unittest.TestCase):
         The JSON output when the input is a dict should be the dict serialized to JSON
         """
         output_producer = OutputProducer(cli_ctx=self.mock_ctx)
-        output_producer.out(CommandResultItem({'active': True, 'id': '0b1f6472'}),
+        output_producer.out(CommandResultItem({'active': True, 'id': '0b1f6472', 'unicode_item': 
+        '这很棒'}),
                             formatter=format_json, out_file=self.io)
         self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
             """{
   "active": true,
-  "id": "0b1f6472"
+  "id": "0b1f6472",
+  "unicode_item": "这很棒"
 }
 """))
 
@@ -45,12 +47,15 @@ class TestOutput(unittest.TestCase):
         The JSON output when the input is OrderedDict should be serialized to JSON
         """
         output_producer = OutputProducer(cli_ctx=self.mock_ctx)
-        output_producer.out(CommandResultItem(OrderedDict({'active': True, 'id': '0b1f6472'})),
+        output_producer.out(CommandResultItem(OrderedDict({'active': True, 'id': '0b1f6472',
+         'unicode_item': 
+        '这很棒'})),
                             formatter=format_json, out_file=self.io)
         self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
             """{
   "active": true,
-  "id": "0b1f6472"
+  "id": "0b1f6472",
+  "unicode_item": "这很棒"
 }
 """))
 
