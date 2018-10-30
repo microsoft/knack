@@ -77,6 +77,17 @@ class TestOutput(unittest.TestCase):
 }
 """))
 
+    def test_out_json_non_ASCII(self):
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        output_producer.out(CommandResultItem({'active': True, 'contents': '生活很糟糕'}),
+                            formatter=format_json, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """{
+  "active": true,
+  "contents": "生活很糟糕"
+}
+"""))
+
     # TABLE output tests
 
     def test_out_table(self):
