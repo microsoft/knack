@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*- 
+
 # --------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See License.txt in the project root for license information.
@@ -74,6 +77,17 @@ class TestOutput(unittest.TestCase):
             """{
   "active": true,
   "contents": ""
+}
+"""))
+
+    def test_out_json_non_ASCII(self):
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        output_producer.out(CommandResultItem({'active': True, 'contents': '生活很糟糕'}),
+                            formatter=format_json, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """{
+  "active": true,
+  "contents": "生活很糟糕"
 }
 """))
 
