@@ -73,8 +73,8 @@ def todict(obj, post_processor=None):  # pylint: disable=too-many-return-stateme
     elif hasattr(obj, '_asdict'):
         return todict(obj._asdict(), post_processor)
     elif hasattr(obj, '__dict__'):
-        result = dict([(to_camel_case(k), todict(v, post_processor))
-                       for k, v in obj.__dict__.items()
-                       if not callable(v) and not k.startswith('_')])
+        result = {to_camel_case(k): todict(v, post_processor)
+                  for k, v in obj.__dict__.items()
+                  if not callable(v) and not k.startswith('_')}
         return post_processor(obj, result) if post_processor else result
     return obj

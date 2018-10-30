@@ -57,9 +57,9 @@ class CommandInvoker(object):
     def _filter_params(self, args):  # pylint: disable=no-self-use
         # Consider - we are using any args that start with an underscore (_) as 'private'
         # arguments and remove them from the arguments that we pass to the actual function.
-        params = dict([(key, value)
-                       for key, value in args.__dict__.items()
-                       if not key.startswith('_')])
+        params = {key: value
+                  for key, value in args.__dict__.items()
+                  if not key.startswith('_')}
         params.pop('func', None)
         params.pop('command', None)
         return params
