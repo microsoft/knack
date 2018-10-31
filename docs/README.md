@@ -25,28 +25,28 @@ CLI Patterns
 Doc Sections
 ------------
 
-- [CLI](cli.md) - Provides the entry point
+- [CLI](cli.md) - Provides the entry point.
 
-- [Commands](commands.md) - Provides logic to register and load commands
+- [Commands](commands.md) - Provides logic to register and load commands.
 
-- [Arguments](arguments.md) - Provides logic to register and load command arguments
+- [Arguments](arguments.md) - Provides logic to register and load command arguments.
 
-- [Validators](validators.md) - Provides logic to valid or transform command arguments
+- [Validators](validators.md) - Provides logic to valid or transform command arguments.
 
-- [Events](events.md) - Provides an extensible eventing module that you can hook into
+- [Events](events.md) - Provides an extensible events module that you can hook into.
 
-- [Config](config.md) - Provides user-configurable options back by environment variables or config files
+- [Config](config.md) - Provides user-configurable options back by environment variables or config files.
 
-- [Logging](logging.md) - Provides consistent logging
+- [Logging](logging.md) - Provides consistent logging.
 
-- [Completion](completion.md) - Provides tab completion support
+- [Completion](completion.md) - Provides tab completion support.
 
-- [Prompting](prompting.md) - Provides a consistent user-prompting experience
+- [Prompting](prompting.md) - Provides a consistent user-prompting experience.
 
-- [Help](help.md) - Provides command/argument help
+- [Help](help.md) - Provides command/argument help.
 
-- [Output](output.md) - Provides output options and displays command output
+- [Output](output.md) - Provides output options and displays command output.
 
-- [Query](query.md) - Provides JMESPath query support
+- [Query](query.md) - Provides JMESPath query support.
 
-- [Testing](testing.md) - Provides a framework to test your commands
+- [Testing](testing.md) - Provides a framework to test your commands.
