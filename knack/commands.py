@@ -117,6 +117,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
             return False
 
 
+# pylint: disable=too-many-instance-attributes
 class CLICommandsLoader(object):
 
     def __init__(self, cli_ctx=None, command_cls=CLICommand, excluded_command_handler_args=None):
@@ -135,6 +136,7 @@ class CLICommandsLoader(object):
             raise CtxTypeError(cli_ctx)
         self.cli_ctx = cli_ctx
         self.command_cls = command_cls
+        self.skip_applicability = False
         self.excluded_command_handler_args = excluded_command_handler_args
         # A command table is a dictionary of name -> CLICommand instances
         self.command_table = dict()
@@ -172,11 +174,18 @@ class CLICommandsLoader(object):
         :param command: The command to load arguments for
         :type command: str
         """
+        from knack.arguments import ArgumentsContext
+
         self.cli_ctx.raise_event(EVENT_CMDLOADER_LOAD_ARGUMENTS, cmd_tbl=self.command_table, command=command)
         try:
             self.command_table[command].load_arguments()
         except KeyError:
             return
+
+        # ensure global 'cmd' is ignored
+        with ArgumentsContext(self, '') as c:
+            c.ignore('cmd')
+
         self._apply_parameter_info(command, self.command_table[command])
 
     def _apply_parameter_info(self, command_name, command):

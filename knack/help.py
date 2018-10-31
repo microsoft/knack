@@ -191,13 +191,7 @@ class HelpFile(HelpObject):
             return
 
         if 'type' in data:
-            builtin_types = ['command', 'group']
-            help_type = data['type']
-            if help_type in builtin_types and help_type != self.type:
-                raise TypeError("Help type for '{}' should be '{}', not '{}'".format(self.command, self.type,
-                                                                                     help_type))
-            else:
-                self.type = help_type
+            self.type = data['type']
 
         if 'short-summary' in data:
             self.short_summary = data['short-summary']
@@ -243,7 +237,20 @@ class CommandHelpFile(HelpFile):
         self.parameters = []
 
         for action in [a for a in parser._actions if a.help != argparse.SUPPRESS]:  # pylint: disable=protected-access
-            self._add_parameter_help(action)
+            if action.option_strings:
+                self._add_parameter_help(action)
+            else:
+                # use metavar for positional parameters
+                param_kwargs = {
+                    'name_source': [action.metavar or action.dest],
+                    'deprecate_info': getattr(action, 'deprecate_info', None),
+                    'description': action.help,
+                    'choices': action.choices,
+                    'required': False,
+                    'default': None,
+                    'group_name': 'Positional'
+                }
+                self.parameters.append(HelpParameter(**param_kwargs))
 
         help_param = next(p for p in self.parameters if p.name == '--help -h')
         help_param.group_name = 'Global Arguments'
@@ -339,7 +346,6 @@ class HelpExample(object):  # pylint: disable=too-few-public-methods
 
 class CLIHelp(object):
 
-    # pylint: disable=no-self-use
     def _print_header(self, cli_name, help_file):
         indent = 0
         _print_indent('')
@@ -585,6 +591,14 @@ class CLIHelp(object):
         self._print_header(cli_name, help_file)
         if help_file.long_summary or getattr(help_file, 'deprecate_info', None):
             _print_indent('')
+
+        # fix incorrect groupings instead of crashing
+        if help_file.type == 'command' and not isinstance(help_file, CommandHelpFile):
+            help_file.type = 'group'
+            logger.info("'%s' is labeled a command but is actually a group!", help_file.delimiters)
+        elif help_file.type == 'group' and not isinstance(help_file, GroupHelpFile):
+            help_file.type = 'command'
+            logger.info("'%s' is labeled a group but is actually a command!", help_file.delimiters)
 
         if help_file.type == 'command':
             _print_indent('Arguments')

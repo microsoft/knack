@@ -8,6 +8,8 @@ from collections import defaultdict
 
 from .deprecation import Deprecated
 from .log import get_logger
+from .util import CLIError
+
 
 logger = get_logger(__name__)
 
@@ -125,7 +127,7 @@ class ArgumentRegistry(object):
 
 
 class ArgumentsContext(object):
-    def __init__(self, command_loader, command_scope):
+    def __init__(self, command_loader, command_scope, **kwargs):  # pylint: disable=unused-argument
         """ Context manager to register arguments
 
         :param command_loader: The command loader that arguments should be registered into
@@ -136,12 +138,26 @@ class ArgumentsContext(object):
         """
         self.command_loader = command_loader
         self.command_scope = command_scope
+        self.is_stale = False
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
+        self.is_stale = True
+
+    def _applicable(self):
+        if self.command_loader.skip_applicability:
+            return True
+        return self.command_loader.cli_ctx.invocation.data['command_string'].startswith(self.command_scope)
+
+    def _check_stale(self):
+        if self.is_stale:
+            message = "command authoring error: argument context '{}' is stale! " \
+                      "Check that the subsequent block for has a corresponding `as` " \
+                      "statement.".format(self.command_scope)
+            logger.error(message)
+            raise CLIError(message)
 
     def _get_parent_class(self, **kwargs):
         # wrap any existing action
@@ -207,6 +223,7 @@ class ArgumentsContext(object):
             action = _handle_option_deprecation(deprecated_opts)
         return action
 
+    # pylint: disable=inconsistent-return-statements
     def deprecate(self, **kwargs):
 
         def _get_deprecated_arg_message(self):
@@ -219,6 +236,10 @@ class ArgumentsContext(object):
             if self.redirect:
                 msg += " Use '{}' instead.".format(self.redirect)
             return msg
+
+        self._check_stale()
+        if not self._applicable():
+            return
 
         target = kwargs.get('target', '')
         kwargs['object_type'] = 'option' if target.startswith('-') else 'argument'
@@ -235,9 +256,50 @@ class ArgumentsContext(object):
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
                        `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
         """
+        self._check_stale()
+        if not self._applicable():
+            return
+
         deprecate_action = self._handle_deprecations(argument_dest, **kwargs)
         if deprecate_action:
             kwargs['action'] = deprecate_action
+        self.command_loader.argument_registry.register_cli_argument(self.command_scope,
+                                                                    argument_dest,
+                                                                    arg_type,
+                                                                    **kwargs)
+
+    def positional(self, argument_dest, arg_type=None, **kwargs):
+        """ Register a positional argument for the given command scope using a knack.arguments.CLIArgumentType
+
+        :param argument_dest: The destination argument to add this argument type to
+        :type argument_dest: str
+        :param arg_type: Predefined CLIArgumentType definition to register, as modified by any provided kwargs.
+        :type arg_type: knack.arguments.CLIArgumentType
+        :param kwargs: Possible values: `validator`, `completer`, `nargs`, `action`, `const`, `default`,
+                       `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
+        """
+        self._check_stale()
+        if not self._applicable():
+            return
+
+        if self.command_scope not in self.command_loader.command_table:
+            raise ValueError("command authoring error: positional argument '{}' cannot be registered to a group-level "
+                             "scope '{}'. It must be registered to a specific command.".format(
+                                 argument_dest, self.command_scope))
+
+        # Before adding the new positional arg, ensure that there are no existing positional arguments
+        # registered for this command.
+        command_args = self.command_loader.argument_registry.arguments[self.command_scope]
+        positional_args = {k: v for k, v in command_args.items() if v.settings.get('options_list') == []}
+        if positional_args and argument_dest not in positional_args:
+            raise CLIError("command authoring error: commands may have, at most, one positional argument. '{}' already "
+                           "has positional argument: {}.".format(self.command_scope, ' '.join(positional_args.keys())))
+
+        deprecate_action = self._handle_deprecations(argument_dest, **kwargs)
+        if deprecate_action:
+            kwargs['action'] = deprecate_action
+
+        kwargs['options_list'] = []
         self.command_loader.argument_registry.register_cli_argument(self.command_scope,
                                                                     argument_dest,
                                                                     arg_type,
@@ -249,6 +311,10 @@ class ArgumentsContext(object):
         :param argument_dest: The destination argument to apply the ignore type to
         :type argument_dest: str
         """
+        self._check_stale()
+        if not self._applicable():
+            return
+
         dest_option = ['--__{}'.format(argument_dest.upper())]
         self.argument(argument_dest, arg_type=ignore_type, options_list=dest_option, **kwargs)
 
@@ -261,6 +327,15 @@ class ArgumentsContext(object):
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
                        `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
         """
+        self._check_stale()
+        if not self._applicable():
+            return
+
+        if self.command_scope not in self.command_loader.command_table:
+            raise ValueError("command authoring error: extra argument '{}' cannot be registered to a group-level "
+                             "scope '{}'. It must be registered to a specific command.".format(
+                                 argument_dest, self.command_scope))
+
         deprecate_action = self._handle_deprecations(argument_dest, **kwargs)
         if deprecate_action:
             kwargs['action'] = deprecate_action

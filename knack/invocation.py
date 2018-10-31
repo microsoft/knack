@@ -64,17 +64,28 @@ class CommandInvoker(object):
         params.pop('command', None)
         return params
 
-    def _rudimentary_get_command(self, args):  # pylint: disable=no-self-use
+    def _rudimentary_get_command(self, args):
         """ Rudimentary parsing to get the command """
         nouns = []
-        for i, current in enumerate(args):
-            try:
-                if current[0] == '-':
-                    break
-            except IndexError:
-                pass
-            args[i] = current.lower()
-            nouns.append(args[i])
+        command_names = self.commands_loader.command_table.keys()
+        for arg in args:
+            if arg and arg[0] != '-':
+                nouns.append(arg)
+            else:
+                break
+
+        def _find_args(args):
+            search = ' '.join(args).lower()
+            return next((x for x in command_names if x.startswith(search)), False)
+
+        # since the command name may be immediately followed by a positional arg, strip those off
+        while nouns and not _find_args(nouns):
+            del nouns[-1]
+
+        # ensure the command string is case-insensitive
+        for i in range(len(nouns)):
+            args[i] = args[i].lower()
+
         return ' '.join(nouns)
 
     def _validate_cmd_level(self, ns, cmd_validator):  # pylint: disable=no-self-use
@@ -119,6 +130,7 @@ class CommandInvoker(object):
         self.cli_ctx.raise_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, args=args)
         cmd_tbl = self.commands_loader.load_command_table(args)
         command = self._rudimentary_get_command(args)
+        self.cli_ctx.invocation.data['command_string'] = command
         self.commands_loader.load_arguments(command)
 
         self.cli_ctx.raise_event(EVENT_INVOKER_POST_CMD_TBL_CREATE, cmd_tbl=cmd_tbl)
@@ -143,14 +155,16 @@ class CommandInvoker(object):
 
         self._validation(parsed_args)
 
+        # save the command name (leaf in the tree)
         self.data['command'] = parsed_args.command
-
-        params = self._filter_params(parsed_args)
-
         cmd = parsed_args.func
+        if hasattr(parsed_args, 'cmd'):
+            parsed_args.cmd = cmd
         deprecations = getattr(parsed_args, '_argument_deprecations', [])
         if cmd.deprecate_info:
             deprecations.append(cmd.deprecate_info)
+
+        params = self._filter_params(parsed_args)
 
         # search for implicit deprecation
         path_comps = cmd.name.split()[:-1]
@@ -179,5 +193,6 @@ class CommandInvoker(object):
         self.cli_ctx.raise_event(EVENT_INVOKER_FILTER_RESULT, event_data=event_data)
 
         return CommandResultItem(event_data['result'],
+                                 exit_code=0,
                                  table_transformer=cmd_tbl[parsed_args.command].table_transformer,
                                  is_query_active=self.data['query_active'])

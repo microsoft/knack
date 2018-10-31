@@ -10,8 +10,11 @@ from enum import Enum
 
 
 class CommandResultItem(object):  # pylint: disable=too-few-public-methods
-    def __init__(self, result, table_transformer=None, is_query_active=False):
+    def __init__(self, result, table_transformer=None, is_query_active=False,
+                 exit_code=0, error=None):
         self.result = result
+        self.error = error
+        self.exit_code = exit_code
         self.table_transformer = table_transformer
         self.is_query_active = is_query_active
 

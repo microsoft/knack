@@ -4,6 +4,7 @@
 # --------------------------------------------------------------------------------------------
 
 from __future__ import print_function
+import os
 import sys
 from collections import defaultdict
 
@@ -79,12 +80,16 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         self.invocation = None
         self._event_handlers = defaultdict(lambda: [])
         # Data that's typically backed to persistent storage
-        self.config = config_cls(config_dir=config_dir, config_env_var_prefix=config_env_var_prefix)
+        self.config = config_cls(
+            config_dir=config_dir or os.path.join('~', '.{}'.format(cli_name)),
+            config_env_var_prefix=config_env_var_prefix or cli_name.upper()
+        )
         # In memory collection of key-value data for this current cli. This persists between invocations.
         self.data = defaultdict(lambda: None)
         self.completion = completion_cls(cli_ctx=self)
         self.logging = logging_cls(self.name, cli_ctx=self)
         self.output = self.output_cls(cli_ctx=self)
+        self.result = None
         self.query = query_cls(cli_ctx=self)
 
     @staticmethod
@@ -176,6 +181,8 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         :return: The exit code of the invocation
         :rtype: int
         """
+        from .util import CommandResultItem
+
         if not isinstance(args, (list, tuple)):
             raise TypeError('args should be a list or tuple.')
         try:
@@ -195,16 +202,18 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
                                                       help_cls=self.help_cls,
                                                       initial_data=initial_invocation_data)
                 cmd_result = self.invocation.execute(args)
+                self.result = cmd_result
                 output_type = self.invocation.data['output']
                 if cmd_result and cmd_result.result is not None:
                     formatter = self.output.get_formatter(output_type)
                     self.output.out(cmd_result, formatter=formatter, out_file=out_file)
             self.raise_event(EVENT_CLI_POST_EXECUTE)
-            exit_code = 0
-        except KeyboardInterrupt:
+        except KeyboardInterrupt as ex:
+            self.result = CommandResultItem(None, exit_code=1, error=ex)
             exit_code = 1
         except Exception as ex:  # pylint: disable=broad-except
             exit_code = self.exception_handler(ex)
+            self.result = CommandResultItem(None, exit_code=exit_code, error=ex)
         finally:
             pass
-        return exit_code
+        return self.result.exit_code
