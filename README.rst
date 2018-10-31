@@ -31,7 +31,7 @@ Installation is easy via pip:
 
     pip install knack
 
-You can install knack as a non-privileged user to your home directory by adding "--user" as below:
+Knack can be installed as a non-privileged user to your home directory by adding "--user" as below:
 
 .. code-block:: bash
     
@@ -88,7 +88,7 @@ Usage
     # "abcdefghijklmnopqrstuvwxyz"
 
 
-More samples and snippets available at `examples <https://github.com/Microsoft/knack/tree/master/examples>`__.
+More samples and snippets are available at `examples <https://github.com/Microsoft/knack/tree/master/examples>`__.
 
 
 Documentation
@@ -140,7 +140,7 @@ This project has adopted the `Microsoft Open Source Code of Conduct <https://ope
 
 For more information see the `Code of Conduct FAQ <https://opensource.microsoft.com/codeofconduct/faq/>`__ or contact `opencode@microsoft.com <mailto:opencode@microsoft.com>`__ with any additional questions or comments.
 
-If you would like to become an active contributor to this project please
+If you would like to become an active contributor to this project, please
 follow the instructions provided in `Contribution License Agreement <https://cla.microsoft.com/>`__.
 
 
