@@ -81,7 +81,7 @@ Note:
 
 After the test is executed, a recording file will be generated at `recording/<test_name>.yaml`. The recording file will be created no matter the test pass or not. The behavior makes it easy for you to find issues when a test fails. If you make changes to the test, delete the recording and rerun the test, a new recording file will be regenerated.
 
-It is a good practice to add recording file to the local git cache, which makes it easy to diff the different versions of recording to detect issues or changes.
+It is a good practice to a add recording file to the local git cache, which makes it easy to diff the different versions of recording to detect issues or changes.
 
 Once the recording file is generated, execute the test again. This time the test will run in playback mode. The execution is offline.
 
