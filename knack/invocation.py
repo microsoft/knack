@@ -124,7 +124,9 @@ class CommandInvoker(object):
         self.cli_ctx.raise_event(EVENT_INVOKER_POST_CMD_TBL_CREATE, cmd_tbl=cmd_tbl)
         self.parser.load_command_table(self.commands_loader)
         self.cli_ctx.raise_event(EVENT_INVOKER_CMD_TBL_LOADED, parser=self.parser)
-        if not args:
+
+        arg_check = [a for a in args if a not in ['--verbose', '--debug']]
+        if not arg_check:
             self.cli_ctx.completion.enable_autocomplete(self.parser)
             subparser = self.parser.subparsers[tuple()]
             self.help.show_welcome(subparser)
