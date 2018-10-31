@@ -27,6 +27,6 @@ Config file format:
 option = value
 ```
 
-So to set the output type of commands, a user can set the environment variable CLI_CORE_OUTPUT or specify the section and option in the config file.
+So to set the output type of commands, a user can set the environment variable `CLI_CORE_OUTPUT` or specify the section and option in the config file.
 The environment variable will override the config file.
 Lastly, some configurations (like output type) can be specified on a command-by-command basis also.
