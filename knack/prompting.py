@@ -115,7 +115,7 @@ def prompt_choice_list(msg, a_list, default=1, help_string=None):
                          for i, x in enumerate(a_list)])
     allowed_vals = list(range(1, len(a_list) + 1))
     while True:
-        val = _input('{}\n{}\nPlease enter a choice [{}]: '.format(msg, options, default))
+        val = _input('{}\n{}\nPlease enter a choice [Default choice({})]: '.format(msg, options, default))
         if val == '?' and help_string is not None:
             print(help_string)
             continue
