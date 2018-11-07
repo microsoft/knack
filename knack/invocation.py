@@ -142,7 +142,7 @@ class CommandInvoker(object):
             self.cli_ctx.completion.enable_autocomplete(self.parser)
             subparser = self.parser.subparsers[tuple()]
             self.help.show_welcome(subparser)
-            return None
+            return CommandResultItem(None, exit_code=0)
 
         if args[0].lower() == 'help':
             args[0] = '--help'
