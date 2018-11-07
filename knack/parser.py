@@ -40,23 +40,31 @@ class CLICommandParser(argparse.ArgumentParser):
     def _add_argument(obj, arg):
         """ Only pass valid argparse kwargs to argparse.ArgumentParser.add_argument """
         argparse_options = {name: value for name, value in arg.options.items() if name in ARGPARSE_SUPPORTED_KWARGS}
-        scrubbed_options_list = []
-        for item in arg.options_list:
-            if isinstance(item, Deprecated):
-                # don't add expired options to the parser
-                if item.expired():
-                    continue
+        if arg.options_list:
+            scrubbed_options_list = []
+            for item in arg.options_list:
 
-                class _DeprecatedOption(str):
-                    def __new__(cls, *args, **kwargs):
-                        instance = str.__new__(cls, *args, **kwargs)
-                        return instance
+                if isinstance(item, Deprecated):
+                    # don't add expired options to the parser
+                    if item.expired():
+                        continue
 
-                option = _DeprecatedOption(item.target)
-                setattr(option, 'deprecate_info', item)
-                item = option
-            scrubbed_options_list.append(item)
-        return obj.add_argument(*scrubbed_options_list, **argparse_options)
+                    class _DeprecatedOption(str):
+                        def __new__(cls, *args, **kwargs):
+                            instance = str.__new__(cls, *args, **kwargs)
+                            return instance
+
+                    option = _DeprecatedOption(item.target)
+                    setattr(option, 'deprecate_info', item)
+                    item = option
+                scrubbed_options_list.append(item)
+            return obj.add_argument(*scrubbed_options_list, **argparse_options)
+        else:
+            if 'required' in argparse_options:
+                del argparse_options['required']
+            if 'metavar' not in argparse_options:
+                argparse_options['metavar'] = '<{}>'.format(argparse_options['dest'].upper())
+            return obj.add_argument(**argparse_options)
 
     def __init__(self, cli_ctx=None, cli_help=None, **kwargs):
         """ Create the argument parser
