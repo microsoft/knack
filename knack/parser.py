@@ -59,12 +59,12 @@ class CLICommandParser(argparse.ArgumentParser):
                     item = option
                 scrubbed_options_list.append(item)
             return obj.add_argument(*scrubbed_options_list, **argparse_options)
-        else:
-            if 'required' in argparse_options:
-                del argparse_options['required']
-            if 'metavar' not in argparse_options:
-                argparse_options['metavar'] = '<{}>'.format(argparse_options['dest'].upper())
-            return obj.add_argument(**argparse_options)
+
+        if 'required' in argparse_options:
+            del argparse_options['required']
+        if 'metavar' not in argparse_options:
+            argparse_options['metavar'] = '<{}>'.format(argparse_options['dest'].upper())
+        return obj.add_argument(**argparse_options)
 
     def __init__(self, cli_ctx=None, cli_help=None, **kwargs):
         """ Create the argument parser
