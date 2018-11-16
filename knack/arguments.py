@@ -331,7 +331,7 @@ class ArgumentsContext(object):
         if not self._applicable():
             return
 
-        if self.command_scope not in self.command_loader.command_table:
+        if self.command_scope in self.command_loader.command_group_table:
             raise ValueError("command authoring error: extra argument '{}' cannot be registered to a group-level "
                              "scope '{}'. It must be registered to a specific command.".format(
                                  argument_dest, self.command_scope))
