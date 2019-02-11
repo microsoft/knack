@@ -123,7 +123,7 @@ class HelpFile(HelpObject):
     def _load_help_file_from_string(text):
         import yaml
         try:
-            return yaml.load(text) if text else None
+            return yaml.safe_load(text) if text else None
         except Exception:  # pylint: disable=broad-except
             return text
 
