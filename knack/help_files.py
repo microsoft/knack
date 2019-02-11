@@ -11,5 +11,5 @@ helps = {}
 def _load_help_file(delimiters):
     import yaml
     if delimiters in helps:
-        return yaml.load(helps[delimiters])
+        return yaml.safe_load(helps[delimiters])
     return None
