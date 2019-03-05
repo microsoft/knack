@@ -24,7 +24,7 @@ class CLIError(Exception):
     normal operation of the CLI.
     Typically due to user error and can be resolved by the user.
     """
-    pass
+    pass  # pylint: disable=unnecessary-pass
 
 
 class CtxTypeError(TypeError):

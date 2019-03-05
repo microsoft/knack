@@ -62,8 +62,7 @@ class CLIConfig(object):
         except (configparser.NoSectionError, configparser.NoOptionError):
             if fallback is _UNSET:
                 raise
-            else:
-                return fallback
+            return fallback
 
     def getint(self, section, option, fallback=_UNSET):
         return int(self.get(section, option, fallback))
