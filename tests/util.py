@@ -20,11 +20,11 @@ class MockContext(CLI):
         setattr(self, 'invocation', invocation)
 
 
-class TestCLI(CLI):
+class DummyCLI(CLI):
 
     def get_cli_version(self):
         return '0.1.0'
 
     def __init__(self, **kwargs):
         kwargs['config_dir'] = tempfile.mkdtemp()
-        super(TestCLI, self).__init__(**kwargs)
+        super(DummyCLI, self).__init__(**kwargs)

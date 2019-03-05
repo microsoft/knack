@@ -9,11 +9,7 @@
 # R0401 cyclic-import
 # R0205 useless-object-inheritance
 # R1717 consider-using-dict-comprehension
-disable=W0511,C0111,C0103,I0011,R0913,R0903,R0401,R0205,R1717
-
-# note: This is useful but some pylint suppressions only apply to Python 2 or 3
-# and we run pylint on both Python 2 and 3. e.g. You may see some no-member useless-suppression messages.
-enable=useless-suppression
+disable=W0511,C0111,C0103,I0011,R0913,R0903,R0401,R0205,R1717,useless-suppression
 
 [FORMAT]
 max-line-length=120

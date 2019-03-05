@@ -14,7 +14,7 @@ from six import StringIO
 from knack.arguments import ArgumentsContext
 from knack.commands import CLICommand, CLICommandsLoader, CommandGroup
 
-from tests.util import TestCLI
+from tests.util import DummyCLI
 
 
 def example_handler(arg1, arg2=None, arg3=None):
@@ -73,7 +73,7 @@ class TestCommandDeprecation(unittest.TestCase):
     type: group
     short-summary: A group.
 """
-        self.cli_ctx = TestCLI(commands_loader_cls=DeprecationTestCommandLoader)
+        self.cli_ctx = DummyCLI(commands_loader_cls=DeprecationTestCommandLoader)
 
     @redirect_io
     def test_deprecate_command_group_help(self):
@@ -186,7 +186,7 @@ class TestCommandGroupDeprecation(unittest.TestCase):
     type: group
     short-summary: A group.
 """
-        self.cli_ctx = TestCLI(commands_loader_cls=DeprecationTestCommandLoader)
+        self.cli_ctx = DummyCLI(commands_loader_cls=DeprecationTestCommandLoader)
 
     @redirect_io
     def test_deprecate_command_group_help_plain(self):
@@ -294,7 +294,7 @@ class TestArgumentDeprecation(unittest.TestCase):
     type: group
     short-summary: A group.
 """
-        self.cli_ctx = TestCLI(commands_loader_cls=DeprecationTestCommandLoader)
+        self.cli_ctx = DummyCLI(commands_loader_cls=DeprecationTestCommandLoader)
 
     @redirect_io
     def test_deprecate_arguments_command_help(self):

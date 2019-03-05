@@ -15,7 +15,7 @@ from knack.commands import CLICommand, CLICommandsLoader, CommandGroup
 from knack.events import EVENT_PARSER_GLOBAL_CREATE
 from knack.invocation import CommandInvoker
 
-from tests.util import MockContext, TestCLI
+from tests.util import MockContext, DummyCLI
 
 io = {}
 
@@ -199,7 +199,7 @@ class TestHelp(unittest.TestCase):
           text: example details
 """
 
-        self.cli_ctx = TestCLI(commands_loader_cls=HelpTestCommandLoader)
+        self.cli_ctx = DummyCLI(commands_loader_cls=HelpTestCommandLoader)
 
     @redirect_io
     def test_choice_list_with_ints(self):

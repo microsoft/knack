@@ -21,9 +21,8 @@ class JMESPathCheck(object):  # pylint: disable=too-few-public-methods
             if actual_result:
                 raise JMESPathCheckAssertionError(self._query, self._expected_result, actual_result,
                                                   execution_result.output)
-            else:
-                raise JMESPathCheckAssertionError(self._query, self._expected_result, 'None',
-                                                  execution_result.output)
+            raise JMESPathCheckAssertionError(self._query, self._expected_result, 'None',
+                                              execution_result.output)
 
 
 class JMESPathCheckExists(object):  # pylint: disable=too-few-public-methods
@@ -54,9 +53,8 @@ class JMESPathCheckGreaterThan(object):  # pylint: disable=too-few-public-method
             if actual_result:
                 raise JMESPathCheckAssertionError(self._query, expected_result_format, actual_result,
                                                   execution_result.output)
-            else:
-                raise JMESPathCheckAssertionError(self._query, expected_result_format, 'None',
-                                                  execution_result.output)
+            raise JMESPathCheckAssertionError(self._query, expected_result_format, 'None',
+                                              execution_result.output)
 
 
 class NoneCheck(object):  # pylint: disable=too-few-public-methods

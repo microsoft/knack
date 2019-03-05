@@ -207,7 +207,7 @@ class ExecutionResult(object):
             logger.error('Command "%s" => %d. (It did not fail as expected) Output: %s', command,
                          self.exit_code, self.output)
             raise AssertionError('The command did not fail as it was expected.')
-        elif not expect_failure and self.exit_code != 0:
+        if not expect_failure and self.exit_code != 0:
             logger.error('Command "%s" => %d. Output: %s', command, self.exit_code, self.output)
             raise AssertionError('The command failed. Exit code: {}'.format(self.exit_code))
 
@@ -255,8 +255,7 @@ class ExecutionResult(object):
         except CliExecutionError as ex:
             if ex.exception:
                 raise ex.exception
-            else:
-                raise ex
+            raise ex
         except Exception as ex:  # pylint: disable=broad-except
             self.exit_code = 1
             self.output = out_buffer.getvalue()
