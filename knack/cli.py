@@ -81,7 +81,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         self._event_handlers = defaultdict(lambda: [])
         # Data that's typically backed to persistent storage
         self.config = config_cls(
-            config_dir=config_dir or os.path.join('~', '.{}'.format(cli_name)),
+            config_dir=config_dir or os.path.expanduser(os.path.join('~', '.{}'.format(cli_name))),
             config_env_var_prefix=config_env_var_prefix or cli_name.upper()
         )
         # In memory collection of key-value data for this current cli. This persists between invocations.
