@@ -133,6 +133,34 @@ class TestParser(unittest.TestCase):
         parser = CLICommandParser()
         parser.load_command_table(self.mock_ctx.commands_loader)
 
+    def test_prefix_file_expansion(self):
+        import json, os
+
+        def test_handler():
+            pass
+
+        def create_test_file(file, contents):
+            with open(file, 'w') as f:
+                f.write(contents)
+
+        def remove_test_file(file):
+            os.remove(file)
+
+        json_test_data = json.dumps({'one': 1, 'two': 2, 'three': 3})
+        create_test_file('test.json', json_test_data)
+
+        command = CLICommand(self.mock_ctx, 'test command', test_handler)
+        command.add_argument('json_data', '--param')
+        cmd_table = {'test command': command}
+        self.mock_ctx.commands_loader.command_table = cmd_table
+        parser = CLICommandParser()
+        parser.load_command_table(self.mock_ctx.commands_loader)
+
+        args = parser.parse_args('test command --param @test.json'.split())
+        self.assertEqual(json_test_data, args.json_data)
+
+        remove_test_file('test.json')
+
 
 class VerifyError(object):  # pylint: disable=too-few-public-methods
 
