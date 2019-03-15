@@ -4,7 +4,6 @@
 # --------------------------------------------------------------------------------------------
 
 import argparse
-import os
 
 from .deprecation import Deprecated
 from .events import EVENT_PARSER_GLOBAL_CREATE
@@ -76,16 +75,16 @@ class CLICommandParser(argparse.ArgumentParser):
         :param args: Arguments passed from command line
         :type args: list
         """
-        for arg in range(len(args)):
+        for arg, _ in enumerate(args):
             if args[arg].startswith('@'):
                 try:
-                    logger.debug('Attempting to read file {}'.format(args[arg][1:]))
+                    logger.debug('Attempting to read file %s', args[arg][1:])
                     with open(args[arg][1:], 'r') as f:
                         content = f.read()
                     args[arg] = content
-                except FileNotFoundError:
+                except IOError:
                     # Leave arg unmodified
-                    logger.debug('File Error: Failed to open {}, assume not a file'.format(args[arg][1:]))
+                    logger.debug('File Error: Failed to open %s, assume not a file', args[arg][1:])
         return args
 
     def __init__(self, cli_ctx=None, cli_help=None, **kwargs):
