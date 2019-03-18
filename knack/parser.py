@@ -7,8 +7,10 @@ import argparse
 
 from .deprecation import Deprecated
 from .events import EVENT_PARSER_GLOBAL_CREATE
+from .log import get_logger
 from .util import CtxTypeError
 
+logger = get_logger(__name__)
 
 # List of keyword arguments supported in argparse
 # from https://github.com/python/cpython/blob/master/Lib/argparse.py#L748
@@ -65,6 +67,25 @@ class CLICommandParser(argparse.ArgumentParser):
         if 'metavar' not in argparse_options:
             argparse_options['metavar'] = '<{}>'.format(argparse_options['dest'].upper())
         return obj.add_argument(**argparse_options)
+
+    @staticmethod
+    def _expand_prefixed_files(args):
+        """ Load arguments prefixed with '@' from file as string
+
+        :param args: Arguments passed from command line
+        :type args: list
+        """
+        for arg, _ in enumerate(args):
+            if args[arg].startswith('@'):
+                try:
+                    logger.debug('Attempting to read file %s', args[arg][1:])
+                    with open(args[arg][1:], 'r') as f:
+                        content = f.read()
+                    args[arg] = content
+                except IOError:
+                    # Leave arg unmodified
+                    logger.debug('File Error: Failed to open %s, assume not a file', args[arg][1:])
+        return args
 
     def __init__(self, cli_ctx=None, cli_help=None, **kwargs):
         """ Create the argument parser
@@ -224,3 +245,12 @@ class CLICommandParser(argparse.ArgumentParser):
                                 self._actions[-1] if is_group else self,
                                 is_group)
         self.exit()
+
+    def parse_args(self, args=None, namespace=None):
+        """ Overrides argparse.ArgumentParser.parse_args
+
+        Enables '@'-prefixed files to be expanded before arguments are processed
+        by ArgumentParser.parse_args as usual
+        """
+        self._expand_prefixed_files(args)
+        return super(CLICommandParser, self).parse_args(args)
