@@ -5,16 +5,14 @@
 
 from __future__ import unicode_literals
 
-import sys
 import unittest
 import mock
 from threading import Lock
-from six import StringIO
 
 from knack.arguments import ArgumentsContext
 from knack.commands import CLICommand, CLICommandsLoader, CommandGroup
 
-from tests.util import DummyCLI
+from tests.util import DummyCLI, redirect_io
 
 
 def example_handler(arg1, arg2=None, arg3=None):
@@ -25,20 +23,6 @@ def example_handler(arg1, arg2=None, arg3=None):
 def example_arg_handler(arg1, opt1, arg2=None, opt2=None, arg3=None,
                         opt3=None, arg4=None, opt4=None, arg5=None, opt5=None):
     pass
-
-
-original_stdout = sys.stdout
-original_stderr = sys.stderr
-
-
-def redirect_io(func):
-    def wrapper(self):
-        sys.stdout = sys.stderr = self.io = StringIO()
-        func(self)
-        self.io.close()
-        sys.stdout = original_stderr
-        sys.stderr = original_stderr
-    return wrapper
 
 
 class TestCommandDeprecation(unittest.TestCase):

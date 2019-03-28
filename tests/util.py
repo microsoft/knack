@@ -4,9 +4,25 @@
 # --------------------------------------------------------------------------------------------
 
 import mock
+import sys
 import tempfile
+from six import StringIO
 
 from knack.cli import CLI, CLICommandsLoader, CommandInvoker
+
+
+def redirect_io(func):
+
+    original_stderr = sys.stderr
+    original_stdout = sys.stdout
+
+    def wrapper(self):
+        sys.stdout = sys.stderr = self.io = StringIO()
+        func(self)
+        self.io.close()
+        sys.stdout = original_stderr
+        sys.stderr = original_stderr
+    return wrapper
 
 
 class MockContext(CLI):
