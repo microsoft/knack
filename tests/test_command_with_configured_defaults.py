@@ -22,7 +22,7 @@ def load_params(_):
 
 
 def list_foo(my_param):
-    return str(my_param)
+    print(str(my_param), end='')
 
 
 class TestCommandWithConfiguredDefaults(unittest.TestCase):
@@ -53,22 +53,29 @@ class TestCommandWithConfiguredDefaults(unittest.TestCase):
                 super(TestCommandsLoader, self).load_arguments(command)
         self.cli_ctx = DummyCLI(commands_loader_cls=TestCommandsLoader)
 
-    @mock.patch.dict(os.environ, {'CLI_DEFAULTS_GROUP': 'myVal'})
+    @mock.patch.dict(os.environ, {'CLI_DEFAULTS_PARAM': 'myVal'})
     @redirect_io
     def test_apply_configured_defaults_on_required_arg(self):
         self._set_up_command_table(required=True)
-        with self.assertRaises(SystemExit):
-            self.cli_ctx.invoke('foo list'.split())
+        self.cli_ctx.invoke('foo list'.split())
         actual = self.io.getvalue()
         expected = 'myVal'
         self.assertEqual(expected, actual)
 
-    @mock.patch.dict(os.environ, {'CLI_DEFAULTS_GROUP': 'myVal'})
+    @redirect_io
+    def test_no_configured_default_on_required_arg(self):
+        self._set_up_command_table(required=True)
+        with self.assertRaises(SystemExit):
+            self.cli_ctx.invoke('foo list'.split())
+        actual = self.io.getvalue()
+        expected = 'required: --my-param'
+        self.assertEqual(expected in actual, True)
+
+    @mock.patch.dict(os.environ, {'CLI_DEFAULTS_PARAM': 'myVal'})
     @redirect_io
     def test_apply_configured_defaults_on_optional_arg(self):
         self._set_up_command_table(required=False)
-        with self.assertRaises(SystemExit):
-            self.cli_ctx.invoke('foo list'.split())
+        self.cli_ctx.invoke('foo list'.split())
         actual = self.io.getvalue()
         expected = 'myVal'
         self.assertEqual(expected, actual)

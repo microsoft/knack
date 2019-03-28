@@ -10,7 +10,6 @@ from six import StringIO
 
 from knack.cli import CLI, CLICommandsLoader, CommandInvoker
 
-
 def redirect_io(func):
 
     original_stderr = sys.stderr
