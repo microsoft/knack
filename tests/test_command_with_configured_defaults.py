@@ -6,7 +6,10 @@ from __future__ import print_function
 import os
 import logging
 import unittest
-import mock
+try:
+    import mock
+except ImportError:
+    from unittest import mock
 from six import StringIO
 import sys
 
@@ -69,7 +72,8 @@ class TestCommandWithConfiguredDefaults(unittest.TestCase):
             self.cli_ctx.invoke('foo list'.split())
         actual = self.io.getvalue()
         expected = 'required: --my-param'
-        self.assertEqual(expected in actual, True)
+        expected_2 = 'argument --my-param is required'  # Python 2.7
+        self.assertEqual(expected in actual or expected_2 in actual, True)
 
     @mock.patch.dict(os.environ, {'CLI_DEFAULTS_PARAM': 'myVal'})
     @redirect_io

@@ -5,6 +5,10 @@
 
 import os
 import unittest
+try:
+    import mock
+except ImportError:
+    from unittest import mock
 import mock
 
 from collections import OrderedDict

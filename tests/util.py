@@ -3,7 +3,10 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-import mock
+try:
+    import mock
+except ImportError:
+    from unittest import mock
 import sys
 import tempfile
 from six import StringIO

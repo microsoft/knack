@@ -4,7 +4,10 @@
 # --------------------------------------------------------------------------------------------
 
 import unittest
-import mock
+try:
+    import mock
+except ImportError:
+    from unittest import mock
 import logging
 import colorama
 

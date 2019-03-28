@@ -6,7 +6,10 @@
 from __future__ import unicode_literals
 
 import unittest
-import mock
+try:
+    import mock
+except ImportError:
+    from unittest import mock
 from threading import Lock
 
 from knack.arguments import ArgumentsContext
