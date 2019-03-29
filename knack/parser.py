@@ -255,3 +255,27 @@ class CLICommandParser(argparse.ArgumentParser):
         """
         self._expand_prefixed_files(args)
         return super(CLICommandParser, self).parse_args(args)
+
+    def _check_value(self, action, value):
+        # Override to customize the error message when a argument is not among the available choices
+        # converted value must be one of the choices (if specified)
+        import difflib
+        import sys
+
+        if action.choices is not None and value not in action.choices:
+            # parser has no `command_source`, value is part of command itself
+            error_msg = "{prog}: '{value}' is not in the '{prog}' command group. See '{prog} --help'.".format(
+                prog=self.prog, value=value)
+            logger.error(error_msg)
+            candidates = difflib.get_close_matches(value, action.choices, cutoff=0.7)
+            if candidates:
+                print_args = {
+                    's': 's' if len(candidates) > 1 else '',
+                    'verb': 'are' if len(candidates) > 1 else 'is',
+                    'value': value
+                }
+                suggestion_msg = "\nThe most similar choice{s} to '{value}' {verb}:\n".format(**print_args)
+                suggestion_msg += '\n'.join(['\t' + candidate for candidate in candidates])
+                print(suggestion_msg, file=sys.stderr)
+
+            self.exit(2)
