@@ -72,8 +72,9 @@ class TestCommandWithConfiguredDefaults(unittest.TestCase):
             self.cli_ctx.invoke('foo list'.split())
         actual = self.io.getvalue()
         expected = 'required: --my-param'
-        expected_2 = 'argument --my-param is required'  # Python 2.7
-        self.assertEqual(expected in actual or expected_2 in actual, True)
+        if sys.version_info[0] == 2:
+            expected = 'argument --my-param is required'
+        self.assertEqual(expected in actual, True)
 
     @mock.patch.dict(os.environ, {'CLI_DEFAULTS_PARAM': 'myVal'})
     @redirect_io
