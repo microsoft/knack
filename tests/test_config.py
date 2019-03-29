@@ -7,7 +7,10 @@ import os
 import stat
 import unittest
 import tempfile
-import mock
+try:
+    import mock
+except ImportError:
+    from unittest import mock
 from six.moves import configparser
 
 from knack.config import CLIConfig, get_config_parser

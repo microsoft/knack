@@ -17,6 +17,7 @@ from .introspection import extract_args_from_signature, extract_full_summary_fro
 from .events import (EVENT_CMDLOADER_LOAD_COMMAND_TABLE, EVENT_CMDLOADER_LOAD_ARGUMENTS,
                      EVENT_COMMAND_CANCELLED)
 from .log import get_logger
+from .validators import DefaultInt, DefaultStr
 
 logger = get_logger(__name__)
 
@@ -71,6 +72,18 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
     def should_load_description(self):
         return not self.cli_ctx.data['completer_active']
 
+    def _resolve_default_value_from_config_file(self, arg, overrides):
+        default_key = overrides.settings.get('configured_default', None)
+        if not default_key:
+            return
+
+        defaults_section = self.cli_ctx.config.defaults_section_name
+        config_value = self.cli_ctx.config.get(defaults_section, default_key, None)
+        if config_value:
+            logger.info("Configured default '%s' for arg %s", config_value, arg.name)
+            overrides.settings['default'] = DefaultStr(config_value)
+            overrides.settings['required'] = False
+
     def load_arguments(self):
         if self.arguments_loader:
             cmd_args = self.arguments_loader()
@@ -87,7 +100,20 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
 
     def update_argument(self, param_name, argtype):
         arg = self.arguments[param_name]
+        # resolve defaults from either environment variable or config file
+        self._resolve_default_value_from_config_file(arg, argtype)
         arg.type.update(other=argtype)
+        arg_default = arg.type.settings.get('default', None)
+        # apply DefaultStr and DefaultInt to allow distinguishing between
+        # when a default was applied or when the user specified a value
+        # that coincides with the default
+        if isinstance(arg_default, str):
+            arg_default = DefaultStr(arg_default)
+        elif isinstance(arg_default, int):
+            arg_default = DefaultInt(arg_default)
+        # update the default
+        if arg_default:
+            arg.type.settings['default'] = arg_default
 
     def execute(self, **kwargs):
         return self(**kwargs)

@@ -23,6 +23,7 @@ class CLIConfig(object):
     _DEFAULT_CONFIG_ENV_VAR_PREFIX = 'CLI'
     _DEFAULT_CONFIG_DIR = os.path.join('~', '.{}'.format('cli'))
     _DEFAULT_CONFIG_FILE_NAME = 'config'
+    _CONFIG_DEFAULTS_SECTION = 'defaults'
 
     def __init__(self, config_dir=None, config_env_var_prefix=None, config_file_name=None):
         """ Manages configuration options available in the CLI
@@ -44,6 +45,7 @@ class CLIConfig(object):
         configuration_file_name = config_file_name or CLIConfig._DEFAULT_CONFIG_FILE_NAME
         self.config_path = os.path.join(self.config_dir, configuration_file_name)
         self._env_var_format = '{}{}'.format(env_var_prefix, '{section}_{option}')
+        self.defaults_section_name = CLIConfig._CONFIG_DEFAULTS_SECTION
         self.config_parser.read(self.config_path)
 
     def env_var_name(self, section, option):

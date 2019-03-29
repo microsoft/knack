@@ -5,7 +5,10 @@
 
 import os
 import unittest
-import mock
+try:
+    import mock
+except ImportError:
+    from unittest import mock
 
 from knack.completion import CLICompletion, CaseInsensitiveChoicesCompleter, ARGCOMPLETE_ENV_NAME
 from tests.util import MockContext
