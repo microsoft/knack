@@ -85,7 +85,7 @@ class TestLoggingLevel(unittest.TestCase):
 
 
 class TestCustomStreamHandler(unittest.TestCase):
-    expectation = {logging.CRITICAL: colorama.Fore.RED, logging.ERROR: colorama.Fore.RED,
+    expectation = {logging.CRITICAL: colorama.Fore.LIGHTRED_EX, logging.ERROR: colorama.Fore.LIGHTRED_EX,
                    logging.WARNING: colorama.Fore.YELLOW, logging.INFO: colorama.Fore.GREEN,
                    logging.DEBUG: colorama.Fore.CYAN}
 
