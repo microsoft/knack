@@ -45,8 +45,8 @@ class _CustomStreamHandler(logging.StreamHandler):
                 return wrap_msg_with_color
 
             cls.COLOR_MAP = {
-                logging.CRITICAL: _color_wrapper(colorama.Fore.RED),
-                logging.ERROR: _color_wrapper(colorama.Fore.RED),
+                logging.CRITICAL: _color_wrapper(colorama.Fore.LIGHTRED_EX),
+                logging.ERROR: _color_wrapper(colorama.Fore.LIGHTRED_EX),
                 logging.WARNING: _color_wrapper(colorama.Fore.YELLOW),
                 logging.INFO: _color_wrapper(colorama.Fore.GREEN),
                 logging.DEBUG: _color_wrapper(colorama.Fore.CYAN)
