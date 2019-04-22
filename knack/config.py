@@ -85,7 +85,7 @@ class CLIConfig(object):
                 last_ex = ex
 
         if fallback is _UNSET:
-            raise last_ex
+            raise last_ex  # pylint:disable=raising-bad-type
         return fallback
 
     def items(self, section, use_local_config=False):
