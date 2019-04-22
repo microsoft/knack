@@ -176,7 +176,6 @@ class TestCLIConfig(unittest.TestCase):
     def test_set_config_value_file_permissions(self):
         self.cli_config.set_value('test_section', 'test_option', 'a_value')
         file_mode = os.stat(self.cli_config.config_path).st_mode
-        self.assertEqual(file_mode, 33206)
         self.assertTrue(bool(file_mode & stat.S_IRUSR))
         self.assertTrue(bool(file_mode & stat.S_IWUSR))
         self.assertFalse(bool(file_mode & stat.S_IXUSR))
