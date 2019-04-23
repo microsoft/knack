@@ -38,7 +38,6 @@ class CLIConfig(object):
         config_dir = config_dir or CLIConfig._DEFAULT_CONFIG_DIR
         ensure_dir(config_dir)
         config_env_var_prefix = config_env_var_prefix or CLIConfig._DEFAULT_CONFIG_ENV_VAR_PREFIX
-        self.config_parser = get_config_parser()
         env_var_prefix = '{}_'.format(config_env_var_prefix.upper())
         default_config_dir = os.path.expanduser(config_dir)
         self.config_dir = os.environ.get('{}CONFIG_DIR'.format(env_var_prefix), default_config_dir)
@@ -46,7 +45,6 @@ class CLIConfig(object):
         self.config_path = os.path.join(self.config_dir, configuration_file_name)
         self._env_var_format = '{}{}'.format(env_var_prefix, '{section}_{option}')
         self.defaults_section_name = CLIConfig._CONFIG_DEFAULTS_SECTION
-        self.config_parser.read(self.config_path)
         self.use_local_config = use_local_config
         self._config_file_chain = []
         current_dir = os.getcwd()
@@ -130,11 +128,6 @@ class CLIConfig(object):
                 self._config_file_chain.insert(0, config)
         else:
             self._config_file_chain[-1].set_value(section, option, value)
-        try:
-            self.config_parser.add_section(section)
-        except configparser.DuplicateSectionError:
-            pass
-        self.config_parser.set(section, option, value)
 
     def set_to_use_local_config(self, use_local_config):
         self.use_local_config = use_local_config
