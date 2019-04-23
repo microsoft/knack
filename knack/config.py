@@ -25,7 +25,7 @@ class CLIConfig(object):
     _DEFAULT_CONFIG_FILE_NAME = 'config'
     _CONFIG_DEFAULTS_SECTION = 'defaults'
 
-    def __init__(self, config_dir=None, config_env_var_prefix=None, config_file_name=None):
+    def __init__(self, config_dir=None, config_env_var_prefix=None, config_file_name=None, use_local_config=None):
         """ Manages configuration options available in the CLI
 
         :param config_dir: The directory to store config files
@@ -47,38 +47,41 @@ class CLIConfig(object):
         self._env_var_format = '{}{}'.format(env_var_prefix, '{section}_{option}')
         self.defaults_section_name = CLIConfig._CONFIG_DEFAULTS_SECTION
         self.config_parser.read(self.config_path)
-        self.config_file_chain = []
+        self.use_local_config = use_local_config
+        self._config_file_chain = []
         current_dir = os.getcwd()
         config_dir_name = os.path.basename(self.config_dir)
         while current_dir:
             current_config_dir = os.path.join(current_dir, config_dir_name)
+            # Stop if already in the default .azure
             if (os.path.normcase(os.path.normpath(current_config_dir)) ==
                     os.path.normcase(os.path.normpath(self.config_dir))):
                 break
             if os.path.isdir(current_config_dir):
-                self.config_file_chain.append(_ConfigFile(current_config_dir,
-                                                          os.path.join(current_config_dir, configuration_file_name)))
+                self._config_file_chain.append(_ConfigFile(current_config_dir,
+                                                           os.path.join(current_config_dir, configuration_file_name)))
+            # Stop if already in root drive
             if current_dir == os.path.dirname(current_dir):
                 break
             current_dir = os.path.dirname(current_dir)
-        self.config_file_chain.append(_ConfigFile(self.config_dir, self.config_path))
+        self._config_file_chain.append(_ConfigFile(self.config_dir, self.config_path))
 
     def env_var_name(self, section, option):
         return self._env_var_format.format(section=section.upper(),
                                            option=option.upper())
 
-    def has_option(self, section, option, use_local_config=False):
+    def has_option(self, section, option):
         if self.env_var_name(section, option) in os.environ:
             return True
-        config_files = self.config_file_chain if use_local_config else self.config_file_chain[-1:]
+        config_files = self._config_file_chain if self.use_local_config else self._config_file_chain[-1:]
         return bool(next((f for f in config_files if f.has_option(section, option)), False))
 
-    def get(self, section, option, fallback=_UNSET, use_local_config=False):
+    def get(self, section, option, fallback=_UNSET):
         env = self.env_var_name(section, option)
         if env in os.environ:
             return os.environ[env]
         last_ex = None
-        for config in self.config_file_chain if use_local_config else self.config_file_chain[-1:]:
+        for config in self._config_file_chain if self.use_local_config else self._config_file_chain[-1:]:
             try:
                 return config.get(section, option)
             except (configparser.NoSectionError, configparser.NoOptionError) as ex:
@@ -88,12 +91,12 @@ class CLIConfig(object):
             raise last_ex  # pylint:disable=raising-bad-type
         return fallback
 
-    def items(self, section, use_local_config=False):
+    def items(self, section):
         import re
         pattern = self.env_var_name(section, '.+')
         candidates = [(k.split('_')[-1], os.environ[k], k) for k in os.environ.keys() if re.match(pattern, k)]
         result = {c[0]: c for c in candidates}
-        for config in self.config_file_chain if use_local_config else self.config_file_chain[-1:]:
+        for config in self._config_file_chain if self.use_local_config else self._config_file_chain[-1:]:
             try:
                 entries = config.items(section)
                 for name, value in entries:
@@ -103,35 +106,38 @@ class CLIConfig(object):
                 pass
         return [{'name': name, 'value': value, 'source': source} for name, value, source in result.values()]
 
-    def getint(self, section, option, fallback=_UNSET, use_local_config=False):
-        return int(self.get(section, option, fallback, use_local_config))
+    def getint(self, section, option, fallback=_UNSET):
+        return int(self.get(section, option, fallback))
 
-    def getfloat(self, section, option, fallback=_UNSET, use_local_config=False):
-        return float(self.get(section, option, fallback, use_local_config))
+    def getfloat(self, section, option, fallback=_UNSET):
+        return float(self.get(section, option, fallback))
 
-    def getboolean(self, section, option, fallback=_UNSET, use_local_config=False):
-        val = str(self.get(section, option, fallback, use_local_config))
+    def getboolean(self, section, option, fallback=_UNSET):
+        val = str(self.get(section, option, fallback))
         if val.lower() not in CLIConfig._BOOLEAN_STATES:
             raise ValueError('Not a boolean: {}'.format(val))
         return CLIConfig._BOOLEAN_STATES[val.lower()]
 
-    def set_value(self, section, option, value, use_local_config=False):
-        if use_local_config:
+    def set_value(self, section, option, value):
+        if self.use_local_config:
             current_config_dir = os.path.join(os.getcwd(), os.path.basename(self.config_dir))
             config_file_path = os.path.join(current_config_dir, os.path.basename(self.config_path))
-            if config_file_path == self.config_file_chain[0].config_path:
-                self.config_file_chain[0].set_value(section, option, value)
+            if config_file_path == self._config_file_chain[0].config_path:
+                self._config_file_chain[0].set_value(section, option, value)
             else:
                 config = _ConfigFile(current_config_dir, config_file_path)
                 config.set_value(section, option, value)
-                self.config_file_chain.insert(0, config)
+                self._config_file_chain.insert(0, config)
         else:
-            self.config_file_chain[-1].set_value(section, option, value)
+            self._config_file_chain[-1].set_value(section, option, value)
         try:
             self.config_parser.add_section(section)
         except configparser.DuplicateSectionError:
             pass
         self.config_parser.set(section, option, value)
+
+    def set_to_use_local_config(self, use_local_config):
+        self.use_local_config = use_local_config
 
 
 class _ConfigFile(object):
