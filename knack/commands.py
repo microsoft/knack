@@ -78,7 +78,10 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
             return
 
         defaults_section = self.cli_ctx.config.defaults_section_name
+        use_local_config_original = self.cli_ctx.config.use_local_config
+        self.cli_ctx.config.set_to_use_local_config(True)
         config_value = self.cli_ctx.config.get(defaults_section, default_key, None)
+        self.cli_ctx.config.set_to_use_local_config(use_local_config_original)
         if config_value:
             logger.info("Configured default '%s' for arg %s", config_value, arg.name)
             overrides.settings['default'] = DefaultStr(config_value)
