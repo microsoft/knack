@@ -45,6 +45,30 @@ class TestCLIConfig(unittest.TestCase):
         self.cli_config.set_to_use_local_config(True)
         self.assertFalse(self.cli_config.has_option(section, option))
 
+    def test_options(self):
+        section = 'MySection'
+        option = 'myoption'
+        option_other = 'option'
+        option_local = 'myoptionlocal'
+        option_other_local = 'optionlocal'
+        value = 'myvalue'
+        self.cli_config.set_value(section, option, value)
+        self.cli_config.set_value(section, option_other, value)
+        self.assertEqual(len(self.cli_config.options(section)), 2)
+        self.assertIn(option, self.cli_config.options(section))
+        self.assertIn(option_other, self.cli_config.options(section))
+        self.cli_config.set_to_use_local_config(True)
+        self.assertEqual(len(self.cli_config.options(section)), 2)
+        self.assertIn(option, self.cli_config.options(section))
+        self.assertIn(option_other, self.cli_config.options(section))
+        self.cli_config.set_value(section, option_local, value)
+        self.cli_config.set_value(section, option_other_local, value)
+        self.assertEqual(len(self.cli_config.options(section)), 4)
+        self.assertIn(option, self.cli_config.options(section))
+        self.assertIn(option_other, self.cli_config.options(section))
+        self.assertIn(option_local, self.cli_config.options(section))
+        self.assertIn(option_other_local, self.cli_config.options(section))
+
     def test_get(self):
         section = 'MySection'
         option = 'myoption'
@@ -207,6 +231,22 @@ class TestCLIConfig(unittest.TestCase):
         self.assertFalse(self.cli_config.has_option(section, option))
         self.cli_config.set_value(section, option, value)
         self.assertTrue(self.cli_config.has_option(section, option))
+
+    def test_options_local(self):
+        section = 'MySection'
+        option = 'myoption'
+        option_other = 'option'
+        value = 'myvalue'
+        # check local config
+        self.cli_config.set_to_use_local_config(True)
+        self.cli_config.set_value(section, option, value)
+        self.cli_config.set_value(section, option_other, value)
+        self.assertEqual(len(self.cli_config.options(section)), 2)
+        self.assertIn(option, self.cli_config.options(section))
+        self.assertIn(option_other, self.cli_config.options(section))
+        # check default config
+        self.cli_config.set_to_use_local_config(False)
+        self.assertEqual(len(self.cli_config.options(section)), 0)
 
     def test_get_local(self):
         section = 'MySection'

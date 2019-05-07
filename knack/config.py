@@ -74,6 +74,16 @@ class CLIConfig(object):
         config_files = self._config_file_chain if self.use_local_config else self._config_file_chain[-1:]
         return bool(next((f for f in config_files if f.has_option(section, option)), False))
 
+    def options(self, section):
+        config_files = self._config_file_chain if self.use_local_config else self._config_file_chain[-1:]
+        options = []
+        for config_file in config_files:
+            try:
+                options.extend(config_file.config_parser.options(section))
+            except configparser.NoSectionError:
+                pass
+        return options
+
     def get(self, section, option, fallback=_UNSET):
         env = self.env_var_name(section, option)
         if env in os.environ:
