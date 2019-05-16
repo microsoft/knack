@@ -10,6 +10,7 @@ from importlib import import_module
 import six
 
 from .deprecation import Deprecated
+from .preview import PreviewItem
 from .prompting import prompt_y_n, NoTTYException
 from .util import CLIError, CtxTypeError
 from .arguments import ArgumentRegistry, CLICommandArgument
@@ -27,7 +28,8 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
     # pylint: disable=unused-argument
     def __init__(self, cli_ctx, name, handler, description=None, table_transformer=None,
                  arguments_loader=None, description_loader=None,
-                 formatter_class=None, deprecate_info=None, validator=None, confirmation=None, **kwargs):
+                 formatter_class=None, deprecate_info=None, validator=None, confirmation=None, preview_info=None,
+                 **kwargs):
         """ The command object that goes into the command table.
 
         :param cli_ctx: CLI Context
@@ -48,6 +50,8 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         :type formatter_class: class
         :param deprecate_info: Deprecation message to display when this command is invoked
         :type deprecate_info: str
+        :param preview_info: Indicates a command is in preview
+        :type preview_info: bool
         :param validator: The command validator
         :param confirmation: User confirmation required for command
         :type confirmation: bool, str, callable
@@ -66,6 +70,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         self.table_transformer = table_transformer
         self.formatter_class = formatter_class
         self.deprecate_info = deprecate_info
+        self.preview_info = preview_info
         self.confirmation = confirmation
         self.validator = validator
 
@@ -272,6 +277,10 @@ class CLICommandsLoader(object):
         kwargs['object_type'] = 'command group'
         return Deprecated(self.cli_ctx, **kwargs)
 
+    def preview(self, **kwargs):
+        kwargs['object_type'] = 'command group'
+        return PreviewItem(self.cli_ctx, **kwargs)
+
 
 class CommandGroup(object):
 
@@ -322,6 +331,7 @@ class CommandGroup(object):
         command_kwargs.update(kwargs)
         # don't inherit deprecation info from command group
         command_kwargs['deprecate_info'] = kwargs.get('deprecate_info', None)
+        command_kwargs['preview_info'] = kwargs.get('preview_info', None)
 
         self.command_loader._populate_command_group_table_with_subgroups(' '.join(command_name.split()[:-1]))  # pylint: disable=protected-access
         self.command_loader.command_table[command_name] = self.command_loader.create_command(
@@ -332,3 +342,7 @@ class CommandGroup(object):
     def deprecate(self, **kwargs):
         kwargs['object_type'] = 'command'
         return Deprecated(self.command_loader.cli_ctx, **kwargs)
+
+    def preview(self, **kwargs):
+        kwargs['object_type'] = 'command'
+        return PreviewItem(self.command_loader.cli_ctx, **kwargs)

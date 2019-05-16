@@ -7,6 +7,7 @@ import argparse
 from collections import defaultdict
 
 from .deprecation import Deprecated
+from .preview import PreviewItem
 from .log import get_logger
 from .util import CLIError
 
@@ -42,7 +43,7 @@ class CLIArgumentType(object):
 
 class CLICommandArgument(object):
 
-    NAMED_ARGUMENTS = ['options_list', 'validator', 'completer', 'arg_group', 'deprecate_info']
+    NAMED_ARGUMENTS = ['options_list', 'validator', 'completer', 'arg_group', 'deprecate_info', 'preview_info']
 
     def __init__(self, dest=None, argtype=None, **kwargs):
         """An argument that has a specific destination parameter.
@@ -221,6 +222,34 @@ class ArgumentsContext(object):
             action = _handle_option_deprecation(deprecated_opts)
         return action
 
+    def _handle_previews(self, argument_dest, **kwargs):
+
+        def _handle_argument_preview(preview_info):
+
+            parent_class = self._get_parent_class(**kwargs)
+
+            class PreviewArgumentAction(parent_class):
+
+                def __call__(self, parser, namespace, values, option_string=None):
+                    if not hasattr(namespace, '_argument_previews'):
+                        setattr(namespace, '_argument_previews', [preview_info])
+                    else:
+                        namespace._argument_previews.append(preview_info)  # pylint: disable=protected-access
+                    try:
+                        super(PreviewArgumentAction, self).__call__(parser, namespace, values, option_string)
+                    except NotImplementedError:
+                        setattr(namespace, self.dest, values)
+
+            return PreviewArgumentAction
+
+        action = kwargs.get('action', None)
+
+        preview_info = kwargs.get('preview_info', None)
+        if preview_info:
+            preview_info.target = preview_info.target or argument_dest
+            action = _handle_argument_preview(preview_info)
+        return action
+
     # pylint: disable=inconsistent-return-statements
     def deprecate(self, **kwargs):
 
@@ -244,6 +273,21 @@ class ArgumentsContext(object):
         kwargs['message_func'] = _get_deprecated_arg_message
         return Deprecated(self.command_loader.cli_ctx, **kwargs)
 
+    # pylint: disable=inconsistent-return-statements
+    def preview(self, **kwargs):
+
+        def _get_preview_arg_message(self):
+            return "{} '{}' is in preview. It may be changed/removed in a future release.".format(
+                self.object_type.capitalize(), self.target)
+
+        self._check_stale()
+        if not self._applicable():
+            return
+
+        kwargs['object_type'] = 'argument'
+        kwargs['message_func'] = _get_preview_arg_message
+        return PreviewItem(self.command_loader.cli_ctx, **kwargs)
+
     def argument(self, argument_dest, arg_type=None, **kwargs):
         """ Register an argument for the given command scope using a knack.arguments.CLIArgumentType
 
@@ -261,6 +305,9 @@ class ArgumentsContext(object):
         deprecate_action = self._handle_deprecations(argument_dest, **kwargs)
         if deprecate_action:
             kwargs['action'] = deprecate_action
+        preview_action = self._handle_previews(argument_dest, **kwargs)
+        if preview_action:
+            kwargs['action'] = preview_action
         self.command_loader.argument_registry.register_cli_argument(self.command_scope,
                                                                     argument_dest,
                                                                     arg_type,

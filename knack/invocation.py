@@ -164,6 +164,10 @@ class CommandInvoker(object):
         if cmd.deprecate_info:
             deprecations.append(cmd.deprecate_info)
 
+        previews = getattr(parsed_args, '_argument_previews', [])
+        if cmd.preview_info:
+            previews.append(cmd.preview_info)
+
         params = self._filter_params(parsed_args)
 
         # search for implicit deprecation
@@ -180,9 +184,13 @@ class CommandInvoker(object):
             del deprecate_kwargs['_get_message']
             deprecations.append(ImplicitDeprecated(**deprecate_kwargs))
 
+        # TODO: search for implicit preview?
+
         colorama.init()
         for d in deprecations:
             print(d.message, file=sys.stderr)
+        for p in previews:
+            print(p.message, file=sys.stderr)
         colorama.deinit()
 
         cmd_result = parsed_args.func(params)

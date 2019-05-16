@@ -170,6 +170,7 @@ class CLICommandParser(argparse.ArgumentParser):
                     param = CLICommandParser._add_argument(command_parser, arg)
                 param.completer = arg.completer
                 param.deprecate_info = arg.deprecate_info
+                param.preview_info = arg.preview_info
             command_parser.set_defaults(
                 func=metadata,
                 command=command_name,

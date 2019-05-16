@@ -35,6 +35,23 @@ class CtxTypeError(TypeError):
                                                                                    obj.__class__.__name__))
 
 
+class ColorizedString(object):
+
+    def __init__(self, message, color):
+        import colorama
+        self._message = message
+        self._color = getattr(colorama.Fore, color.upper(), None)
+
+    def __len__(self):
+        return len(self._message)
+
+    def __str__(self):
+        import colorama
+        if not self._color:
+            return self._message
+        return self._color + self._message + colorama.Fore.RESET
+
+
 def ensure_dir(d):
     """ Create a directory if it doesn't exist """
     if not os.path.isdir(d):

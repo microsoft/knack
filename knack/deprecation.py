@@ -5,6 +5,7 @@
 
 from six import string_types as STRING_TYPES
 
+from .util import ColorizedString
 
 DEFAULT_DEPRECATED_TAG = '[Deprecated]'
 
@@ -27,23 +28,6 @@ def resolve_deprecate_info(cli_ctx, name):
         if group_kwargs:
             deprecate_info = group_kwargs.get('deprecate_info', None)
     return deprecate_info
-
-
-class ColorizedString(object):
-
-    def __init__(self, message, color):
-        import colorama
-        self._message = message
-        self._color = getattr(colorama.Fore, color.upper(), None)
-
-    def __len__(self):
-        return len(self._message)
-
-    def __str__(self):
-        import colorama
-        if not self._color:
-            return self._message
-        return self._color + self._message + colorama.Fore.RESET
 
 
 # pylint: disable=too-many-instance-attributes
