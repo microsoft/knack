@@ -99,7 +99,6 @@ Release History
 0.1.1
 +++++
 * Add more types of command and argument loaders.
-* Add tests.
 
 0.1.0
 +++++
