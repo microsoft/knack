@@ -133,7 +133,8 @@ Arguments
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('cmd5 -h'.split())
         actual = self.io.getvalue()
-        self.assertTrue(u"'cmd5' is not in the" in actual)
+        expected = """The most similar choices to 'cmd5'"""
+        self.assertIn(expected, actual)
 
 
 class TestCommandGroupDeprecation(unittest.TestCase):
@@ -232,7 +233,8 @@ Group
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('group5 -h'.split())
         actual = self.io.getvalue()
-        self.assertTrue(u"'group5' is not in the" in actual)
+        expected = """The most similar choices to 'group5'"""
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_deprecate_command_implicitly(self):
