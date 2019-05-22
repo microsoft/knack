@@ -5,6 +5,7 @@
 
 from six import string_types as STRING_TYPES
 
+from .util import TagDecorator
 
 DEFAULT_DEPRECATED_TAG = '[Deprecated]'
 
@@ -29,25 +30,8 @@ def resolve_deprecate_info(cli_ctx, name):
     return deprecate_info
 
 
-class ColorizedString(object):
-
-    def __init__(self, message, color):
-        import colorama
-        self._message = message
-        self._color = getattr(colorama.Fore, color.upper(), None)
-
-    def __len__(self):
-        return len(self._message)
-
-    def __str__(self):
-        import colorama
-        if not self._color:
-            return self._message
-        return self._color + self._message + colorama.Fore.RESET
-
-
 # pylint: disable=too-many-instance-attributes
-class Deprecated(object):
+class Deprecated(TagDecorator):
 
     @staticmethod
     def ensure_new_style_deprecation(cli_ctx, kwargs, object_type):
@@ -62,7 +46,7 @@ class Deprecated(object):
         return deprecate_info
 
     def __init__(self, cli_ctx=None, object_type='', target=None, redirect=None, hide=False, expiration=None,
-                 tag_func=None, message_func=None):
+                 tag_func=None, message_func=None, **kwargs):
         """ Create a collection of deprecation metadata.
 
         :param cli_ctx: The CLI context associated with the deprecated item.
@@ -87,13 +71,6 @@ class Deprecated(object):
                              Omit to use the default.
         :type message_func: callable
         """
-        self.cli_ctx = cli_ctx
-        self.object_type = object_type
-        self.target = target
-        self.redirect = redirect
-        self.hide = hide
-        self.expiration = expiration
-
         def _default_get_message(self):
             msg = "This {} has been deprecated and will be removed ".format(self.object_type)
             if self.expiration:
@@ -104,24 +81,18 @@ class Deprecated(object):
                 msg += " Use '{}' instead.".format(self.redirect)
             return msg
 
-        self._get_tag = tag_func or (lambda _: DEFAULT_DEPRECATED_TAG)
-        self._get_message = message_func or _default_get_message
+        self.redirect = redirect
+        self.hide = hide
+        self.expiration = expiration
 
-    def __deepcopy__(self, memo):
-        import copy
-
-        cls = self.__class__
-        result = cls.__new__(cls)
-        memo[id(self)] = result
-        for k, v in self.__dict__.items():
-            try:
-                setattr(result, k, copy.deepcopy(v, memo))
-            except TypeError:
-                if k == 'cli_ctx':
-                    setattr(result, k, self.cli_ctx)
-                else:
-                    raise
-        return result
+        super(Deprecated, self).__init__(
+            cli_ctx=cli_ctx,
+            object_type=object_type,
+            target=target,
+            color='yellow',
+            tag_func=tag_func or (lambda _: DEFAULT_DEPRECATED_TAG),
+            message_func=message_func or _default_get_message
+        )
 
     # pylint: disable=no-self-use
     def _version_less_than_or_equal_to(self, v1, v2):
@@ -147,16 +118,6 @@ class Deprecated(object):
 
     def show_in_help(self):
         return not self.hidden() and not self.expired()
-
-    @property
-    def tag(self):
-        """ Returns a tag object. """
-        return ColorizedString(self._get_tag(self), 'yellow')
-
-    @property
-    def message(self):
-        """ Returns a tuple with the formatted message string and the message length. """
-        return ColorizedString(self._get_message(self), 'yellow')
 
 
 class ImplicitDeprecated(Deprecated):

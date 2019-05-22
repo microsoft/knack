@@ -10,6 +10,7 @@ from importlib import import_module
 import six
 
 from .deprecation import Deprecated
+from .preview import PreviewItem
 from .prompting import prompt_y_n, NoTTYException
 from .util import CLIError, CtxTypeError
 from .arguments import ArgumentRegistry, CLICommandArgument
@@ -27,7 +28,8 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
     # pylint: disable=unused-argument
     def __init__(self, cli_ctx, name, handler, description=None, table_transformer=None,
                  arguments_loader=None, description_loader=None,
-                 formatter_class=None, deprecate_info=None, validator=None, confirmation=None, **kwargs):
+                 formatter_class=None, deprecate_info=None, validator=None, confirmation=None, preview_info=None,
+                 **kwargs):
         """ The command object that goes into the command table.
 
         :param cli_ctx: CLI Context
@@ -48,6 +50,8 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         :type formatter_class: class
         :param deprecate_info: Deprecation message to display when this command is invoked
         :type deprecate_info: str
+        :param preview_info: Indicates a command is in preview
+        :type preview_info: bool
         :param validator: The command validator
         :param confirmation: User confirmation required for command
         :type confirmation: bool, str, callable
@@ -66,6 +70,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         self.table_transformer = table_transformer
         self.formatter_class = formatter_class
         self.deprecate_info = deprecate_info
+        self.preview_info = preview_info
         self.confirmation = confirmation
         self.validator = validator
 
@@ -295,6 +300,11 @@ class CommandGroup(object):
         Deprecated.ensure_new_style_deprecation(self.command_loader.cli_ctx, self.group_kwargs, 'command group')
         if kwargs['deprecate_info']:
             kwargs['deprecate_info'].target = group_name
+        if kwargs.get('is_preview', False):
+            kwargs['preview_info'] = PreviewItem(
+                target=group_name,
+                object_type='command group'
+            )
         command_loader._populate_command_group_table_with_subgroups(group_name)  # pylint: disable=protected-access
         self.command_loader.command_group_table[group_name] = self
 
@@ -313,7 +323,8 @@ class CommandGroup(object):
         :type handler_name: str
         :param kwargs: Kwargs to apply to the command.
                        Possible values: `client_factory`, `arguments_loader`, `description_loader`, `description`,
-                       `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`.
+                       `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`,
+                       `is_preview`.
         """
         import copy
 
@@ -322,6 +333,11 @@ class CommandGroup(object):
         command_kwargs.update(kwargs)
         # don't inherit deprecation info from command group
         command_kwargs['deprecate_info'] = kwargs.get('deprecate_info', None)
+        if kwargs.get('is_preview', False):
+            command_kwargs['preview_info'] = PreviewItem(
+                self.command_loader.cli_ctx,
+                object_type='command'
+            )
 
         self.command_loader._populate_command_group_table_with_subgroups(' '.join(command_name.split()[:-1]))  # pylint: disable=protected-access
         self.command_loader.command_table[command_name] = self.command_loader.create_command(

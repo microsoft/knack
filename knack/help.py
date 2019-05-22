@@ -10,6 +10,7 @@ import textwrap
 
 from .deprecation import ImplicitDeprecated, resolve_deprecate_info
 from .log import get_logger
+from .preview import ImplicitPreviewItem, resolve_preview_info
 from .util import CtxTypeError
 from .help_files import _load_help_file
 
@@ -19,13 +20,6 @@ logger = get_logger(__name__)
 
 FIRST_LINE_PREFIX = ' : '
 REQUIRED_TAG = '[Required]'
-
-
-def _get_preview_tag():
-    import colorama
-    PREVIEW_TAG = '{}[Preview]{}'.format(colorama.Fore.CYAN, colorama.Fore.RESET)
-    PREVIEW_TAG_LEN = len(PREVIEW_TAG) - 2 * len(colorama.Fore.RESET)
-    return (PREVIEW_TAG, PREVIEW_TAG_LEN)
 
 
 def _get_hanging_indent(max_length, indent):
@@ -159,6 +153,26 @@ class HelpFile(HelpObject):
             del deprecate_kwargs['_get_message']
             self.deprecate_info = ImplicitDeprecated(**deprecate_kwargs)
 
+        # resolve preview info
+        direct_preview_info = resolve_preview_info(help_ctx.cli_ctx, delimiters)
+        if direct_preview_info:
+            self.preview_info = direct_preview_info
+
+        # search for implicit preview
+        path_comps = delimiters.split()[:-1]
+        implicit_preview_info = None
+        while path_comps and not implicit_preview_info:
+            implicit_preview_info = resolve_preview_info(help_ctx.cli_ctx, ' '.join(path_comps))
+            del path_comps[-1]
+
+        if implicit_preview_info:
+            preview_kwargs = implicit_preview_info.__dict__.copy()
+            if delimiters in help_ctx.cli_ctx.invocation.commands_loader.command_table:
+                preview_kwargs['object_type'] = 'command'
+            else:
+                preview_kwargs['object_type'] = 'command group'
+            self.preview_info = ImplicitPreviewItem(**preview_kwargs)
+
     def load(self, options):
         description = getattr(options, 'description', None)
         try:
@@ -208,7 +222,6 @@ class GroupHelpFile(HelpFile):
 
         super(GroupHelpFile, self).__init__(help_ctx, delimiters)
         self.type = 'group'
-        self.preview_info = getattr(parser, 'preview_info', None)
 
         self.children = []
         if getattr(parser, 'choices', None):
@@ -244,6 +257,7 @@ class CommandHelpFile(HelpFile):
                 param_kwargs = {
                     'name_source': [action.metavar or action.dest],
                     'deprecate_info': getattr(action, 'deprecate_info', None),
+                    'preview_info': getattr(action, 'preview_info', None),
                     'description': action.help,
                     'choices': action.choices,
                     'required': False,
@@ -280,7 +294,8 @@ class CommandHelpFile(HelpFile):
             self.parameters.append(HelpParameter(**param_kwargs))
         param_kwargs.update({
             'name_source': normal_options,
-            'deprecate_info': getattr(param, 'deprecate_info', None)
+            'deprecate_info': getattr(param, 'deprecate_info', None),
+            'preview_info': getattr(param, 'preview_info', None)
         })
         self.parameters.append(HelpParameter(**param_kwargs))
 
@@ -304,7 +319,7 @@ class CommandHelpFile(HelpFile):
 class HelpParameter(HelpObject):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, name_source, description, required, choices=None,
-                 default=None, group_name=None, deprecate_info=None):
+                 default=None, group_name=None, deprecate_info=None, preview_info=None):
         super(HelpParameter, self).__init__()
         self.name_source = name_source
         self.name = ' '.join(sorted(name_source))
@@ -317,6 +332,7 @@ class HelpParameter(HelpObject):  # pylint: disable=too-many-instance-attributes
         self.default = default
         self.group_name = group_name
         self.deprecate_info = deprecate_info
+        self.preview_info = preview_info
 
     def update_from_data(self, data):
         if self.name != data.get('name'):
@@ -367,6 +383,8 @@ class CLIHelp(object):
                 lines.append(item.long_summary)
             if item.deprecate_info:
                 lines.append(str(item.deprecate_info.message))
+            if item.preview_info:
+                lines.append(str(item.preview_info.message))
             return ' '.join(lines)
 
         indent += 1
@@ -381,15 +399,18 @@ class CLIHelp(object):
         self.max_line_len = 0
 
         def _build_tags_string(item):
-            PREVIEW_TAG, PREVIEW_TAG_LEN = _get_preview_tag()
+
+            preview_info = getattr(item, 'preview_info', None)
+            preview = preview_info.tag if preview_info else ''
+
             deprecate_info = getattr(item, 'deprecate_info', None)
             deprecated = deprecate_info.tag if deprecate_info else ''
-            preview = PREVIEW_TAG if getattr(item, 'preview_info', None) else ''
+
             required = REQUIRED_TAG if getattr(item, 'required', None) else ''
-            tags = ' '.join([x for x in [str(deprecated), preview, required] if x])
+            tags = ' '.join([x for x in [str(deprecated), str(preview), required] if x])
             tags_len = sum([
                 len(deprecated),
-                PREVIEW_TAG_LEN if preview else 0,
+                len(preview),
                 len(required),
                 tags.count(' ')
             ])
@@ -488,15 +509,18 @@ class CLIHelp(object):
             return None
 
         def _build_tags_string(item):
-            PREVIEW_TAG, PREVIEW_TAG_LEN = _get_preview_tag()
+
+            preview_info = getattr(item, 'preview_info', None)
+            preview = preview_info.tag if preview_info else ''
+
             deprecate_info = getattr(item, 'deprecate_info', None)
             deprecated = deprecate_info.tag if deprecate_info else ''
-            preview = PREVIEW_TAG if getattr(item, 'preview_info', None) else ''
+
             required = REQUIRED_TAG if getattr(item, 'required', None) else ''
-            tags = ' '.join([x for x in [str(deprecated), preview, required] if x])
+            tags = ' '.join([x for x in [str(deprecated), str(preview), required] if x])
             tags_len = sum([
                 len(deprecated),
-                PREVIEW_TAG_LEN if preview else 0,
+                len(preview),
                 len(required),
                 tags.count(' ')
             ])
@@ -573,6 +597,9 @@ class CLIHelp(object):
             deprecate_info = getattr(item, 'deprecate_info', None)
             if deprecate_info:
                 lines.append(str(item.deprecate_info.message))
+            preview_info = getattr(item, 'preview_info', None)
+            if preview_info:
+                lines.append(str(item.preview_info.message))
             return ' '.join(lines)
 
         group_registry = ArgumentGroupRegistry([p.group_name for p in help_file.parameters if p.group_name])

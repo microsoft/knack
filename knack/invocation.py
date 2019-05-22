@@ -10,6 +10,7 @@ import sys
 from collections import defaultdict
 
 from .deprecation import ImplicitDeprecated, resolve_deprecate_info
+from .preview import ImplicitPreviewItem, resolve_preview_info
 from .util import CLIError, CtxTypeError, CommandResultItem, todict
 from .parser import CLICommandParser
 from .commands import CLICommandsLoader
@@ -117,6 +118,7 @@ class CommandInvoker(object):
             err = sys.exc_info()[1]
             getattr(parsed_ns, '_parser', self.parser).validation_error(str(err))
 
+    # pylint: disable=too-many-statements
     def execute(self, args):
         """ Executes the command invocation
 
@@ -164,6 +166,10 @@ class CommandInvoker(object):
         if cmd.deprecate_info:
             deprecations.append(cmd.deprecate_info)
 
+        previews = getattr(parsed_args, '_argument_previews', [])
+        if cmd.preview_info:
+            previews.append(cmd.preview_info)
+
         params = self._filter_params(parsed_args)
 
         # search for implicit deprecation
@@ -180,9 +186,23 @@ class CommandInvoker(object):
             del deprecate_kwargs['_get_message']
             deprecations.append(ImplicitDeprecated(**deprecate_kwargs))
 
+        # search for implicit preview
+        path_comps = cmd.name.split()[:-1]
+        implicit_preview_info = None
+        while path_comps and not implicit_preview_info:
+            implicit_preview_info = resolve_preview_info(self.cli_ctx, ' '.join(path_comps))
+            del path_comps[-1]
+
+        if implicit_preview_info:
+            preview_kwargs = implicit_preview_info.__dict__.copy()
+            preview_kwargs['object_type'] = 'command'
+            previews.append(ImplicitPreviewItem(**preview_kwargs))
+
         colorama.init()
         for d in deprecations:
             print(d.message, file=sys.stderr)
+        for p in previews:
+            print(p.message, file=sys.stderr)
         colorama.deinit()
 
         cmd_result = parsed_args.func(params)
