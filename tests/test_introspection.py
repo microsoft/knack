@@ -3,12 +3,7 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-import os
-import stat
 import unittest
-import tempfile
-import mock
-from six.moves import configparser
 
 from knack.introspection import extract_full_summary_from_signature, option_descriptions, extract_args_from_signature
 

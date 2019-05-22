@@ -4,6 +4,7 @@
 # --------------------------------------------------------------------------------------------
 
 import os
+from collections import OrderedDict
 import unittest
 try:
     import mock
@@ -11,7 +12,6 @@ except ImportError:
     from unittest import mock
 import mock
 
-from collections import OrderedDict
 from six import StringIO
 
 from knack import CLI

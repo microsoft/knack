@@ -7,6 +7,7 @@ Release History
 +++++
 * Adds ability to declare that command groups, commands, and arguments are in a preview status and therefore might change or be removed. This is done by passing the kwarg `is_preview=True`.
 * Adds a generic `TagDecorator` class to `knack.util` that allows you to create your own colorized tags like `[Preview]` and `[Deprecated]`.
+* When an incorrect command name is entered, Knack will now attempt to suggest the closest alternative.
 
 0.6.1
 +++++

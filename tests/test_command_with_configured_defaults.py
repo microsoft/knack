@@ -5,17 +5,15 @@
 from __future__ import print_function
 import os
 import logging
+import sys
 import unittest
 try:
     import mock
 except ImportError:
     from unittest import mock
-from six import StringIO
-import sys
 
 from knack.arguments import ArgumentsContext
-from knack.commands import CLICommandsLoader, CLICommand, CommandGroup
-from knack.config import CLIConfig
+from knack.commands import CLICommandsLoader, CommandGroup
 from tests.util import DummyCLI, redirect_io
 
 
