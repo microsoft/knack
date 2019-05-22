@@ -79,7 +79,7 @@ class MyCommandsLoader(CLICommandsLoader):
 
 
 mycli = CLI(cli_name=cli_name,
-            config_dir=os.path.join('~', '.{}'.format(cli_name)),
+            config_dir=os.path.expanduser(os.path.join('~', '.{}'.format(cli_name))),
             config_env_var_prefix=cli_name,
             commands_loader_cls=MyCommandsLoader,
             help_cls=MyCLIHelp)

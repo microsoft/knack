@@ -21,7 +21,7 @@ class CLIConfig(object):
                        '0': False, 'no': False, 'false': False, 'off': False}
 
     _DEFAULT_CONFIG_ENV_VAR_PREFIX = 'CLI'
-    _DEFAULT_CONFIG_DIR = os.path.join('~', '.{}'.format('cli'))
+    _DEFAULT_CONFIG_DIR = os.path.expanduser(os.path.join('~', '.{}'.format('cli')))
     _DEFAULT_CONFIG_FILE_NAME = 'config'
     _CONFIG_DEFAULTS_SECTION = 'defaults'
 
