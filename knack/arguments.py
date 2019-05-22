@@ -256,7 +256,7 @@ class ArgumentsContext(object):
             # convert argument dest
             target = '--{}'.format(argument_dest.replace('_', '-'))
         elif options_list:
-            target = sorted(options_list, key=len)[0]
+            target = sorted(options_list, key=len)[-1]
         else:
             # positional argument
             target = kwargs.get('metavar', '<{}>'.format(argument_dest.upper()))
