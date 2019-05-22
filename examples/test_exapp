@@ -47,7 +47,7 @@ class MyCommandsLoader(CLICommandsLoader):
 name = 'exapp4'
 
 mycli = CLI(cli_name=name,
-            config_dir=os.path.join('~', '.{}'.format(name)),
+            config_dir=os.path.expanduser(os.path.join('~', '.{}'.format(name))),
             config_env_var_prefix=name,
             commands_loader_cls=MyCommandsLoader)
 

@@ -87,7 +87,7 @@ class TestCLIScenarios(unittest.TestCase):
                 self.command_table['abc list'] = CLICommand(self.cli_ctx, 'abc list', a_test_command_handler)
                 return OrderedDict(self.command_table)
 
-        mycli = CLI(cli_name='exapp1', config_dir=os.path.join('~', '.exapp1'), commands_loader_cls=MyCommandsLoader)
+        mycli = CLI(cli_name='exapp1', config_dir=os.path.expanduser(os.path.join('~', '.exapp1')), commands_loader_cls=MyCommandsLoader)
 
         expected_output = """[
   {
