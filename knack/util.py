@@ -52,6 +52,51 @@ class ColorizedString(object):
         return self._color + self._message + colorama.Fore.RESET
 
 
+class TagDecorator(object):
+
+    # pylint: disable=unused-argument
+    def __init__(self, cli_ctx, object_type, target, tag_func, message_func, color, **kwargs):
+        self.cli_ctx = cli_ctx
+        self.object_type = object_type
+        self.target = target
+        self._color = color
+        self._get_tag = tag_func
+        self._get_message = message_func
+
+    def __deepcopy__(self, memo):
+        import copy
+
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            try:
+                setattr(result, k, copy.deepcopy(v, memo))
+            except TypeError:
+                if k == 'cli_ctx':
+                    setattr(result, k, self.cli_ctx)
+                else:
+                    raise
+        return result
+
+    # pylint: disable=no-self-use
+    def hidden(self):
+        return False
+
+    def show_in_help(self):
+        return not self.hidden()
+
+    @property
+    def tag(self):
+        """ Returns a tag object. """
+        return ColorizedString(self._get_tag(self), self._color)
+
+    @property
+    def message(self):
+        """ Returns a tuple with the formatted message string and the message length. """
+        return ColorizedString(self._get_message(self), self._color)
+
+
 def ensure_dir(d):
     """ Create a directory if it doesn't exist """
     if not os.path.isdir(d):

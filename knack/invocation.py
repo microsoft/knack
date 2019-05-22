@@ -196,8 +196,6 @@ class CommandInvoker(object):
         if implicit_preview_info:
             preview_kwargs = implicit_preview_info.__dict__.copy()
             preview_kwargs['object_type'] = 'command'
-            del preview_kwargs['_get_tag']
-            del preview_kwargs['_get_message']
             previews.append(ImplicitPreviewItem(**preview_kwargs))
 
         colorama.init()

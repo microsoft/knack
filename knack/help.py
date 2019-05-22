@@ -171,9 +171,6 @@ class HelpFile(HelpObject):
                 preview_kwargs['object_type'] = 'command'
             else:
                 preview_kwargs['object_type'] = 'command group'
-
-            del preview_kwargs['_get_tag']
-            del preview_kwargs['_get_message']
             self.preview_info = ImplicitPreviewItem(**preview_kwargs)
 
     def load(self, options):

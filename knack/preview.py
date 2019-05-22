@@ -3,7 +3,7 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from .util import ColorizedString
+from .util import TagDecorator
 
 _PREVIEW_TAG = '[Preview]'
 _preview_kwarg = 'preview_info'
@@ -30,9 +30,9 @@ def resolve_preview_info(cli_ctx, name):
 
 
 # pylint: disable=too-many-instance-attributes
-class PreviewItem(object):
+class PreviewItem(TagDecorator):
 
-    def __init__(self, cli_ctx=None, object_type='', target=None, tag_func=None, message_func=None):
+    def __init__(self, cli_ctx=None, object_type='', target=None, tag_func=None, message_func=None, **kwargs):
         """ Create a collection of preview metadata.
 
         :param cli_ctx: The CLI context associated with the preview item.
@@ -48,48 +48,18 @@ class PreviewItem(object):
                              Omit to use the default.
         :type message_func: callable
         """
-        self.cli_ctx = cli_ctx
-        self.object_type = object_type
-        self.target = target
 
         def _default_get_message(self):
             return "This {} is in preview. It may be changed/removed in a future release.".format(self.object_type)
 
-        self._get_tag = tag_func or (lambda _: _PREVIEW_TAG)
-        self._get_message = message_func or _default_get_message
-
-    def __deepcopy__(self, memo):
-        import copy
-
-        cls = self.__class__
-        result = cls.__new__(cls)
-        memo[id(self)] = result
-        for k, v in self.__dict__.items():
-            try:
-                setattr(result, k, copy.deepcopy(v, memo))
-            except TypeError:
-                if k == 'cli_ctx':
-                    setattr(result, k, self.cli_ctx)
-                else:
-                    raise
-        return result
-
-    # pylint: disable=no-self-use
-    def hidden(self):
-        return False
-
-    def show_in_help(self):
-        return not self.hidden()
-
-    @property
-    def tag(self):
-        """ Returns a tag object. """
-        return ColorizedString(self._get_tag(self), 'cyan')
-
-    @property
-    def message(self):
-        """ Returns a tuple with the formatted message string and the message length. """
-        return ColorizedString(self._get_message(self), 'cyan')
+        super(PreviewItem, self).__init__(
+            cli_ctx=cli_ctx,
+            object_type=object_type,
+            target=target,
+            color='cyan',
+            tag_func=tag_func or (lambda _: _PREVIEW_TAG),
+            message_func=message_func or _default_get_message
+        )
 
 
 class ImplicitPreviewItem(PreviewItem):
