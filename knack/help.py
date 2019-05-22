@@ -176,7 +176,6 @@ class HelpFile(HelpObject):
             del preview_kwargs['_get_message']
             self.preview_info = ImplicitPreviewItem(**preview_kwargs)
 
-
     def load(self, options):
         description = getattr(options, 'description', None)
         try:

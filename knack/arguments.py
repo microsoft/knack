@@ -224,6 +224,9 @@ class ArgumentsContext(object):
 
     def _handle_previews(self, argument_dest, **kwargs):
 
+        if not kwargs.get('is_preview', False):
+            return kwargs
+
         def _handle_argument_preview(preview_info):
 
             parent_class = self._get_parent_class(**kwargs)
@@ -242,13 +245,31 @@ class ArgumentsContext(object):
 
             return PreviewArgumentAction
 
-        action = kwargs.get('action', None)
+        def _get_preview_arg_message(self):
+            return "{} '{}' is in preview. It may be changed/removed in a future release.".format(
+                self.object_type.capitalize(), self.target)
 
-        preview_info = kwargs.get('preview_info', None)
-        if preview_info:
-            preview_info.target = preview_info.target or argument_dest
-            action = _handle_argument_preview(preview_info)
-        return action
+        options_list = kwargs.get('options_list', None)
+        object_type = 'argument'
+
+        if options_list is None:
+            # convert argument dest
+            target = '--{}'.format(argument_dest.replace('_', '-'))
+        elif options_list:
+            target = sorted(options_list, key=len)[0]
+        else:
+            # positional argument
+            target = kwargs.get('metavar', '<{}>'.format(argument_dest.upper()))
+            object_type = 'positional argument'
+
+        preview_info = PreviewItem(
+            target=target,
+            object_type=object_type,
+            message_func=_get_preview_arg_message
+        )
+        kwargs['preview_info'] = preview_info
+        kwargs['action'] = _handle_argument_preview(preview_info)
+        return kwargs
 
     # pylint: disable=inconsistent-return-statements
     def deprecate(self, **kwargs):
@@ -273,21 +294,6 @@ class ArgumentsContext(object):
         kwargs['message_func'] = _get_deprecated_arg_message
         return Deprecated(self.command_loader.cli_ctx, **kwargs)
 
-    # pylint: disable=inconsistent-return-statements
-    def preview(self, **kwargs):
-
-        def _get_preview_arg_message(self):
-            return "{} '{}' is in preview. It may be changed/removed in a future release.".format(
-                self.object_type.capitalize(), self.target)
-
-        self._check_stale()
-        if not self._applicable():
-            return
-
-        kwargs['object_type'] = 'argument'
-        kwargs['message_func'] = _get_preview_arg_message
-        return PreviewItem(self.command_loader.cli_ctx, **kwargs)
-
     def argument(self, argument_dest, arg_type=None, **kwargs):
         """ Register an argument for the given command scope using a knack.arguments.CLIArgumentType
 
@@ -296,7 +302,8 @@ class ArgumentsContext(object):
         :param arg_type: Predefined CLIArgumentType definition to register, as modified by any provided kwargs.
         :type arg_type: knack.arguments.CLIArgumentType
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
-                       `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
+                       `type`, `choices`, `required`, `help`, `metavar`, `is_preview`, `deprecate_info`.
+                       See /docs/arguments.md.
         """
         self._check_stale()
         if not self._applicable():
@@ -305,9 +312,8 @@ class ArgumentsContext(object):
         deprecate_action = self._handle_deprecations(argument_dest, **kwargs)
         if deprecate_action:
             kwargs['action'] = deprecate_action
-        preview_action = self._handle_previews(argument_dest, **kwargs)
-        if preview_action:
-            kwargs['action'] = preview_action
+
+        kwargs = self._handle_previews(argument_dest, **kwargs)
         self.command_loader.argument_registry.register_cli_argument(self.command_scope,
                                                                     argument_dest,
                                                                     arg_type,
@@ -321,7 +327,8 @@ class ArgumentsContext(object):
         :param arg_type: Predefined CLIArgumentType definition to register, as modified by any provided kwargs.
         :type arg_type: knack.arguments.CLIArgumentType
         :param kwargs: Possible values: `validator`, `completer`, `nargs`, `action`, `const`, `default`,
-                       `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
+                       `type`, `choices`, `required`, `help`, `metavar`, `is_preview`, `deprecate_info`.
+                       See /docs/arguments.md.
         """
         self._check_stale()
         if not self._applicable():
@@ -340,11 +347,14 @@ class ArgumentsContext(object):
             raise CLIError("command authoring error: commands may have, at most, one positional argument. '{}' already "
                            "has positional argument: {}.".format(self.command_scope, ' '.join(positional_args.keys())))
 
+        kwargs['options_list'] = []
+
         deprecate_action = self._handle_deprecations(argument_dest, **kwargs)
         if deprecate_action:
             kwargs['action'] = deprecate_action
 
-        kwargs['options_list'] = []
+        kwargs = self._handle_previews(argument_dest, **kwargs)
+
         self.command_loader.argument_registry.register_cli_argument(self.command_scope,
                                                                     argument_dest,
                                                                     arg_type,
@@ -370,7 +380,8 @@ class ArgumentsContext(object):
         :param argument_dest: The destination argument to add this argument type to
         :type argument_dest: str
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
-                       `type`, `choices`, `required`, `help`, `metavar`. See /docs/arguments.md.
+                       `type`, `choices`, `required`, `help`, `metavar`, `is_preview`, `deprecate_info`.
+                       See /docs/arguments.md.
         """
         self._check_stale()
         if not self._applicable():
@@ -384,6 +395,9 @@ class ArgumentsContext(object):
         deprecate_action = self._handle_deprecations(argument_dest, **kwargs)
         if deprecate_action:
             kwargs['action'] = deprecate_action
+
+        kwargs = self._handle_previews(argument_dest, **kwargs)
+
         self.command_loader.extra_argument_registry[self.command_scope][argument_dest] = CLICommandArgument(
             argument_dest, **kwargs)
 

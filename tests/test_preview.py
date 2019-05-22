@@ -38,9 +38,9 @@ class TestCommandPreview(unittest.TestCase):
             def load_command_table(self, args):
                 super(PreviewTestCommandLoader, self).load_command_table(args)
                 with CommandGroup(self, '', '{}#{{}}'.format(__name__)) as g:
-                    g.command('cmd1', 'example_handler', preview_info=g.preview())
+                    g.command('cmd1', 'example_handler', is_preview=True)
 
-                with CommandGroup(self, 'grp1', '{}#{{}}'.format(__name__), preview_info=self.preview()) as g:
+                with CommandGroup(self, 'grp1', '{}#{{}}'.format(__name__), is_preview=True) as g:
                     g.command('cmd1', 'example_handler')
 
                 return self.command_table
@@ -96,7 +96,7 @@ class TestCommandGroupPreview(unittest.TestCase):
             def load_command_table(self, args):
                 super(PreviewTestCommandLoader, self).load_command_table(args)
 
-                with CommandGroup(self, 'group1', '{}#{{}}'.format(__name__), preview_info=self.preview()) as g:
+                with CommandGroup(self, 'group1', '{}#{{}}'.format(__name__), is_preview=True) as g:
                     g.command('cmd1', 'example_handler')
 
                 return self.command_table
@@ -160,7 +160,7 @@ class TestArgumentPreview(unittest.TestCase):
 
             def load_arguments(self, command):
                 with ArgumentsContext(self, 'arg-test') as c:
-                    c.argument('arg1', help='Arg1', preview_info=c.preview())
+                    c.argument('arg1', help='Arg1', is_preview=True)
 
                 super(PreviewTestCommandLoader, self).load_arguments(command)
 
@@ -179,7 +179,7 @@ class TestArgumentPreview(unittest.TestCase):
         expected = """
 Arguments
     --arg1 [Preview] [Required] : Arg1.
-        Argument 'arg1' is in preview. It may be changed/removed in a future release.
+        Argument '--arg1' is in preview. It may be changed/removed in a future release.
 """.format(self.cli_ctx.name)
         self.assertIn(expected, actual)
 
@@ -188,7 +188,7 @@ Arguments
         """ Ensure deprecated arguments can be used. """
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar'.split())
         actual = self.io.getvalue()
-        expected = "Argument 'arg1' is in preview. It may be changed/removed in a future release."
+        expected = "Argument '--arg1' is in preview. It may be changed/removed in a future release."
         self.assertIn(expected, actual)
 
 

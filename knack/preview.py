@@ -3,8 +3,6 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from six import string_types as STRING_TYPES
-
 from .util import ColorizedString
 
 _PREVIEW_TAG = '[Preview]'
@@ -76,8 +74,8 @@ class PreviewItem(object):
                     raise
         return result
 
+    # pylint: disable=no-self-use
     def hidden(self):
-        # TODO: consult config file?
         return False
 
     def show_in_help(self):

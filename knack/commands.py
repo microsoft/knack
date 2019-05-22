@@ -277,10 +277,6 @@ class CLICommandsLoader(object):
         kwargs['object_type'] = 'command group'
         return Deprecated(self.cli_ctx, **kwargs)
 
-    def preview(self, **kwargs):
-        kwargs['object_type'] = 'command group'
-        return PreviewItem(self.cli_ctx, **kwargs)
-
 
 class CommandGroup(object):
 
@@ -304,6 +300,11 @@ class CommandGroup(object):
         Deprecated.ensure_new_style_deprecation(self.command_loader.cli_ctx, self.group_kwargs, 'command group')
         if kwargs['deprecate_info']:
             kwargs['deprecate_info'].target = group_name
+        if kwargs.get('is_preview', False):
+            kwargs['preview_info'] = PreviewItem(
+                target=group_name,
+                object_type='command group'
+            )
         command_loader._populate_command_group_table_with_subgroups(group_name)  # pylint: disable=protected-access
         self.command_loader.command_group_table[group_name] = self
 
@@ -322,7 +323,8 @@ class CommandGroup(object):
         :type handler_name: str
         :param kwargs: Kwargs to apply to the command.
                        Possible values: `client_factory`, `arguments_loader`, `description_loader`, `description`,
-                       `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`.
+                       `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`,
+                       `is_preview`.
         """
         import copy
 
@@ -331,7 +333,11 @@ class CommandGroup(object):
         command_kwargs.update(kwargs)
         # don't inherit deprecation info from command group
         command_kwargs['deprecate_info'] = kwargs.get('deprecate_info', None)
-        command_kwargs['preview_info'] = kwargs.get('preview_info', None)
+        if kwargs.get('is_preview', False):
+            command_kwargs['preview_info'] = PreviewItem(
+                self.command_loader.cli_ctx,
+                object_type='command'
+            )
 
         self.command_loader._populate_command_group_table_with_subgroups(' '.join(command_name.split()[:-1]))  # pylint: disable=protected-access
         self.command_loader.command_table[command_name] = self.command_loader.create_command(
@@ -342,7 +348,3 @@ class CommandGroup(object):
     def deprecate(self, **kwargs):
         kwargs['object_type'] = 'command'
         return Deprecated(self.command_loader.cli_ctx, **kwargs)
-
-    def preview(self, **kwargs):
-        kwargs['object_type'] = 'command'
-        return PreviewItem(self.command_loader.cli_ctx, **kwargs)
