@@ -28,6 +28,7 @@ def example_arg_handler(arg1, opt1, arg2=None, opt2=None, arg3=None,
     pass
 
 
+# pylint: disable=line-too-long
 class TestCommandDeprecation(unittest.TestCase):
 
     def setUp(self):
@@ -132,7 +133,7 @@ Arguments
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('cmd5 -h'.split())
         actual = self.io.getvalue()
-        self.assertTrue(u'invalid choice' in actual and u'cmd5' in actual)
+        self.assertTrue(u"'cmd5' is not in the" in actual)
 
 
 class TestCommandGroupDeprecation(unittest.TestCase):
@@ -231,7 +232,7 @@ Group
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('group5 -h'.split())
         actual = self.io.getvalue()
-        self.assertTrue(u'invalid choice' in actual and u'group5' in actual)
+        self.assertTrue(u"'group5' is not in the" in actual)
 
     @redirect_io
     def test_deprecate_command_implicitly(self):
