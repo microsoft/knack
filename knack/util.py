@@ -52,7 +52,7 @@ class ColorizedString(object):
         return self._color + self._message + colorama.Fore.RESET
 
 
-class TagDecorator(object):
+class StatusTag(object):
 
     # pylint: disable=unused-argument
     def __init__(self, cli_ctx, object_type, target, tag_func, message_func, color, **kwargs):

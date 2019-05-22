@@ -5,7 +5,7 @@
 
 from six import string_types as STRING_TYPES
 
-from .util import TagDecorator
+from .util import StatusTag
 
 DEFAULT_DEPRECATED_TAG = '[Deprecated]'
 
@@ -31,7 +31,7 @@ def resolve_deprecate_info(cli_ctx, name):
 
 
 # pylint: disable=too-many-instance-attributes
-class Deprecated(TagDecorator):
+class Deprecated(StatusTag):
 
     @staticmethod
     def ensure_new_style_deprecation(cli_ctx, kwargs, object_type):
