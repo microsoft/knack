@@ -3,7 +3,7 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from .util import TagDecorator
+from .util import StatusTag
 
 _PREVIEW_TAG = '[Preview]'
 _preview_kwarg = 'preview_info'
@@ -30,7 +30,7 @@ def resolve_preview_info(cli_ctx, name):
 
 
 # pylint: disable=too-many-instance-attributes
-class PreviewItem(TagDecorator):
+class PreviewItem(StatusTag):
 
     def __init__(self, cli_ctx=None, object_type='', target=None, tag_func=None, message_func=None, **kwargs):
         """ Create a collection of preview metadata.
