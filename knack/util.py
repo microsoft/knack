@@ -3,6 +3,7 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
+import errno
 import os
 import re
 from datetime import date, time, datetime, timedelta
@@ -100,7 +101,11 @@ class StatusTag(object):
 def ensure_dir(d):
     """ Create a directory if it doesn't exist """
     if not os.path.isdir(d):
-        os.makedirs(d)
+        try:
+            os.makedirs(d)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise e
 
 
 def normalize_newlines(str_to_normalize):
