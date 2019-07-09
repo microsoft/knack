@@ -164,7 +164,7 @@ class ArgumentsContext(object):
         parent_class = argparse.Action
 
         # action is either a user-defined Action class or a string referring a library-defined Action
-        if issubclass(action, argparse.Action):
+        if isinstance(action, type) and issubclass(action, argparse.Action):
             parent_class = action
         elif isinstance(action, str):
             parent_class = self.command_loader.cli_ctx.invocation.parser._registries['action'][action]  # pylint: disable=protected-access

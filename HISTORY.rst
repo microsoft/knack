@@ -3,6 +3,11 @@
 Release History
 ===============
 
+0.6.3
++++++
+* Fix bug where arguments in preview did not call registered actions. This meant that parameter parsing did not behave
+  completely as expected.
+
 0.6.2
 +++++
 * Adds ability to declare that command groups, commands, and arguments are in a preview status and therefore might change or be removed. This is done by passing the kwarg `is_preview=True`.

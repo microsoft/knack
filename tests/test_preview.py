@@ -10,10 +10,12 @@ try:
     import mock
 except ImportError:
     from unittest import mock
-from threading import Lock
+
+import sys
+import argparse
 
 from knack.arguments import ArgumentsContext
-from knack.commands import CLICommand, CLICommandsLoader, CommandGroup
+from knack.commands import CLICommandsLoader, CommandGroup
 
 from tests.util import DummyCLI, redirect_io
 
@@ -148,8 +150,12 @@ Command
 class TestArgumentPreview(unittest.TestCase):
 
     def setUp(self):
-
         from knack.help_files import helps
+
+        class LoggerAction(argparse.Action):
+
+            def __call__(self, parser, namespace, values, option_string=None):
+                print("Side-effect from some original action!", file=sys.stderr)
 
         class PreviewTestCommandLoader(CLICommandsLoader):
             def load_command_table(self, args):
@@ -160,7 +166,7 @@ class TestArgumentPreview(unittest.TestCase):
 
             def load_arguments(self, command):
                 with ArgumentsContext(self, 'arg-test') as c:
-                    c.argument('arg1', help='Arg1', is_preview=True)
+                    c.argument('arg1', help='Arg1', is_preview=True, action=LoggerAction)
 
                 super(PreviewTestCommandLoader, self).load_arguments(command)
 
@@ -188,8 +194,11 @@ Arguments
         """ Ensure deprecated arguments can be used. """
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar'.split())
         actual = self.io.getvalue()
-        expected = "Argument '--arg1' is in preview. It may be changed/removed in a future release."
-        self.assertIn(expected, actual)
+        preview_expected = "Argument '--arg1' is in preview. It may be changed/removed in a future release."
+        self.assertIn(preview_expected, actual)
+
+        action_expected = "Side-effect from some original action!"
+        self.assertIn(action_expected, actual)
 
 
 if __name__ == '__main__':
