@@ -3,7 +3,7 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import unittest
 try:
