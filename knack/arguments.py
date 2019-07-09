@@ -162,7 +162,9 @@ class ArgumentsContext(object):
         # wrap any existing action
         action = kwargs.get('action', None)
         parent_class = argparse.Action
-        if isinstance(action, argparse.Action):
+
+        # action is either a user-defined Action class or a string referring a library-defined Action
+        if isinstance(action, type) and issubclass(action, argparse.Action):
             parent_class = action
         elif isinstance(action, str):
             parent_class = self.command_loader.cli_ctx.invocation.parser._registries['action'][action]  # pylint: disable=protected-access
