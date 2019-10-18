@@ -382,9 +382,9 @@ class CLIHelp(object):
             if item.long_summary:
                 lines.append(item.long_summary)
             if item.deprecate_info:
-                lines.append(''.join(['\n', str(item.deprecate_info.message)]))
+                lines.append('\n' + str(item.deprecate_info.message))
             if item.preview_info:
-                lines.append(''.join(['\n', str(item.preview_info.message)]))
+                lines.append('\n' + str(item.preview_info.message))
             return ' '.join(lines)
 
         indent += 1
