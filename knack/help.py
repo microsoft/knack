@@ -379,16 +379,13 @@ class CLIHelp(object):
 
         def _build_long_summary(item):
             lines = []
-            skip_line = ''
             if item.long_summary:
                 lines.append(item.long_summary)
-                skip_line = '\n'
             if item.deprecate_info:
-                lines.append(skip_line + str(item.deprecate_info.message))
-                skip_line = '\n'
+                lines.append(str(item.deprecate_info.message))
             if item.preview_info:
-                lines.append(skip_line + str(item.preview_info.message))
-            return ' '.join(lines)
+                lines.append(str(item.preview_info.message))
+            return '\n'.join(lines)
 
         indent += 1
         long_sum = _build_long_summary(help_file)
