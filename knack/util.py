@@ -9,6 +9,8 @@ import re
 from datetime import date, time, datetime, timedelta
 from enum import Enum
 
+NO_COLOR_VARIABLE_NAME = 'KNACK_NO_COLOR'
+
 
 class CommandResultItem(object):  # pylint: disable=too-few-public-methods
     def __init__(self, result, table_transformer=None, is_query_active=False,
@@ -90,12 +92,13 @@ class StatusTag(object):
     @property
     def tag(self):
         """ Returns a tag object. """
-        return ColorizedString(self._get_tag(self), self._color)
+        return ColorizedString(self._get_tag(self), self._color) if should_enable_color() else self._get_tag(self)
 
     @property
     def message(self):
         """ Returns a tuple with the formatted message string and the message length. """
-        return ColorizedString(self._get_message(self), self._color)
+        return ColorizedString(self._get_message(self), self._color) if should_enable_color() \
+            else "WARNING: " + self._get_message(self)
 
 
 def ensure_dir(d):
@@ -148,3 +151,7 @@ def todict(obj, post_processor=None):  # pylint: disable=too-many-return-stateme
                   if not callable(v) and not k.startswith('_')}
         return post_processor(obj, result) if post_processor else result
     return obj
+
+
+def should_enable_color():
+    return not os.environ.get(NO_COLOR_VARIABLE_NAME)

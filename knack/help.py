@@ -684,8 +684,6 @@ class CLIHelp(object):
         self.print_description_list(help_file.children)
 
     def show_help(self, cli_name, nouns, parser, is_group):
-        import colorama
-        colorama.init(autoreset=True)
         delimiters = ' '.join(nouns)
         help_file = self.command_help_cls(self, delimiters, parser) if not is_group \
             else self.group_help_cls(self, delimiters, parser)

@@ -12,7 +12,7 @@ from .invocation import CommandInvoker
 from .completion import CLICompletion
 from .output import OutputProducer
 from .log import CLILogging, get_logger
-from .util import CLIError
+from .util import CLIError, should_enable_color
 from .config import CLIConfig
 from .query import CLIQuery
 from .events import EVENT_CLI_PRE_EXECUTE, EVENT_CLI_POST_EXECUTE
@@ -91,6 +91,13 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         self.output = self.output_cls(cli_ctx=self)
         self.result = None
         self.query = query_cls(cli_ctx=self)
+
+        if should_enable_color():
+            import colorama
+            colorama.init()
+        if self.out_file == sys.__stdout__:
+            # point out_file to the new sys.stdout which is overwritten by colorama
+            self.out_file = sys.stdout
 
     @staticmethod
     def _should_show_version(args):
