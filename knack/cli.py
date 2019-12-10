@@ -92,12 +92,6 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         self.result = None
         self.query = query_cls(cli_ctx=self)
 
-        if should_enable_color():
-            import colorama
-            colorama.init()
-        if self.out_file == sys.__stdout__:
-            # point out_file to the new sys.stdout which is overwritten by colorama
-            self.out_file = sys.stdout
 
     @staticmethod
     def _should_show_version(args):
@@ -194,6 +188,13 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             raise TypeError('args should be a list or tuple.')
         exit_code = 0
         try:
+            if should_enable_color():
+                import colorama
+                colorama.init()
+            if self.out_file == sys.__stdout__:
+                # point out_file to the new sys.stdout which is overwritten by colorama
+                self.out_file = sys.stdout
+
             args = self.completion.get_completion_args() or args
             out_file = out_file or self.out_file
 
@@ -225,6 +226,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             exit_code = self.exception_handler(ex)
             self.result = CommandResultItem(None, error=ex)
         finally:
-            pass
+            if should_enable_color():
+                colorama.deinit()
         self.result.exit_code = exit_code
         return exit_code
