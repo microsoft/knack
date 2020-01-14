@@ -92,7 +92,6 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         self.result = None
         self.query = query_cls(cli_ctx=self)
 
-
     @staticmethod
     def _should_show_version(args):
         return args and (args[0] == '--version' or args[0] == '-v')
