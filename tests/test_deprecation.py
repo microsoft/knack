@@ -93,8 +93,9 @@ Commands:
         expected = """
 Command
     {} cmd3 : Short summary here.
-        Long summary here. Still long summary. This command has been deprecated and will be
-        removed in a future release. Use 'alt-cmd3' instead.
+        Long summary here. Still long summary.
+        This command has been deprecated and will be removed in a future release. Use 'alt-
+        cmd3' instead.
 
 Arguments
     -b [Required] : Allowed values: a, b, c.
@@ -245,9 +246,9 @@ Group
         expected = """
 Command
     {} group1 cmd1 : Short summary here.
-        Long summary here. Still long summary. This command is implicitly deprecated because
-        command group 'group1' is deprecated and will be removed in a future release. Use 'alt-
-        group1' instead.
+        Long summary here. Still long summary.
+        This command is implicitly deprecated because command group 'group1' is deprecated and
+        will be removed in a future release. Use 'alt-group1' instead.
 """.format(self.cli_ctx.name)
         self.assertIn(expected, actual)
 
