@@ -8,6 +8,7 @@ from __future__ import print_function
 import errno
 import json
 import traceback
+import sys
 from collections import OrderedDict
 from six import StringIO, text_type, u, string_types
 
@@ -45,6 +46,26 @@ def format_json_color(obj):
     return highlight(format_json(obj), lexers.JsonLexer(), formatters.TerminalFormatter())  # pylint: disable=no-member
 
 
+def format_yaml(obj):
+    from yaml import (safe_dump, representer)
+    import json
+
+    try:
+        return safe_dump(obj.result, default_flow_style=False)
+    except representer.RepresenterError:
+        # yaml.safe_dump fails when obj.result is an OrderedDict. knack's --query implementation converts the result to an OrderedDict. https://github.com/microsoft/knack/blob/af674bfea793ff42ae31a381a21478bae4b71d7f/knack/query.py#L46. # pylint: disable=line-too-long
+        return safe_dump(json.loads(json.dumps(obj.result)), default_flow_style=False)
+
+
+def format_yaml_color(obj):
+    from pygments import highlight, lexers, formatters
+    return highlight(format_yaml(obj), lexers.YamlLexer(), formatters.TerminalFormatter())  # pylint: disable=no-member
+
+
+def format_none(_):
+    return ""
+
+
 def format_table(obj):
     result = obj.result
     try:
@@ -78,8 +99,11 @@ class OutputProducer(object):
     _FORMAT_DICT = {
         'json': format_json,
         'jsonc': format_json_color,
+        'yaml': format_yaml,
+        'yamlc': format_yaml_color,
         'table': format_table,
         'tsv': format_tsv,
+        'none': format_none,
     }
 
     @staticmethod
@@ -142,6 +166,8 @@ class OutputProducer(object):
                   file=out_file, end='')
 
     def get_formatter(self, format_type):  # pylint: disable=no-self-use
+        if not sys.stdout.isatty() and format_type in ['jsonc', 'yamlc']:
+            format_type = format_type[:-1]
         return OutputProducer._FORMAT_DICT[format_type]
 
 
