@@ -295,7 +295,8 @@ Arguments
 Global Arguments
     --debug              : Increase logging verbosity to show all debug logs.
     --help -h            : Show this help message and exit.
-    --output -o          : Output format.  Allowed values: json, jsonc, table, tsv.  Default: json.
+    --output -o          : Output format.  Allowed values: json, jsonc, none, table, tsv, yaml,
+                           yamlc.  Default: json.
     --query              : JMESPath query string. See http://jmespath.org/ for more information and
                            examples.
     --verbose            : Increase logging verbosity. Use --debug for full debug logs.
@@ -328,7 +329,8 @@ Arguments
 Global Arguments
     --debug       : Increase logging verbosity to show all debug logs.
     --help -h     : Show this help message and exit.
-    --output -o   : Output format.  Allowed values: json, jsonc, table, tsv.  Default: json.
+    --output -o   : Output format.  Allowed values: json, jsonc, none, table, tsv, yaml, yamlc.
+                    Default: json.
     --query       : JMESPath query string. See http://jmespath.org/ for more information and
                     examples.
     --verbose     : Increase logging verbosity. Use --debug for full debug logs.
@@ -443,7 +445,8 @@ Global Arguments
     --debug       : Increase logging verbosity to show all debug logs.
     --exampl      : This is a new global argument.
     --help -h     : Show this help message and exit.
-    --output -o   : Output format.  Allowed values: json, jsonc, table, tsv.  Default: json.
+    --output -o   : Output format.  Allowed values: json, jsonc, none, table, tsv, yaml, yamlc.
+                    Default: json.
     --query       : JMESPath query string. See http://jmespath.org/ for more information and
                     examples.
     --verbose     : Increase logging verbosity. Use --debug for full debug logs.
