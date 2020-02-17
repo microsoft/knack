@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 
 # --------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
@@ -12,7 +12,7 @@ import unittest
 from collections import OrderedDict
 from six import StringIO
 
-from knack.output import OutputProducer, format_json, format_table, format_tsv
+from knack.output import OutputProducer, format_json, format_yaml, format_table, format_tsv
 from knack.util import CommandResultItem, normalize_newlines
 from tests.util import MockContext
 
@@ -29,6 +29,8 @@ class TestOutput(unittest.TestCase):
     def test_cli_ctx_type_error(self):
         with self.assertRaises(TypeError):
             OutputProducer(cli_ctx=object())
+
+    # JSON output tests
 
     def test_out_json_valid(self):
         """
@@ -89,6 +91,60 @@ class TestOutput(unittest.TestCase):
   "active": true,
   "contents": "生活很糟糕"
 }
+"""))
+
+    # YAML output tests
+
+    def test_out_yaml_valid(self):
+        """
+        Test Dict serialized to YAML
+        """
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        output_producer.out(CommandResultItem({'active': True, 'id': '0b1f6472'}),
+                            formatter=format_yaml, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """active: true
+id: 0b1f6472
+"""))
+
+    def test_out_yaml_from_ordered_dict(self):
+        """
+        Test OrderedDict serialized to YAML
+        """
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        output_producer.out(CommandResultItem(OrderedDict({'active': True, 'id': '0b1f6472'})),
+                            formatter=format_yaml, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """active: true
+id: 0b1f6472
+"""))
+
+    def test_out_yaml_byte(self):
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        output_producer.out(CommandResultItem({'active': True, 'contents': b'0b1f6472'}),
+                            formatter=format_yaml, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """active: true
+contents: !!binary |
+  MGIxZjY0NzI=
+"""))
+
+    def test_out_yaml_byte_empty(self):
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        output_producer.out(CommandResultItem({'active': True, 'contents': b''}),
+                            formatter=format_yaml, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """active: true
+contents: !!binary ""
+"""))
+
+    def test_out_yaml_non_ASCII(self):
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        output_producer.out(CommandResultItem({'active': True, 'contents': 'こんにちは'}),
+                            formatter=format_yaml, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """active: true
+contents: こんにちは
 """))
 
     # TABLE output tests
