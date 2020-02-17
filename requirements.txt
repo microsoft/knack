@@ -1,12 +1,12 @@
 argcomplete==1.8.2
-colorama==0.3.9
+colorama==0.4.3
 flake8==3.2.1
 jmespath==0.9.2
 mock==2.0.0
 pylint==1.9.4; python_version <= '2.7'
 pylint==2.3.1; python_version >= '3.5'
-pygments==2.2.0
-pyyaml==3.12
+pygments==2.5.2
+pyyaml==5.3
 six==1.10.0
 tabulate==0.7.7
 vcrpy==1.10.3
