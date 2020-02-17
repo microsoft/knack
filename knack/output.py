@@ -7,11 +7,11 @@ from __future__ import print_function
 
 import errno
 import json
-import yaml
 import traceback
 import sys
 from collections import OrderedDict
 from six import StringIO, text_type, u, string_types
+import yaml
 
 from .util import CLIError, CommandResultItem, CtxTypeError
 from .events import EVENT_INVOKER_POST_PARSE_ARGS, EVENT_PARSER_GLOBAL_CREATE
