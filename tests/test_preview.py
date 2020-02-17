@@ -141,8 +141,9 @@ Commands:
         expected = """
 Command
     {} group1 cmd1 : Short summary here.
-        Long summary here. Still long summary. Command group 'group1' is in preview. It may be
-        changed/removed in a future release.
+        Long summary here. Still long summary.
+        Command group 'group1' is in preview. It may be changed/removed in a future
+        release.
 """.format(self.cli_ctx.name)
         self.assertIn(expected, actual)
 

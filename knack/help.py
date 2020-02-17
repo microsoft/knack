@@ -385,7 +385,7 @@ class CLIHelp(object):
                 lines.append(str(item.deprecate_info.message))
             if item.preview_info:
                 lines.append(str(item.preview_info.message))
-            return ' '.join(lines)
+            return '\n'.join(lines)
 
         indent += 1
         long_sum = _build_long_summary(help_file)
