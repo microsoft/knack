@@ -4,6 +4,10 @@ max-complexity = 10
 ignore =
     E126,
     E501,
+    E741,
+    E722,
     F401,
     F811,
-    C901
+    C901,
+    W503,
+    W504
