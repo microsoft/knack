@@ -164,8 +164,11 @@ class OutputProducer(object):
                   file=out_file, end='')
 
     def get_formatter(self, format_type):  # pylint: disable=no-self-use
-        if not sys.stdout.isatty() and format_type in ['jsonc', 'yamlc']:
-            format_type = format_type[:-1]
+        # remove color if stdout is not a tty
+        if not sys.stdout.isatty() and format_type == 'jsonc':
+            return OutputProducer._FORMAT_DICT['json']
+        if not sys.stdout.isatty() and format_type == 'yamlc':
+            return OutputProducer._FORMAT_DICT['yaml']
         return OutputProducer._FORMAT_DICT[format_type]
 
 

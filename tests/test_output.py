@@ -9,10 +9,12 @@
 from __future__ import print_function
 
 import unittest
+import mock
 from collections import OrderedDict
 from six import StringIO
 
-from knack.output import OutputProducer, format_json, format_yaml, format_table, format_tsv
+from knack.output import OutputProducer, format_json, format_json_color, format_yaml, format_yaml_color, \
+    format_table, format_tsv
 from knack.util import CommandResultItem, normalize_newlines
 from tests.util import MockContext
 
@@ -274,6 +276,22 @@ qwerty  0b1f6472qwerty  True
         obj2['B'] = 4
         result = format_tsv(CommandResultItem([obj1, obj2]))
         self.assertEqual(result, '1\t2\n3\t4\n')
+
+    @mock.patch('sys.stdout.isatty', autospec=True)
+    def test_remove_color_no_tty(self, mock_isatty):
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+
+        mock_isatty.return_value = False
+        formatter = output_producer.get_formatter('jsonc')
+        self.assertEqual(formatter, format_json)
+        formatter = output_producer.get_formatter('yamlc')
+        self.assertEqual(formatter, format_yaml)
+
+        mock_isatty.return_value = True
+        formatter = output_producer.get_formatter('jsonc')
+        self.assertEqual(formatter, format_json_color)
+        formatter = output_producer.get_formatter('yamlc')
+        self.assertEqual(formatter, format_yaml_color)
 
 
 if __name__ == '__main__':
