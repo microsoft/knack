@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 
 # --------------------------------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. All rights reserved.
@@ -9,10 +9,12 @@
 from __future__ import print_function
 
 import unittest
+import mock
 from collections import OrderedDict
 from six import StringIO
 
-from knack.output import OutputProducer, format_json, format_table, format_tsv
+from knack.output import OutputProducer, format_json, format_json_color, format_yaml, format_yaml_color, \
+    format_table, format_tsv
 from knack.util import CommandResultItem, normalize_newlines
 from tests.util import MockContext
 
@@ -29,6 +31,8 @@ class TestOutput(unittest.TestCase):
     def test_cli_ctx_type_error(self):
         with self.assertRaises(TypeError):
             OutputProducer(cli_ctx=object())
+
+    # JSON output tests
 
     def test_out_json_valid(self):
         """
@@ -89,6 +93,60 @@ class TestOutput(unittest.TestCase):
   "active": true,
   "contents": "生活很糟糕"
 }
+"""))
+
+    # YAML output tests
+
+    def test_out_yaml_valid(self):
+        """
+        Test Dict serialized to YAML
+        """
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        output_producer.out(CommandResultItem({'active': True, 'id': '0b1f6472'}),
+                            formatter=format_yaml, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """active: true
+id: 0b1f6472
+"""))
+
+    def test_out_yaml_from_ordered_dict(self):
+        """
+        Test OrderedDict serialized to YAML
+        """
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        output_producer.out(CommandResultItem(OrderedDict({'active': True, 'id': '0b1f6472'})),
+                            formatter=format_yaml, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """active: true
+id: 0b1f6472
+"""))
+
+    def test_out_yaml_byte(self):
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        output_producer.out(CommandResultItem({'active': True, 'contents': b'0b1f6472'}),
+                            formatter=format_yaml, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """active: true
+contents: !!binary |
+  MGIxZjY0NzI=
+"""))
+
+    def test_out_yaml_byte_empty(self):
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        output_producer.out(CommandResultItem({'active': True, 'contents': b''}),
+                            formatter=format_yaml, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """active: true
+contents: !!binary ""
+"""))
+
+    def test_out_yaml_non_ASCII(self):
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        output_producer.out(CommandResultItem({'active': True, 'contents': 'こんにちは'}),
+                            formatter=format_yaml, out_file=self.io)
+        self.assertEqual(normalize_newlines(self.io.getvalue()), normalize_newlines(
+            """active: true
+contents: こんにちは
 """))
 
     # TABLE output tests
@@ -218,6 +276,22 @@ qwerty  0b1f6472qwerty  True
         obj2['B'] = 4
         result = format_tsv(CommandResultItem([obj1, obj2]))
         self.assertEqual(result, '1\t2\n3\t4\n')
+
+    @mock.patch('sys.stdout.isatty', autospec=True)
+    def test_remove_color_no_tty(self, mock_isatty):
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+
+        mock_isatty.return_value = False
+        formatter = output_producer.get_formatter('jsonc')
+        self.assertEqual(formatter, format_json)
+        formatter = output_producer.get_formatter('yamlc')
+        self.assertEqual(formatter, format_yaml)
+
+        mock_isatty.return_value = True
+        formatter = output_producer.get_formatter('jsonc')
+        self.assertEqual(formatter, format_json_color)
+        formatter = output_producer.get_formatter('yamlc')
+        self.assertEqual(formatter, format_yaml_color)
 
 
 if __name__ == '__main__':
