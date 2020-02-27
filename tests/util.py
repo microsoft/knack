@@ -9,9 +9,14 @@ except ImportError:
     from unittest import mock
 import sys
 import tempfile
+import shutil
+import os
 from six import StringIO
 
 from knack.cli import CLI, CLICommandsLoader, CommandInvoker
+
+TEMP_FOLDER_NAME = "knack_temp"
+
 
 def redirect_io(func):
 
@@ -30,7 +35,7 @@ def redirect_io(func):
 class MockContext(CLI):
 
     def __init__(self):
-        super(MockContext, self).__init__(config_dir=tempfile.mkdtemp())
+        super(MockContext, self).__init__(config_dir=new_temp_folder())
         loader = CLICommandsLoader(cli_ctx=self)
         invocation = mock.MagicMock(spec=CommandInvoker)
         invocation.data = {}
@@ -44,5 +49,13 @@ class DummyCLI(CLI):
         return '0.1.0'
 
     def __init__(self, **kwargs):
-        kwargs['config_dir'] = tempfile.mkdtemp()
+        kwargs['config_dir'] = new_temp_folder()
         super(DummyCLI, self).__init__(**kwargs)
+
+
+def new_temp_folder():
+    temp_dir = os.path.join(tempfile.gettempdir(), TEMP_FOLDER_NAME)
+    if os.path.exists(temp_dir):
+        shutil.rmtree(temp_dir)
+    os.mkdir(temp_dir)
+    return temp_dir
