@@ -47,7 +47,16 @@ class CLIConfig(object):
         self.defaults_section_name = CLIConfig._CONFIG_DEFAULTS_SECTION
         self.use_local_config = use_local_config
         self._config_file_chain = []
-        current_dir = os.getcwd()
+
+        current_dir = None
+        try:
+            current_dir = os.getcwd()
+        except FileNotFoundError:
+            from .log import get_logger
+            logger = get_logger()
+            logger.warning("The working directory has been deleted or recreated. "
+                           "Local config is ignored.")
+
         config_dir_name = os.path.basename(self.config_dir)
         while current_dir:
             current_config_dir = os.path.join(current_dir, config_dir_name)
