@@ -6,7 +6,7 @@
 import os
 import stat
 import unittest
-import tempfile
+import shutil
 try:
     import mock
 except ImportError:
@@ -14,12 +14,24 @@ except ImportError:
 from six.moves import configparser
 
 from knack.config import CLIConfig, get_config_parser
+from .util import TEMP_FOLDER_NAME, new_temp_folder
+
+
+def clean_local_temp_folder():
+    local_temp_folders = os.path.join(os.getcwd(), TEMP_FOLDER_NAME)
+    if os.path.exists(local_temp_folders):
+        shutil.rmtree(local_temp_folders)
 
 
 class TestCLIConfig(unittest.TestCase):
 
     def setUp(self):
-        self.cli_config = CLIConfig(config_dir=tempfile.mkdtemp())
+        self.cli_config = CLIConfig(config_dir=new_temp_folder())
+        # In case the previous test is stopped and doesn't clean up
+        clean_local_temp_folder()
+
+    def tearDown(self):
+        clean_local_temp_folder()
 
     def test_has_option(self):
         section = 'MySection'
