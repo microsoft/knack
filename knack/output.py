@@ -160,6 +160,8 @@ class OutputProducer(object):
             else:
                 raise
         except UnicodeEncodeError:
+            logger.warning("Unable to encode the output with %s encoding. Unsupported characters are discarded.",
+                           out_file.encoding)
             print(output.encode('ascii', 'ignore').decode('utf-8', 'ignore'),
                   file=out_file, end='')
 
