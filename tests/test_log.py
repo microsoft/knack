@@ -13,6 +13,7 @@ import colorama
 
 from knack.events import EVENT_PARSER_GLOBAL_CREATE, EVENT_INVOKER_PRE_CMD_TBL_CREATE
 from knack.log import CLILogging, get_logger, CLI_LOGGER_NAME, _CustomStreamHandler
+from knack.util import CLIError
 from tests.util import MockContext
 
 
@@ -39,40 +40,51 @@ class TestLoggingLevel(unittest.TestCase):
         self.mock_ctx = MockContext()
         self.cli_logging = CLILogging('clitest', cli_ctx=self.mock_ctx)
 
-    def test_determine_verbose_level_default(self):
+    def test_determine_log_level_default(self):
         argv = []
-        actual_level = self.cli_logging._determine_verbose_level(argv)  # pylint: disable=protected-access
-        expected_level = 0
+        actual_level = self.cli_logging._determine_log_level(argv)  # pylint: disable=protected-access
+        expected_level = 2
         self.assertEqual(actual_level, expected_level)
 
-    def test_determine_verbose_level_verbose(self):
+    def test_determine_log_level_verbose(self):
         argv = ['--verbose']
-        actual_level = self.cli_logging._determine_verbose_level(argv)  # pylint: disable=protected-access
-        expected_level = 1
+        actual_level = self.cli_logging._determine_log_level(argv)  # pylint: disable=protected-access
+        expected_level = 3
         self.assertEqual(actual_level, expected_level)
 
-    def test_determine_verbose_level_debug(self):
+    def test_determine_log_level_debug(self):
         argv = ['--debug']
-        actual_level = self.cli_logging._determine_verbose_level(argv)  # pylint: disable=protected-access
-        expected_level = 2
+        actual_level = self.cli_logging._determine_log_level(argv)  # pylint: disable=protected-access
+        expected_level = 4
         self.assertEqual(actual_level, expected_level)
 
-    def test_determine_verbose_level_v_v_v_default(self):
+    def test_determine_log_level_v_v_v_default(self):
         argv = ['--verbose', '--debug']
-        actual_level = self.cli_logging._determine_verbose_level(argv)  # pylint: disable=protected-access
-        expected_level = 2
+        actual_level = self.cli_logging._determine_log_level(argv)  # pylint: disable=protected-access
+        expected_level = 4
         self.assertEqual(actual_level, expected_level)
 
-    def test_determine_verbose_level_other_args_verbose(self):
-        argv = ['account', '--verbose']
-        actual_level = self.cli_logging._determine_verbose_level(argv)  # pylint: disable=protected-access
+    def test_determine_log_level_only_show_errors(self):
+        argv = ['--only-show-errors']
+        actual_level = self.cli_logging._determine_log_level(argv)  # pylint: disable=protected-access
         expected_level = 1
         self.assertEqual(actual_level, expected_level)
 
-    def test_determine_verbose_level_other_args_debug(self):
+    def test_determine_log_level_all_flags(self):
+        argv = ['--verbose', '--debug', '--only-show-errors']
+        with self.assertRaises(CLIError):
+            self.cli_logging._determine_log_level(argv)  # pylint: disable=protected-access
+
+    def test_determine_log_level_other_args_verbose(self):
+        argv = ['account', '--verbose']
+        actual_level = self.cli_logging._determine_log_level(argv)  # pylint: disable=protected-access
+        expected_level = 3
+        self.assertEqual(actual_level, expected_level)
+
+    def test_determine_log_level_other_args_debug(self):
         argv = ['account', '--debug']
-        actual_level = self.cli_logging._determine_verbose_level(argv)  # pylint: disable=protected-access
-        expected_level = 2
+        actual_level = self.cli_logging._determine_log_level(argv)  # pylint: disable=protected-access
+        expected_level = 4
         self.assertEqual(actual_level, expected_level)
 
     def test_get_cli_logger(self):

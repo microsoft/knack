@@ -139,7 +139,7 @@ class CommandInvoker(object):
         self.parser.load_command_table(self.commands_loader)
         self.cli_ctx.raise_event(EVENT_INVOKER_CMD_TBL_LOADED, parser=self.parser)
 
-        arg_check = [a for a in args if a not in ['--verbose', '--debug']]
+        arg_check = [a for a in args if a not in ['--verbose', '--debug', '--only-show-warnings']]
         if not arg_check:
             self.cli_ctx.completion.enable_autocomplete(self.parser)
             subparser = self.parser.subparsers[tuple()]
@@ -198,12 +198,13 @@ class CommandInvoker(object):
             preview_kwargs['object_type'] = 'command'
             previews.append(ImplicitPreviewItem(**preview_kwargs))
 
-        colorama.init()
-        for d in deprecations:
-            print(d.message, file=sys.stderr)
-        for p in previews:
-            print(p.message, file=sys.stderr)
-        colorama.deinit()
+        if not self.cli_ctx.only_show_errors:
+            colorama.init()
+            for d in deprecations:
+                print(d.message, file=sys.stderr)
+            for p in previews:
+                print(p.message, file=sys.stderr)
+            colorama.deinit()
 
         cmd_result = parsed_args.func(params)
         cmd_result = todict(cmd_result)

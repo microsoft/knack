@@ -7,7 +7,7 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-from .util import CtxTypeError, ensure_dir
+from .util import CtxTypeError, ensure_dir, CLIError
 from .events import EVENT_PARSER_GLOBAL_CREATE
 
 CLI_LOGGER_NAME = 'cli'
@@ -88,6 +88,7 @@ class CLILogging(object):
 
     DEBUG_FLAG = '--debug'
     VERBOSE_FLAG = '--verbose'
+    ONLY_SHOW_ERRORS_FLAG = '--only-show-errors'
 
     @staticmethod
     def on_global_arguments(_, **kwargs):
@@ -97,6 +98,9 @@ class CLILogging(object):
                                help='Increase logging verbosity. Use --debug for full debug logs.')
         arg_group.add_argument(CLILogging.DEBUG_FLAG, dest='_log_verbosity_debug', action='store_true',
                                help='Increase logging verbosity to show all debug logs.')
+        arg_group.add_argument(CLILogging.ONLY_SHOW_ERRORS_FLAG, dest='_log_verbosity_only_show_errors',
+                               action='store_true',
+                               help='Only show errors, suppressing warnings.')
 
     def __init__(self, name, cli_ctx=None):
         """
@@ -123,8 +127,8 @@ class CLILogging(object):
         :param args: The arguments from the command line
         :type args: list
         """
-        verbose_level = self._determine_verbose_level(args)
-        log_level_config = self.console_log_configs[verbose_level]
+        log_level = self._determine_log_level(args)
+        log_level_config = self.console_log_configs[log_level]
         root_logger = logging.getLogger()
         cli_logger = logging.getLogger(CLI_LOGGER_NAME)
         # Set the levels of the loggers to lowest level.
@@ -140,16 +144,20 @@ class CLILogging(object):
             self._init_logfile_handlers(root_logger, cli_logger)
             get_logger(__name__).debug("File logging enabled - writing logs to '%s'.", self.log_dir)
 
-    def _determine_verbose_level(self, args):
+    def _determine_log_level(self, args):
         """ Get verbose level by reading the arguments. """
-        verbose_level = 0
-        for arg in args:
-            if arg == CLILogging.VERBOSE_FLAG:
-                verbose_level += 1
-            elif arg == CLILogging.DEBUG_FLAG:
-                verbose_level += 2
-        # Use max verbose level if too much verbosity specified.
-        return min(verbose_level, len(self.console_log_configs) - 1)
+        self.cli_ctx.only_show_errors = False
+        if CLILogging.ONLY_SHOW_ERRORS_FLAG in args or \
+                self.cli_ctx.config.get('core', 'only_show_errors', fallback=False):
+            if CLILogging.DEBUG_FLAG in args or CLILogging.VERBOSE_FLAG in args:
+                raise CLIError("--only-show-errors can't be used together with --debug or --verbose")
+            self.cli_ctx.only_show_errors = True
+            return 1
+        if CLILogging.DEBUG_FLAG in args:
+            return 4
+        if CLILogging.VERBOSE_FLAG in args:
+            return 3
+        return 2  # default to show WARNINGs and above
 
     def _init_console_handlers(self, root_logger, cli_logger, log_level_config):
         root_logger.addHandler(_CustomStreamHandler(log_level_config['root'],
@@ -179,6 +187,16 @@ class CLILogging(object):
     @staticmethod
     def _get_console_log_configs():
         return [
+            # --only-show-critical [RESERVED]
+            {
+                CLI_LOGGER_NAME: logging.CRITICAL,
+                'root': logging.CRITICAL
+            },
+            # --only-show-errors
+            {
+                CLI_LOGGER_NAME: logging.ERROR,
+                'root': logging.CRITICAL
+            },
             # (default)
             {
                 CLI_LOGGER_NAME: logging.WARNING,

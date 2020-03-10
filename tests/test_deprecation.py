@@ -98,8 +98,8 @@ Command
         cmd3' instead.
 
 Arguments
-    -b [Required] : Allowed values: a, b, c.
-    --arg -a      : Allowed values: 1, 2, 3.
+    -b      [Required] : Allowed values: a, b, c.
+    --arg -a           : Allowed values: 1, 2, 3.
     --arg3
 """.format(self.cli_ctx.name)
         self.assertIn(expected, actual)
