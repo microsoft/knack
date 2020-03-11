@@ -11,6 +11,7 @@ from collections import defaultdict
 
 from .deprecation import ImplicitDeprecated, resolve_deprecate_info
 from .preview import ImplicitPreviewItem, resolve_preview_info
+from .experimental import ImplicitExperimentalItem, resolve_experimental_info
 from .util import CLIError, CtxTypeError, CommandResultItem, todict
 from .parser import CLICommandParser
 from .commands import CLICommandsLoader
@@ -170,6 +171,10 @@ class CommandInvoker(object):
         if cmd.preview_info:
             previews.append(cmd.preview_info)
 
+        experimentals = getattr(parsed_args, '_argument_experimentals', [])
+        if cmd.experimental_info:
+            experimentals.append(cmd.experimental_info)
+
         params = self._filter_params(parsed_args)
 
         # search for implicit deprecation
@@ -198,10 +203,24 @@ class CommandInvoker(object):
             preview_kwargs['object_type'] = 'command'
             previews.append(ImplicitPreviewItem(**preview_kwargs))
 
+        # search for implicit experimental
+        path_comps = cmd.name.split()[:-1]
+        implicit_experimental_info = None
+        while path_comps and not implicit_experimental_info:
+            implicit_experimental_info = resolve_experimental_info(self.cli_ctx, ' '.join(path_comps))
+            del path_comps[-1]
+
+        if implicit_experimental_info:
+            experimental_kwargs = implicit_experimental_info.__dict__.copy()
+            experimental_kwargs['object_type'] = 'command'
+            experimentals.append(ImplicitExperimentalItem(**experimental_kwargs))
+
         colorama.init()
         for d in deprecations:
             print(d.message, file=sys.stderr)
         for p in previews:
+            print(p.message, file=sys.stderr)
+        for p in experimentals:
             print(p.message, file=sys.stderr)
         colorama.deinit()
 

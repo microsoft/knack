@@ -32,6 +32,10 @@ def redirect_io(func):
     return wrapper
 
 
+def remove_space(str):
+    return str.replace(' ', '').replace('\n', '')
+
+
 class MockContext(CLI):
 
     def __init__(self):
