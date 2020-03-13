@@ -366,6 +366,13 @@ class ArgumentsContext(object):
         if deprecate_action:
             kwargs['action'] = deprecate_action
 
+        is_preview = kwargs.get('is_preview', False)
+        is_experimental = kwargs.get('is_experimental', False)
+
+        if is_preview and is_experimental:
+            from .commands import PREVIEW_EXPERIMENTAL_CONFLICT_ERROR
+            raise CLIError(PREVIEW_EXPERIMENTAL_CONFLICT_ERROR.format('argument', argument_dest))
+
         kwargs = self._handle_previews(argument_dest, **kwargs)
         kwargs = self._handle_experimentals(argument_dest, **kwargs)
 

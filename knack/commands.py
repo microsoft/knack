@@ -24,6 +24,10 @@ from .validators import DefaultInt, DefaultStr
 logger = get_logger(__name__)
 
 
+PREVIEW_EXPERIMENTAL_CONFLICT_ERROR = "Failed to register {} '{}', " \
+                                      "is_preview and is_experimental can't be true at the same time"
+
+
 class CLICommand(object):  # pylint:disable=too-many-instance-attributes
 
     # pylint: disable=unused-argument
@@ -304,12 +308,17 @@ class CommandGroup(object):
         Deprecated.ensure_new_style_deprecation(self.command_loader.cli_ctx, self.group_kwargs, 'command group')
         if kwargs['deprecate_info']:
             kwargs['deprecate_info'].target = group_name
-        if kwargs.get('is_preview', False):
+
+        is_preview = kwargs.get('is_preview', False)
+        is_experimental = kwargs.get('is_experimental', False)
+        if is_preview and is_experimental:
+            raise CLIError(PREVIEW_EXPERIMENTAL_CONFLICT_ERROR.format("command group", group_name))
+        if is_preview:
             kwargs['preview_info'] = PreviewItem(
                 target=group_name,
                 object_type='command group'
             )
-        if kwargs.get('is_experimental', False):
+        if is_experimental:
             kwargs['experimental_info'] = ExperimentalItem(
                 target=group_name,
                 object_type='command group'
@@ -345,12 +354,16 @@ class CommandGroup(object):
         # https://github.com/Azure/azure-cli/blob/683b9709b67c4c9e8df92f9fbd53cbf83b6973d3/src/azure-cli-core/azure/cli/core/commands/__init__.py#L1155
         command_kwargs['deprecate_info'] = kwargs.get('deprecate_info', None)
 
-        command_kwargs['preview_info'] = None
-        if kwargs.get('is_preview', False):
-            command_kwargs['preview_info'] = PreviewItem(self.command_loader.cli_ctx, object_type='command')
+        is_preview = kwargs.get('is_preview', False)
+        is_experimental = kwargs.get('is_experimental', False)
+        if is_preview and is_experimental:
+            raise CLIError(PREVIEW_EXPERIMENTAL_CONFLICT_ERROR.format("command", self.group_name + " " + name))
 
+        command_kwargs['preview_info'] = None
+        if is_preview:
+            command_kwargs['preview_info'] = PreviewItem(self.command_loader.cli_ctx, object_type='command')
         command_kwargs['experimental_info'] = None
-        if kwargs.get('is_experimental', False):
+        if is_experimental:
             command_kwargs['experimental_info'] = ExperimentalItem(self.command_loader.cli_ctx, object_type='command')
 
         self.command_loader._populate_command_group_table_with_subgroups(' '.join(command_name.split()[:-1]))  # pylint: disable=protected-access
