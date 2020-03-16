@@ -146,11 +146,6 @@ class OutputProducer(object):
         if not isinstance(obj, CommandResultItem):
             raise TypeError('Expected {} got {}'.format(CommandResultItem.__name__, type(obj)))
 
-        import platform
-        import colorama
-
-        if platform.system() == 'Windows':
-            out_file = colorama.AnsiToWin32(out_file).stream
         output = formatter(obj)
         try:
             print(output, file=out_file, end='')

@@ -127,7 +127,6 @@ class CommandInvoker(object):
         :return: The command result
         :rtype: knack.util.CommandResultItem
         """
-        import colorama
 
         self.cli_ctx.raise_event(EVENT_INVOKER_PRE_CMD_TBL_CREATE, args=args)
         cmd_tbl = self.commands_loader.load_command_table(args)
@@ -199,12 +198,10 @@ class CommandInvoker(object):
             previews.append(ImplicitPreviewItem(**preview_kwargs))
 
         if not self.cli_ctx.only_show_errors:
-            colorama.init()
             for d in deprecations:
                 print(d.message, file=sys.stderr)
             for p in previews:
                 print(p.message, file=sys.stderr)
-            colorama.deinit()
 
         cmd_result = parsed_args.func(params)
         cmd_result = todict(cmd_result)

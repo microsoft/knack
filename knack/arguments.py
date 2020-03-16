@@ -265,6 +265,7 @@ class ArgumentsContext(object):
             object_type = 'positional argument'
 
         preview_info = PreviewItem(
+            cli_ctx=self.command_loader.cli_ctx,
             target=target,
             object_type=object_type,
             message_func=_get_preview_arg_message
