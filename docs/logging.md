@@ -12,6 +12,7 @@ Logging
 - By default, log messages Warning and above are shown to the user.
 - `--verbose` - This flag changes the logging level to Info and above.
 - `--debug` - This flag changes the logging level to Debug and above.
+- `--only-show-errors` - This flag changes the logging level to Error only, suppressing Warning.
 
 * All log messages go to STDERR (not STDOUT)
 * Log to Error or Warning for user messages instead of using the `print()` function

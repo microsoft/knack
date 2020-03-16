@@ -315,6 +315,7 @@ class CommandGroup(object):
             raise CLIError(PREVIEW_EXPERIMENTAL_CONFLICT_ERROR.format("command group", group_name))
         if is_preview:
             kwargs['preview_info'] = PreviewItem(
+                cli_ctx=self.command_loader.cli_ctx,
                 target=group_name,
                 object_type='command group'
             )

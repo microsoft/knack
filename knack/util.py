@@ -9,6 +9,8 @@ import re
 from datetime import date, time, datetime, timedelta
 from enum import Enum
 
+NO_COLOR_VARIABLE_NAME = 'KNACK_NO_COLOR'
+
 
 class CommandResultItem(object):  # pylint: disable=too-few-public-methods
     def __init__(self, result, table_transformer=None, is_query_active=False,
@@ -90,12 +92,13 @@ class StatusTag(object):
     @property
     def tag(self):
         """ Returns a tag object. """
-        return ColorizedString(self._get_tag(self), self._color)
+        return ColorizedString(self._get_tag(self), self._color) if self.cli_ctx.enable_color else self._get_tag(self)
 
     @property
     def message(self):
         """ Returns a tuple with the formatted message string and the message length. """
-        return ColorizedString(self._get_message(self), self._color)
+        return ColorizedString(self._get_message(self), self._color) if self.cli_ctx.enable_color \
+            else "WARNING: " + self._get_message(self)
 
 
 def ensure_dir(d):
