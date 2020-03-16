@@ -89,6 +89,24 @@ Commands:
         self.assertIn(expected, actual)
 
     @redirect_io
+    def test_preview_command_plain_execute_only_show_error(self):
+        """ Ensure warning is suppressed when running preview command. """
+        # Directly use --only-show-errors
+        self.cli_ctx.invoke('cmd1 -b b --only-show-errors'.split())
+        actual = self.io.getvalue()
+        self.assertNotIn("preview", actual)
+
+        # Apply --only-show-errors with config
+        self.cli_ctx.only_show_errors = True
+        self.cli_ctx.config.set_value('core', 'only_show_errors', 'True')
+        self.cli_ctx.invoke('cmd1 -b b'.split())
+        actual = self.io.getvalue()
+        self.assertNotIn("preview", actual)
+        self.cli_ctx.config.set_value('core', 'only_show_errors', '')
+        self.cli_ctx.only_show_errors = False
+
+
+    @redirect_io
     @disable_color
     def test_preview_command_plain_execute_no_color(self):
         """ Ensure warning is displayed without color. """
@@ -270,6 +288,16 @@ Arguments
         action_expected = "Side-effect from some original action!"
         self.assertIn(action_expected, actual)
 
+
+    @redirect_io
+    def test_preview_arguments_execute_only_show_error(self):
+        """ Ensure warning is suppressed when using preview arguments. """
+        self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar --only-show-errors'.split())
+        actual = self.io.getvalue()
+        self.assertNotIn("preview", actual)
+
+        action_expected = "Side-effect from some original action!"
+        self.assertIn(action_expected, actual)
 
 if __name__ == '__main__':
     unittest.main()
