@@ -11,6 +11,7 @@ import six
 
 from .deprecation import Deprecated
 from .preview import PreviewItem
+from .experimental import ExperimentalItem
 from .prompting import prompt_y_n, NoTTYException
 from .util import CLIError, CtxTypeError
 from .arguments import ArgumentRegistry, CLICommandArgument
@@ -23,13 +24,17 @@ from .validators import DefaultInt, DefaultStr
 logger = get_logger(__name__)
 
 
+PREVIEW_EXPERIMENTAL_CONFLICT_ERROR = "Failed to register {} '{}', " \
+                                      "is_preview and is_experimental can't be true at the same time"
+
+
 class CLICommand(object):  # pylint:disable=too-many-instance-attributes
 
     # pylint: disable=unused-argument
     def __init__(self, cli_ctx, name, handler, description=None, table_transformer=None,
                  arguments_loader=None, description_loader=None,
                  formatter_class=None, deprecate_info=None, validator=None, confirmation=None, preview_info=None,
-                 **kwargs):
+                 experimental_info=None, **kwargs):
         """ The command object that goes into the command table.
 
         :param cli_ctx: CLI Context
@@ -52,6 +57,8 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         :type deprecate_info: str
         :param preview_info: Indicates a command is in preview
         :type preview_info: bool
+        :param experimental_info: Indicates a command is experimental
+        :type experimental_info: bool
         :param validator: The command validator
         :param confirmation: User confirmation required for command
         :type confirmation: bool, str, callable
@@ -71,6 +78,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         self.formatter_class = formatter_class
         self.deprecate_info = deprecate_info
         self.preview_info = preview_info
+        self.experimental_info = experimental_info
         self.confirmation = confirmation
         self.validator = validator
 
@@ -300,8 +308,19 @@ class CommandGroup(object):
         Deprecated.ensure_new_style_deprecation(self.command_loader.cli_ctx, self.group_kwargs, 'command group')
         if kwargs['deprecate_info']:
             kwargs['deprecate_info'].target = group_name
-        if kwargs.get('is_preview', False):
+
+        is_preview = kwargs.get('is_preview', False)
+        is_experimental = kwargs.get('is_experimental', False)
+        if is_preview and is_experimental:
+            raise CLIError(PREVIEW_EXPERIMENTAL_CONFLICT_ERROR.format("command group", group_name))
+        if is_preview:
             kwargs['preview_info'] = PreviewItem(
+                cli_ctx=self.command_loader.cli_ctx,
+                target=group_name,
+                object_type='command group'
+            )
+        if is_experimental:
+            kwargs['experimental_info'] = ExperimentalItem(
                 cli_ctx=self.command_loader.cli_ctx,
                 target=group_name,
                 object_type='command group'
@@ -325,20 +344,29 @@ class CommandGroup(object):
         :param kwargs: Kwargs to apply to the command.
                        Possible values: `client_factory`, `arguments_loader`, `description_loader`, `description`,
                        `formatter_class`, `table_transformer`, `deprecate_info`, `validator`, `confirmation`,
-                       `is_preview`.
+                       `is_preview`, `is_experimental`.
         """
         import copy
 
         command_name = '{} {}'.format(self.group_name, name) if self.group_name else name
         command_kwargs = copy.deepcopy(self.group_kwargs)
         command_kwargs.update(kwargs)
-        # don't inherit deprecation info from command group
+
+        # don't inherit deprecation, preview and experimental info from command group
+        # https://github.com/Azure/azure-cli/blob/683b9709b67c4c9e8df92f9fbd53cbf83b6973d3/src/azure-cli-core/azure/cli/core/commands/__init__.py#L1155
         command_kwargs['deprecate_info'] = kwargs.get('deprecate_info', None)
-        if kwargs.get('is_preview', False):
-            command_kwargs['preview_info'] = PreviewItem(
-                self.command_loader.cli_ctx,
-                object_type='command'
-            )
+
+        is_preview = kwargs.get('is_preview', False)
+        is_experimental = kwargs.get('is_experimental', False)
+        if is_preview and is_experimental:
+            raise CLIError(PREVIEW_EXPERIMENTAL_CONFLICT_ERROR.format("command", self.group_name + " " + name))
+
+        command_kwargs['preview_info'] = None
+        if is_preview:
+            command_kwargs['preview_info'] = PreviewItem(self.command_loader.cli_ctx, object_type='command')
+        command_kwargs['experimental_info'] = None
+        if is_experimental:
+            command_kwargs['experimental_info'] = ExperimentalItem(self.command_loader.cli_ctx, object_type='command')
 
         self.command_loader._populate_command_group_table_with_subgroups(' '.join(command_name.split()[:-1]))  # pylint: disable=protected-access
         self.command_loader.command_table[command_name] = self.command_loader.create_command(

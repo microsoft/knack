@@ -44,9 +44,34 @@ helps['abc last'] = """
           text: {cli_name} abc last --number 3
 """.format(cli_name=cli_name)
 
+helps['ga'] = """
+    type: group
+    short-summary: A general available command group
+"""
 
-def a_test_command_handler():
-    return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
+helps['pre'] = """
+    type: group
+    short-summary: A preview command group
+"""
+
+helps['exp'] = """
+    type: group
+    short-summary: An experimental command group
+"""
+
+
+def abc_show_command_handler():
+    """
+    Show a JSON mapping of letters to their ASCII values
+    """
+    import string
+    lower = {}
+    for ch in string.ascii_lowercase:
+        lower[ch] = ord(ch)
+    upper = {}
+    for ch in string.ascii_uppercase:
+        upper[ch] = ord(ch)
+    return {"lowercase": lower, "uppercase": upper}
 
 
 def abc_list_command_handler():
@@ -64,7 +89,7 @@ def abc_last_command_handler(number=5):
     return list(string.ascii_lowercase)[-number:]
 
 
-def num_range_command_handler(start=0, end=5):
+def range_command_handler(start=0, end=5):
     """
     Get a list of natural numbers from start to end
     :param start: the lower bound
@@ -76,7 +101,7 @@ def num_range_command_handler(start=0, end=5):
 
 def sample_json_handler():
     """
-    Get a sample JSON dict
+    Get a sample JSON string
     """
     # https://docs.microsoft.com/en-us/rest/api/resources/subscriptions/list#examples
     result = {
@@ -99,8 +124,13 @@ def sample_json_handler():
     }
     return result
 
-def hello_command_handler(myarg=None, abc=None):
-    return ['hello', 'world', myarg, abc]
+
+def hello_command_handler(greetings=None):
+    """
+    Say "Hello World!" and my warm greetings
+    :param greetings: My warm greetings
+    """
+    return ['Hello World!', greetings]
 
 
 WELCOME_MESSAGE = r"""
@@ -127,30 +157,28 @@ class MyCLIHelp(CLIHelp):
 class MyCommandsLoader(CLICommandsLoader):
 
     def load_command_table(self, args):
-        with CommandGroup(self, 'hello', '__main__#{}') as g:
-            g.command('world', 'hello_command_handler', confirmation=True)
         with CommandGroup(self, '', '__main__#{}') as g:
+            g.command('hello', 'hello_command_handler', confirmation=True)
             g.command('sample-json', 'sample_json_handler')
         with CommandGroup(self, 'abc', '__main__#{}') as g:
             g.command('list', 'abc_list_command_handler')
-            g.command('show', 'a_test_command_handler')
-            g.command('get', 'a_test_command_handler', deprecate_info=g.deprecate(redirect='show', hide='1.0.0'))
+            g.command('show', 'abc_show_command_handler')
+            g.command('get', 'abc_show_command_handler', deprecate_info=g.deprecate(redirect='show', hide='1.0.0'))
             g.command('first', 'abc_first_command_handler', is_preview=True)
-            g.command('last', 'abc_last_command_handler', )
+            g.command('last', 'abc_last_command_handler', is_experimental=True)
         with CommandGroup(self, 'ga', '__main__#{}') as g:
-            g.command('range', 'num_range_command_handler')
+            g.command('range', 'range_command_handler')
         with CommandGroup(self, 'pre', '__main__#{}', is_preview=True) as g:
-            g.command('range', 'num_range_command_handler')
-        with CommandGroup(self, 'exp', '__main__#{}', ) as g:
-            g.command('range', 'num_range_command_handler')
+            g.command('first', 'abc_first_command_handler', is_preview=True)
+            g.command('range', 'range_command_handler')
+        with CommandGroup(self, 'exp', '__main__#{}', is_experimental=True) as g:
+            g.command('range', 'range_command_handler')
         return super(MyCommandsLoader, self).load_command_table(args)
 
     def load_arguments(self, command):
-        with ArgumentsContext(self, 'hello world') as ac:
-            ac.argument('myarg', type=int, default=100)
         with ArgumentsContext(self, 'ga range') as ac:
             ac.argument('start', type=int, is_preview=True)
-            ac.argument('end', type=int, )
+            ac.argument('end', type=int, is_experimental=True)
         super(MyCommandsLoader, self).load_arguments(command)
 
 
