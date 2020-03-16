@@ -317,6 +317,7 @@ class ArgumentsContext(object):
             object_type = 'positional argument'
 
         experimental_info = ExperimentalItem(
+            self.command_loader.cli_ctx,
             target=target,
             object_type=object_type,
             message_func=_get_experimental_arg_message

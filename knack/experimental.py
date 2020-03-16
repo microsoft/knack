@@ -32,7 +32,7 @@ def resolve_experimental_info(cli_ctx, name):
 # pylint: disable=too-many-instance-attributes
 class ExperimentalItem(StatusTag):
 
-    def __init__(self, cli_ctx=None, object_type='', target=None, tag_func=None, message_func=None, **kwargs):
+    def __init__(self, cli_ctx, object_type='', target=None, tag_func=None, message_func=None, **kwargs):
         """ Create a collection of experimental metadata.
 
         :param cli_ctx: The CLI context associated with the experimental item.

@@ -321,6 +321,7 @@ class CommandGroup(object):
             )
         if is_experimental:
             kwargs['experimental_info'] = ExperimentalItem(
+                cli_ctx=self.command_loader.cli_ctx,
                 target=group_name,
                 object_type='command group'
             )

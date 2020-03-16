@@ -61,6 +61,15 @@ class TestCommandExperimental(unittest.TestCase):
         self.cli_ctx = DummyCLI(commands_loader_cls=ExperimentalTestCommandLoader)
 
     @redirect_io
+    def test_experimental_command_implicitly_execute(self):
+        """ Ensure general warning displayed when running command from an experimental parent group. """
+        self.cli_ctx.invoke('grp1 cmd1 -b b'.split())
+        actual = self.io.getvalue()
+        expected = "Command group 'grp1' is experimental and not covered by customer support. " \
+                   "Please use with discretion."
+        self.assertIn(remove_space(expected), remove_space(actual))
+
+    @redirect_io
     def test_experimental_command_group_help(self):
         """ Ensure experimental commands appear correctly in group help view. """
         with self.assertRaises(SystemExit):

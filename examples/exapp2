@@ -176,8 +176,6 @@ class MyCommandsLoader(CLICommandsLoader):
         return super(MyCommandsLoader, self).load_command_table(args)
 
     def load_arguments(self, command):
-        with ArgumentsContext(self, 'hello world') as ac:
-            ac.argument('myarg', type=int, default=100)
         with ArgumentsContext(self, 'ga range') as ac:
             ac.argument('start', type=int, is_preview=True)
             ac.argument('end', type=int, is_experimental=True)
