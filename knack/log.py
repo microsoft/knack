@@ -132,17 +132,20 @@ class CLILogging(object):
 
     def _determine_log_level(self, args):
         """ Get verbose level by reading the arguments. """
-        self.cli_ctx.only_show_errors = False
-        if CLILogging.ONLY_SHOW_ERRORS_FLAG in args or \
-                self.cli_ctx.config.get('core', 'only_show_errors', fallback=False):
+        # arguments have higher precedence than config
+        if CLILogging.ONLY_SHOW_ERRORS_FLAG in args:
             if CLILogging.DEBUG_FLAG in args or CLILogging.VERBOSE_FLAG in args:
                 raise CLIError("--only-show-errors can't be used together with --debug or --verbose")
             self.cli_ctx.only_show_errors = True
             return 1
         if CLILogging.DEBUG_FLAG in args:
+            self.cli_ctx.only_show_errors = False
             return 4
         if CLILogging.VERBOSE_FLAG in args:
+            self.cli_ctx.only_show_errors = False
             return 3
+        if self.cli_ctx.only_show_errors:
+            return 1
         return 2  # default to show WARNINGs and above
 
     def _init_console_handlers(self, root_logger, cli_logger, log_level_config):

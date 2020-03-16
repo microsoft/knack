@@ -97,18 +97,14 @@ Commands:
         self.assertNotIn("preview", actual)
 
         # Apply --only-show-errors with config
+        self.cli_ctx.only_show_errors = True
         self.cli_ctx.config.set_value('core', 'only_show_errors', 'True')
         self.cli_ctx.invoke('cmd1 -b b'.split())
         actual = self.io.getvalue()
         self.assertNotIn("preview", actual)
         self.cli_ctx.config.set_value('core', 'only_show_errors', '')
+        self.cli_ctx.only_show_errors = False
 
-        # Apply --only-show-errors with env var
-        os.environ["CLI_CORE_ONLY_SHOW_ERRORS"] = "True"
-        self.cli_ctx.invoke('cmd1 -b b'.split())
-        actual = self.io.getvalue()
-        self.assertNotIn("preview", actual)
-        del(os.environ["CLI_CORE_ONLY_SHOW_ERRORS"])
 
     @redirect_io
     @disable_color

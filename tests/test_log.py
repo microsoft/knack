@@ -70,6 +70,14 @@ class TestLoggingLevel(unittest.TestCase):
         expected_level = 1
         self.assertEqual(actual_level, expected_level)
 
+    def test_determine_log_level_only_show_errors_config(self):
+        argv = []
+        self.mock_ctx.only_show_errors = True
+        actual_level = self.cli_logging._determine_log_level(argv)  # pylint: disable=protected-access
+        expected_level = 1
+        self.assertEqual(actual_level, expected_level)
+        self.mock_ctx.only_show_errors = False
+
     def test_determine_log_level_all_flags(self):
         argv = ['--verbose', '--debug', '--only-show-errors']
         with self.assertRaises(CLIError):
