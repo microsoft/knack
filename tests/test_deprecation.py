@@ -15,7 +15,7 @@ from threading import Lock
 from knack.arguments import ArgumentsContext
 from knack.commands import CLICommand, CLICommandsLoader, CommandGroup
 
-from tests.util import DummyCLI, redirect_io
+from tests.util import DummyCLI, redirect_io, disable_color
 
 
 def example_handler(arg1, arg2=None, arg3=None):
@@ -140,17 +140,16 @@ Arguments
     @redirect_io
     def test_deprecate_command_expired_execute(self):
         """ Ensure expired command cannot be reached. """
-        self.cli_ctx.enable_color = False
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('cmd5 -h'.split())
         actual = self.io.getvalue()
-        expected = """The most similar choices to 'cmd5'"""
+        expected = """cli: 'cmd5' is not in the 'cli' command group."""
         self.assertIn(expected, actual)
 
     @redirect_io
+    @disable_color
     def test_deprecate_command_expired_execute_no_color(self):
         """ Ensure error is displayed without color. """
-        self.cli_ctx.enable_color = False
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('cmd5 -h'.split())
         actual = self.io.getvalue()
@@ -249,9 +248,9 @@ Group
         self.assertIn(expected, actual)
 
     @redirect_io
+    @disable_color
     def test_deprecate_command_group_help_expiring_no_color(self):
         """ Ensure warning is displayed without color. """
-        self.cli_ctx.enable_color = False
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('group4 -h'.split())
         actual = self.io.getvalue()
@@ -447,9 +446,9 @@ Arguments
         self.assertIn(expected, actual)
 
     @redirect_io
+    @disable_color
     def test_deprecate_options_execute_expiring_no_color(self):
         """ Ensure error is displayed without color. """
-        self.cli_ctx.enable_color = False
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar --alt4 bar'.split())
         actual = self.io.getvalue()
         expected = "WARNING: Option '--alt4' has been deprecated and will be removed in version '1.0.0'. Use '--opt4' instead."

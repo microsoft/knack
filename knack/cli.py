@@ -191,9 +191,9 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             if self.enable_color:
                 import colorama
                 colorama.init()
-            if self.out_file == sys.__stdout__:
-                # point out_file to the new sys.stdout which is overwritten by colorama
-                self.out_file = sys.stdout
+                if self.out_file == sys.__stdout__:
+                    # point out_file to the new sys.stdout which is overwritten by colorama
+                    self.out_file = sys.stdout
 
             args = self.completion.get_completion_args() or args
             out_file = out_file or self.out_file
