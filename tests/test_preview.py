@@ -5,6 +5,7 @@
 
 from __future__ import unicode_literals, print_function
 
+import os
 import unittest
 try:
     import mock
@@ -17,7 +18,7 @@ import argparse
 from knack.arguments import ArgumentsContext
 from knack.commands import CLICommandsLoader, CommandGroup
 
-from tests.util import DummyCLI, redirect_io
+from tests.util import DummyCLI, redirect_io, disable_color
 
 
 def example_handler(arg1, arg2=None, arg3=None):
@@ -87,6 +88,31 @@ Commands:
         expected = "This command is in preview. It may be changed/removed in a future release."
         self.assertIn(expected, actual)
 
+    @redirect_io
+    @disable_color
+    def test_preview_command_plain_execute_no_color(self):
+        """ Ensure warning is displayed without color. """
+        self.cli_ctx.invoke('cmd1 -b b'.split())
+        actual = self.io.getvalue()
+        self.assertIn("WARNING: This command is in preview. It may be changed/removed in a future release.", actual)
+
+    @redirect_io
+    def test_preview_command_implicitly_execute(self):
+        """ Ensure general warning displayed when running command from a preview parent group. """
+        self.cli_ctx.invoke('grp1 cmd1 -b b'.split())
+        actual = self.io.getvalue()
+        expected = "Command group 'grp1' is in preview. It may be changed/removed in a future release."
+        self.assertIn(expected, actual)
+
+    @redirect_io
+    @disable_color
+    def test_preview_command_implicitly_no_color(self):
+        """ Ensure warning is displayed without color. """
+        self.cli_ctx.invoke('grp1 cmd1 -b b'.split())
+        actual = self.io.getvalue()
+        expected = "WARNING: Command group 'grp1' is in preview. It may be changed/removed in a future release."
+        self.assertIn(expected, actual)
+
 
 class TestCommandGroupPreview(unittest.TestCase):
 
@@ -126,6 +152,23 @@ class TestCommandGroupPreview(unittest.TestCase):
 Group
     cli group1 : A group.
         This command group is in preview. It may be changed/removed in a future release.
+Commands:
+    cmd1 : Short summary here.
+
+""".format(self.cli_ctx.name)
+        self.assertEqual(expected, actual)
+
+    @redirect_io
+    @disable_color
+    def test_preview_command_group_help_plain_no_color(self):
+        """ Ensure warning is displayed without color. """
+        with self.assertRaises(SystemExit):
+            self.cli_ctx.invoke('group1 -h'.split())
+        actual = self.io.getvalue()
+        expected = """
+Group
+    cli group1 : A group.
+        WARNING: This command group is in preview. It may be changed/removed in a future release.
 Commands:
     cmd1 : Short summary here.
 
@@ -191,11 +234,37 @@ Arguments
         self.assertIn(expected, actual)
 
     @redirect_io
+    @disable_color
+    def test_preview_arguments_command_help_no_color(self):
+        """ Ensure warning is displayed without color. """
+        with self.assertRaises(SystemExit):
+            self.cli_ctx.invoke('arg-test -h'.split())
+        actual = self.io.getvalue()
+        expected = """
+Arguments
+    --arg1 [Preview] [Required] : Arg1.
+        WARNING: Argument '--arg1' is in preview. It may be changed/removed in a future release.
+""".format(self.cli_ctx.name)
+        self.assertIn(expected, actual)
+
+    @redirect_io
     def test_preview_arguments_execute(self):
         """ Ensure deprecated arguments can be used. """
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar'.split())
         actual = self.io.getvalue()
         preview_expected = "Argument '--arg1' is in preview. It may be changed/removed in a future release."
+        self.assertIn(preview_expected, actual)
+
+        action_expected = "Side-effect from some original action!"
+        self.assertIn(action_expected, actual)
+
+    @redirect_io
+    @disable_color
+    def test_preview_arguments_execute_no_color(self):
+        """ Ensure warning is displayed without color. """
+        self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar'.split())
+        actual = self.io.getvalue()
+        preview_expected = "WARNING: Argument '--arg1' is in preview. It may be changed/removed in a future release."
         self.assertIn(preview_expected, actual)
 
         action_expected = "Side-effect from some original action!"

@@ -12,6 +12,8 @@ import tempfile
 import shutil
 import os
 from six import StringIO
+import logging
+from knack.log import CLI_LOGGER_NAME
 
 from knack.cli import CLI, CLICommandsLoader, CommandInvoker
 
@@ -29,6 +31,21 @@ def redirect_io(func):
         self.io.close()
         sys.stdout = original_stderr
         sys.stderr = original_stderr
+
+        # Remove the handlers added by CLI, so that the next invoke call init them again with the new stderr
+        # Otherwise, the handlers will write to a closed StringIO from a preview test
+        root_logger = logging.getLogger()
+        cli_logger = logging.getLogger(CLI_LOGGER_NAME)
+        root_logger.handlers = root_logger.handlers[:-1]
+        cli_logger.handlers = cli_logger.handlers[:-1]
+    return wrapper
+
+
+def disable_color(func):
+    def wrapper(self):
+        self.cli_ctx.enable_color = False
+        func(self)
+        self.cli_ctx.enable_color = True
     return wrapper
 
 
