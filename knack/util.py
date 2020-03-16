@@ -92,12 +92,12 @@ class StatusTag(object):
     @property
     def tag(self):
         """ Returns a tag object. """
-        return ColorizedString(self._get_tag(self), self._color) if should_enable_color() else self._get_tag(self)
+        return ColorizedString(self._get_tag(self), self._color) if self.cli_ctx.enable_color else self._get_tag(self)
 
     @property
     def message(self):
         """ Returns a tuple with the formatted message string and the message length. """
-        return ColorizedString(self._get_message(self), self._color) if should_enable_color() \
+        return ColorizedString(self._get_message(self), self._color) if self.cli_ctx.enable_color \
             else "WARNING: " + self._get_message(self)
 
 
@@ -151,7 +151,3 @@ def todict(obj, post_processor=None):  # pylint: disable=too-many-return-stateme
                   if not callable(v) and not k.startswith('_')}
         return post_processor(obj, result) if post_processor else result
     return obj
-
-
-def should_enable_color():
-    return not os.environ.get(NO_COLOR_VARIABLE_NAME)

@@ -302,6 +302,7 @@ class CommandGroup(object):
             kwargs['deprecate_info'].target = group_name
         if kwargs.get('is_preview', False):
             kwargs['preview_info'] = PreviewItem(
+                cli_ctx=self.command_loader.cli_ctx,
                 target=group_name,
                 object_type='command group'
             )

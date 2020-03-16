@@ -7,7 +7,7 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-from .util import CtxTypeError, ensure_dir, should_enable_color
+from .util import CtxTypeError, ensure_dir
 from .events import EVENT_PARSER_GLOBAL_CREATE
 
 CLI_LOGGER_NAME = 'cli'
@@ -54,10 +54,10 @@ class _CustomStreamHandler(logging.StreamHandler):
 
         return cls.COLOR_MAP.get(level, None)
 
-    def __init__(self, log_level_config, log_format):
+    def __init__(self, log_level_config, log_format, enable_color):
         logging.StreamHandler.__init__(self)
         self.setLevel(log_level_config)
-        self.enable_color = should_enable_color()
+        self.enable_color = enable_color
         self.setFormatter(logging.Formatter(log_format[self.enable_color]))
 
     def format(self, record):
@@ -139,9 +139,11 @@ class CLILogging(object):
 
     def _init_console_handlers(self, root_logger, cli_logger, log_level_config):
         root_logger.addHandler(_CustomStreamHandler(log_level_config['root'],
-                                                    self.console_log_format['root']))
+                                                    self.console_log_format['root'],
+                                                    self.cli_ctx.enable_color))
         cli_logger.addHandler(_CustomStreamHandler(log_level_config[CLI_LOGGER_NAME],
-                                                   self.console_log_format[CLI_LOGGER_NAME]))
+                                                   self.console_log_format[CLI_LOGGER_NAME],
+                                                   self.cli_ctx.enable_color))
 
     def _init_logfile_handlers(self, root_logger, cli_logger):
         ensure_dir(self.log_dir)
