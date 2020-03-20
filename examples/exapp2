@@ -28,9 +28,50 @@ helps['abc list'] = """
           text: {cli_name} abc list
 """.format(cli_name=cli_name)
 
+helps['abc first'] = """
+    type: command
+    short-summary: List the first several letters in the alphabet.
+    examples:
+        - name: Show the list of abc
+          text: {cli_name} abc first --number 3
+""".format(cli_name=cli_name)
 
-def a_test_command_handler():
-    return [{'a': 1, 'b': 1234}, {'a': 3, 'b': 4}]
+helps['abc last'] = """
+    type: command
+    short-summary: List the last several letters in the alphabet.
+    examples:
+        - name: Show the list of xyz
+          text: {cli_name} abc last --number 3
+""".format(cli_name=cli_name)
+
+helps['ga'] = """
+    type: group
+    short-summary: A general available command group
+"""
+
+helps['pre'] = """
+    type: group
+    short-summary: A preview command group
+"""
+
+helps['exp'] = """
+    type: group
+    short-summary: An experimental command group
+"""
+
+
+def abc_show_command_handler():
+    """
+    Show a JSON mapping of letters to their ASCII values
+    """
+    import string
+    lower = {}
+    for ch in string.ascii_lowercase:
+        lower[ch] = ord(ch)
+    upper = {}
+    for ch in string.ascii_uppercase:
+        upper[ch] = ord(ch)
+    return {"lowercase": lower, "uppercase": upper}
 
 
 def abc_list_command_handler():
@@ -38,8 +79,59 @@ def abc_list_command_handler():
     return list(string.ascii_lowercase)
 
 
-def hello_command_handler(myarg=None, abc=None):
-    return ['hello', 'world', myarg, abc]
+def abc_first_command_handler(number=5):
+    import string
+    return list(string.ascii_lowercase)[0:number]
+
+
+def abc_last_command_handler(number=5):
+    import string
+    return list(string.ascii_lowercase)[-number:]
+
+
+def range_command_handler(start=0, end=5):
+    """
+    Get a list of natural numbers from start to end
+    :param start: the lower bound
+    :param end: the higher bound
+    :return:
+    """
+    return list(range(int(start), int(end) + 1))
+
+
+def sample_json_handler():
+    """
+    Get a sample JSON string
+    """
+    # https://docs.microsoft.com/en-us/rest/api/resources/subscriptions/list#examples
+    result = {
+        "id": "/subscriptions/291bba3f-e0a5-47bc-a099-3bdcb2a50a05",
+        "subscriptionId": "291bba3f-e0a5-47bc-a099-3bdcb2a50a05",
+        "tenantId": "31c75423-32d6-4322-88b7-c478bdde4858",
+        "displayName": "Example Subscription",
+        "state": "Enabled",
+        "subscriptionPolicies": {
+            "locationPlacementId": "Internal_2014-09-01",
+            "quotaId": "Internal_2014-09-01",
+            "spendingLimit": "Off"
+        },
+        "authorizationSource": "RoleBased",
+        "managedByTenants": [
+            {
+                "tenantId": "8f70baf1-1f6e-46a2-a1ff-238dac1ebfb7"
+            }
+        ]
+    }
+    return result
+
+
+def hello_command_handler(greetings=None):
+    """
+    Say "Hello World!" and my warm greetings
+    :param greetings: My warm greetings
+    """
+    return ['Hello World!', greetings]
+
 
 WELCOME_MESSAGE = r"""
    _____ _      _____ 
@@ -65,17 +157,28 @@ class MyCLIHelp(CLIHelp):
 class MyCommandsLoader(CLICommandsLoader):
 
     def load_command_table(self, args):
-        with CommandGroup(self, 'hello', '__main__#{}') as g:
-            g.command('world', 'hello_command_handler', confirmation=True)
+        with CommandGroup(self, '', '__main__#{}') as g:
+            g.command('hello', 'hello_command_handler', confirmation=True)
+            g.command('sample-json', 'sample_json_handler')
         with CommandGroup(self, 'abc', '__main__#{}') as g:
-                g.command('list', 'abc_list_command_handler')
-                g.command('show', 'a_test_command_handler')
-                g.command('get', 'a_test_command_handler', deprecate_info=g.deprecate(redirect='show', hide='0.1.0'))
+            g.command('list', 'abc_list_command_handler')
+            g.command('show', 'abc_show_command_handler')
+            g.command('get', 'abc_show_command_handler', deprecate_info=g.deprecate(redirect='show', hide='1.0.0'))
+            g.command('first', 'abc_first_command_handler', is_preview=True)
+            g.command('last', 'abc_last_command_handler', is_experimental=True)
+        with CommandGroup(self, 'ga', '__main__#{}') as g:
+            g.command('range', 'range_command_handler')
+        with CommandGroup(self, 'pre', '__main__#{}', is_preview=True) as g:
+            g.command('first', 'abc_first_command_handler', is_preview=True)
+            g.command('range', 'range_command_handler')
+        with CommandGroup(self, 'exp', '__main__#{}', is_experimental=True) as g:
+            g.command('range', 'range_command_handler')
         return super(MyCommandsLoader, self).load_command_table(args)
 
     def load_arguments(self, command):
-        with ArgumentsContext(self, 'hello world') as ac:
-            ac.argument('myarg', type=int, default=100)
+        with ArgumentsContext(self, 'ga range') as ac:
+            ac.argument('start', type=int, is_preview=True)
+            ac.argument('end', type=int, is_experimental=True)
         super(MyCommandsLoader, self).load_arguments(command)
 
 

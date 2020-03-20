@@ -295,6 +295,7 @@ Arguments
 Global Arguments
     --debug              : Increase logging verbosity to show all debug logs.
     --help -h            : Show this help message and exit.
+    --only-show-errors   : Only show errors, suppressing warnings.
     --output -o          : Output format.  Allowed values: json, jsonc, none, table, tsv, yaml,
                            yamlc.  Default: json.
     --query              : JMESPath query string. See http://jmespath.org/ for more information and
@@ -322,18 +323,19 @@ Command
         Long summary here. Still long summary.
 
 Arguments
-    -b [Required] : Allowed values: a, b, c.
-    --arg -a      : Allowed values: 1, 2, 3.
+    -b      [Required] : Allowed values: a, b, c.
+    --arg -a           : Allowed values: 1, 2, 3.
     --arg3
 
 Global Arguments
-    --debug       : Increase logging verbosity to show all debug logs.
-    --help -h     : Show this help message and exit.
-    --output -o   : Output format.  Allowed values: json, jsonc, none, table, tsv, yaml, yamlc.
-                    Default: json.
-    --query       : JMESPath query string. See http://jmespath.org/ for more information and
-                    examples.
-    --verbose     : Increase logging verbosity. Use --debug for full debug logs.
+    --debug            : Increase logging verbosity to show all debug logs.
+    --help -h          : Show this help message and exit.
+    --only-show-errors : Only show errors, suppressing warnings.
+    --output -o        : Output format.  Allowed values: json, jsonc, none, table, tsv, yaml, yamlc.
+                         Default: json.
+    --query            : JMESPath query string. See http://jmespath.org/ for more information and
+                         examples.
+    --verbose          : Increase logging verbosity. Use --debug for full debug logs.
 
 """
         actual = io.getvalue()
@@ -437,19 +439,20 @@ Command
         Long summary here. Still long summary.
 
 Arguments
-    -b [Required] : Allowed values: a, b, c.
-    --arg -a      : Allowed values: 1, 2, 3.
+    -b      [Required] : Allowed values: a, b, c.
+    --arg -a           : Allowed values: 1, 2, 3.
     --arg3
 
 Global Arguments
-    --debug       : Increase logging verbosity to show all debug logs.
-    --exampl      : This is a new global argument.
-    --help -h     : Show this help message and exit.
-    --output -o   : Output format.  Allowed values: json, jsonc, none, table, tsv, yaml, yamlc.
-                    Default: json.
-    --query       : JMESPath query string. See http://jmespath.org/ for more information and
-                    examples.
-    --verbose     : Increase logging verbosity. Use --debug for full debug logs.
+    --debug            : Increase logging verbosity to show all debug logs.
+    --exampl           : This is a new global argument.
+    --help -h          : Show this help message and exit.
+    --only-show-errors : Only show errors, suppressing warnings.
+    --output -o        : Output format.  Allowed values: json, jsonc, none, table, tsv, yaml, yamlc.
+                         Default: json.
+    --query            : JMESPath query string. See http://jmespath.org/ for more information and
+                         examples.
+    --verbose          : Increase logging verbosity. Use --debug for full debug logs.
 
 """
         actual = io.getvalue()

@@ -8,6 +8,7 @@ from collections import defaultdict
 
 from .deprecation import Deprecated
 from .preview import PreviewItem
+from .experimental import ExperimentalItem
 from .log import get_logger
 from .util import CLIError
 
@@ -43,7 +44,8 @@ class CLIArgumentType(object):
 
 class CLICommandArgument(object):
 
-    NAMED_ARGUMENTS = ['options_list', 'validator', 'completer', 'arg_group', 'deprecate_info', 'preview_info']
+    NAMED_ARGUMENTS = ['options_list', 'validator', 'completer', 'arg_group', 'deprecate_info', 'preview_info',
+                       'experimental_info']
 
     def __init__(self, dest=None, argtype=None, **kwargs):
         """An argument that has a specific destination parameter.
@@ -265,12 +267,63 @@ class ArgumentsContext(object):
             object_type = 'positional argument'
 
         preview_info = PreviewItem(
+            cli_ctx=self.command_loader.cli_ctx,
             target=target,
             object_type=object_type,
             message_func=_get_preview_arg_message
         )
         kwargs['preview_info'] = preview_info
         kwargs['action'] = _handle_argument_preview(preview_info)
+        return kwargs
+
+    def _handle_experimentals(self, argument_dest, **kwargs):
+
+        if not kwargs.get('is_experimental', False):
+            return kwargs
+
+        def _handle_argument_experimental(experimental_info):
+
+            parent_class = self._get_parent_class(**kwargs)
+
+            class ExperimentalArgumentAction(parent_class):
+
+                def __call__(self, parser, namespace, values, option_string=None):
+                    if not hasattr(namespace, '_argument_experimentals'):
+                        setattr(namespace, '_argument_experimentals', [experimental_info])
+                    else:
+                        namespace._argument_experimentals.append(experimental_info)  # pylint: disable=protected-access
+                    try:
+                        super(ExperimentalArgumentAction, self).__call__(parser, namespace, values, option_string)
+                    except NotImplementedError:
+                        setattr(namespace, self.dest, values)
+
+            return ExperimentalArgumentAction
+
+        def _get_experimental_arg_message(self):
+            return "{} '{}' is experimental and not covered by customer support. " \
+                   "Please use with discretion.".format(self.object_type.capitalize(), self.target)
+
+        options_list = kwargs.get('options_list', None)
+        object_type = 'argument'
+
+        if options_list is None:
+            # convert argument dest
+            target = '--{}'.format(argument_dest.replace('_', '-'))
+        elif options_list:
+            target = sorted(options_list, key=len)[-1]
+        else:
+            # positional argument
+            target = kwargs.get('metavar', '<{}>'.format(argument_dest.upper()))
+            object_type = 'positional argument'
+
+        experimental_info = ExperimentalItem(
+            self.command_loader.cli_ctx,
+            target=target,
+            object_type=object_type,
+            message_func=_get_experimental_arg_message
+        )
+        kwargs['experimental_info'] = experimental_info
+        kwargs['action'] = _handle_argument_experimental(experimental_info)
         return kwargs
 
     # pylint: disable=inconsistent-return-statements
@@ -304,8 +357,8 @@ class ArgumentsContext(object):
         :param arg_type: Predefined CLIArgumentType definition to register, as modified by any provided kwargs.
         :type arg_type: knack.arguments.CLIArgumentType
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
-                       `type`, `choices`, `required`, `help`, `metavar`, `is_preview`, `deprecate_info`.
-                       See /docs/arguments.md.
+                       `type`, `choices`, `required`, `help`, `metavar`, `is_preview`, `is_experimental`,
+                       `deprecate_info`. See /docs/arguments.md.
         """
         self._check_stale()
         if not self._applicable():
@@ -315,7 +368,16 @@ class ArgumentsContext(object):
         if deprecate_action:
             kwargs['action'] = deprecate_action
 
+        is_preview = kwargs.get('is_preview', False)
+        is_experimental = kwargs.get('is_experimental', False)
+
+        if is_preview and is_experimental:
+            from .commands import PREVIEW_EXPERIMENTAL_CONFLICT_ERROR
+            raise CLIError(PREVIEW_EXPERIMENTAL_CONFLICT_ERROR.format('argument', argument_dest))
+
         kwargs = self._handle_previews(argument_dest, **kwargs)
+        kwargs = self._handle_experimentals(argument_dest, **kwargs)
+
         self.command_loader.argument_registry.register_cli_argument(self.command_scope,
                                                                     argument_dest,
                                                                     arg_type,
@@ -329,8 +391,8 @@ class ArgumentsContext(object):
         :param arg_type: Predefined CLIArgumentType definition to register, as modified by any provided kwargs.
         :type arg_type: knack.arguments.CLIArgumentType
         :param kwargs: Possible values: `validator`, `completer`, `nargs`, `action`, `const`, `default`,
-                       `type`, `choices`, `required`, `help`, `metavar`, `is_preview`, `deprecate_info`.
-                       See /docs/arguments.md.
+                       `type`, `choices`, `required`, `help`, `metavar`, `is_preview`, `is_experimental`,
+                       `deprecate_info`. See /docs/arguments.md.
         """
         self._check_stale()
         if not self._applicable():
@@ -356,6 +418,7 @@ class ArgumentsContext(object):
             kwargs['action'] = deprecate_action
 
         kwargs = self._handle_previews(argument_dest, **kwargs)
+        kwargs = self._handle_experimentals(argument_dest, **kwargs)
 
         self.command_loader.argument_registry.register_cli_argument(self.command_scope,
                                                                     argument_dest,
@@ -382,8 +445,8 @@ class ArgumentsContext(object):
         :param argument_dest: The destination argument to add this argument type to
         :type argument_dest: str
         :param kwargs: Possible values: `options_list`, `validator`, `completer`, `nargs`, `action`, `const`, `default`,
-                       `type`, `choices`, `required`, `help`, `metavar`, `is_preview`, `deprecate_info`.
-                       See /docs/arguments.md.
+                       `type`, `choices`, `required`, `help`, `metavar`, `is_preview`, `is_experimental`,
+                       `deprecate_info`. See /docs/arguments.md.
         """
         self._check_stale()
         if not self._applicable():
@@ -399,6 +462,7 @@ class ArgumentsContext(object):
             kwargs['action'] = deprecate_action
 
         kwargs = self._handle_previews(argument_dest, **kwargs)
+        kwargs = self._handle_experimentals(argument_dest, **kwargs)
 
         self.command_loader.extra_argument_registry[self.command_scope][argument_dest] = CLICommandArgument(
             argument_dest, **kwargs)

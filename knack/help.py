@@ -11,6 +11,7 @@ import textwrap
 from .deprecation import ImplicitDeprecated, resolve_deprecate_info
 from .log import get_logger
 from .preview import ImplicitPreviewItem, resolve_preview_info
+from .experimental import ImplicitExperimentalItem, resolve_experimental_info
 from .util import CtxTypeError
 from .help_files import _load_help_file
 
@@ -121,7 +122,7 @@ class HelpFile(HelpObject):
         except Exception:  # pylint: disable=broad-except
             return text
 
-    def __init__(self, help_ctx, delimiters):
+    def __init__(self, help_ctx, delimiters):  # pylint: disable=too-many-statements
         super(HelpFile, self).__init__()
         self.help_ctx = help_ctx
         self.delimiters = delimiters
@@ -133,6 +134,7 @@ class HelpFile(HelpObject):
         self.examples = []
         self.deprecate_info = None
         self.preview_info = None
+        self.experimental_info = None
 
         direct_deprecate_info = resolve_deprecate_info(help_ctx.cli_ctx, delimiters)
         if direct_deprecate_info:
@@ -172,6 +174,26 @@ class HelpFile(HelpObject):
             else:
                 preview_kwargs['object_type'] = 'command group'
             self.preview_info = ImplicitPreviewItem(**preview_kwargs)
+
+        # resolve experimental info
+        direct_experimental_info = resolve_experimental_info(help_ctx.cli_ctx, delimiters)
+        if direct_experimental_info:
+            self.experimental_info = direct_experimental_info
+
+        # search for implicit experimental
+        path_comps = delimiters.split()[:-1]
+        implicit_experimental_info = None
+        while path_comps and not implicit_experimental_info:
+            implicit_experimental_info = resolve_experimental_info(help_ctx.cli_ctx, ' '.join(path_comps))
+            del path_comps[-1]
+
+        if implicit_experimental_info:
+            experimental_kwargs = implicit_experimental_info.__dict__.copy()
+            if delimiters in help_ctx.cli_ctx.invocation.commands_loader.command_table:
+                experimental_kwargs['object_type'] = 'command'
+            else:
+                experimental_kwargs['object_type'] = 'command group'
+            self.experimental_info = ImplicitExperimentalItem(**experimental_kwargs)
 
     def load(self, options):
         description = getattr(options, 'description', None)
@@ -258,6 +280,7 @@ class CommandHelpFile(HelpFile):
                     'name_source': [action.metavar or action.dest],
                     'deprecate_info': getattr(action, 'deprecate_info', None),
                     'preview_info': getattr(action, 'preview_info', None),
+                    'experimental_info': getattr(action, 'experimental_info', None),
                     'description': action.help,
                     'choices': action.choices,
                     'required': False,
@@ -295,7 +318,8 @@ class CommandHelpFile(HelpFile):
         param_kwargs.update({
             'name_source': normal_options,
             'deprecate_info': getattr(param, 'deprecate_info', None),
-            'preview_info': getattr(param, 'preview_info', None)
+            'preview_info': getattr(param, 'preview_info', None),
+            'experimental_info': getattr(param, 'experimental_info', None)
         })
         self.parameters.append(HelpParameter(**param_kwargs))
 
@@ -319,7 +343,7 @@ class CommandHelpFile(HelpFile):
 class HelpParameter(HelpObject):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, name_source, description, required, choices=None,
-                 default=None, group_name=None, deprecate_info=None, preview_info=None):
+                 default=None, group_name=None, deprecate_info=None, preview_info=None, experimental_info=None):
         super(HelpParameter, self).__init__()
         self.name_source = name_source
         self.name = ' '.join(sorted(name_source))
@@ -333,6 +357,7 @@ class HelpParameter(HelpObject):  # pylint: disable=too-many-instance-attributes
         self.group_name = group_name
         self.deprecate_info = deprecate_info
         self.preview_info = preview_info
+        self.experimental_info = experimental_info
 
     def update_from_data(self, data):
         if self.name != data.get('name'):
@@ -385,6 +410,8 @@ class CLIHelp(object):
                 lines.append(str(item.deprecate_info.message))
             if item.preview_info:
                 lines.append(str(item.preview_info.message))
+            if item.experimental_info:
+                lines.append(str(item.experimental_info.message))
             return '\n'.join(lines)
 
         indent += 1
@@ -403,14 +430,18 @@ class CLIHelp(object):
             preview_info = getattr(item, 'preview_info', None)
             preview = preview_info.tag if preview_info else ''
 
+            experimental_info = getattr(item, 'experimental_info', None)
+            experimental = experimental_info.tag if experimental_info else ''
+
             deprecate_info = getattr(item, 'deprecate_info', None)
             deprecated = deprecate_info.tag if deprecate_info else ''
 
             required = REQUIRED_TAG if getattr(item, 'required', None) else ''
-            tags = ' '.join([x for x in [str(deprecated), str(preview), required] if x])
+            tags = ' '.join([x for x in [str(deprecated), str(preview), str(experimental), required] if x])
             tags_len = sum([
                 len(deprecated),
                 len(preview),
+                len(experimental),
                 len(required),
                 tags.count(' ')
             ])
@@ -513,14 +544,18 @@ class CLIHelp(object):
             preview_info = getattr(item, 'preview_info', None)
             preview = preview_info.tag if preview_info else ''
 
+            experimental_info = getattr(item, 'experimental_info', None)
+            experimental = experimental_info.tag if experimental_info else ''
+
             deprecate_info = getattr(item, 'deprecate_info', None)
             deprecated = deprecate_info.tag if deprecate_info else ''
 
             required = REQUIRED_TAG if getattr(item, 'required', None) else ''
-            tags = ' '.join([x for x in [str(deprecated), str(preview), required] if x])
+            tags = ' '.join([x for x in [str(deprecated), str(preview), str(experimental), required] if x])
             tags_len = sum([
                 len(deprecated),
                 len(preview),
+                len(experimental),
                 len(required),
                 tags.count(' ')
             ])
@@ -600,6 +635,9 @@ class CLIHelp(object):
             preview_info = getattr(item, 'preview_info', None)
             if preview_info:
                 lines.append(str(item.preview_info.message))
+            experimental_info = getattr(item, 'experimental_info', None)
+            if experimental_info:
+                lines.append(str(item.experimental_info.message))
             return ' '.join(lines)
 
         group_registry = ArgumentGroupRegistry([p.group_name for p in help_file.parameters if p.group_name])
@@ -684,8 +722,6 @@ class CLIHelp(object):
         self.print_description_list(help_file.children)
 
     def show_help(self, cli_name, nouns, parser, is_group):
-        import colorama
-        colorama.init(autoreset=True)
         delimiters = ' '.join(nouns)
         help_file = self.command_help_cls(self, delimiters, parser) if not is_group \
             else self.group_help_cls(self, delimiters, parser)
