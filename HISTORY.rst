@@ -3,7 +3,7 @@
 Release History
 ===============
 
-0.7.0
+0.7.0rc1
 +++++
 * Allow disabling color (#171)
 * Support yaml and yamlc output (#173)
