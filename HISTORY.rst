@@ -7,7 +7,7 @@ Release History
 +++++
 * Allow disabling color (#171)
 * Support yaml and yamlc output (#173)
-* Drop support for python 2 and 3.5 (#174)
+* Drop support for python 2 (#174, #183)
 * Support ``--only-show-errors`` to disable warnings (#179)
 * Add experimental tag (#180)
 
