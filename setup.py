@@ -47,5 +47,5 @@ setup(
         'License :: OSI Approved :: MIT License',
     ],
     packages=['knack', 'knack.testsdk'],
-    install_requires=DEPENDENCIES,
+    install_requires=DEPENDENCIES
 )
