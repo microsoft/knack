@@ -23,7 +23,7 @@ jobs:
         Python36:
           python.version: '3.6'
           tox_env: 'py36'
-        Python36:
+        Python37:
           python.version: '3.7'
           tox_env: 'py37'
         Python38:
