@@ -13,7 +13,7 @@ pr:
       - '*'
 
 jobs:
-  - job: UnitTest
+  - job: AutomationTest
     timeoutInMinutes: 20
 
     pool:
