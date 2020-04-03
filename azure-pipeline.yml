@@ -4,12 +4,12 @@ resources:
 trigger:
   batch: true
   branches:
-  include:
-    - '*'
+    include:
+      - '*'
 
 pr:
   branches:
-  include:
+    include:
       - '*'
 
 jobs:
