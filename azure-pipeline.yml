@@ -1,0 +1,45 @@
+resources:
+- repo: self
+
+trigger:
+  batch: true
+  branches:
+    include:
+      - '*'
+
+pr:
+  branches:
+    include:
+      - '*'
+
+jobs:
+  - job: AutomationTest
+    timeoutInMinutes: 20
+
+    pool:
+      vmImage: 'ubuntu-16.04'
+    strategy:
+      matrix:
+        Python36:
+          python.version: '3.6'
+          tox_env: 'py36'
+        Python37:
+          python.version: '3.7'
+          tox_env: 'py37'
+        Python38:
+          python.version: '3.8'
+          tox_env: 'py38'
+    steps:
+      - task: UsePythonVersion@0
+        displayName: 'Use Python $(python.version)'
+        inputs:
+          versionSpec: '$(python.version)'
+      - bash: pip install --upgrade pip tox
+        displayName: 'Install pip and tox'
+      - bash: |
+          set -ev
+
+          tox
+        displayName: 'Run Test'
+        env:
+          TOXENV: $(tox_env)
