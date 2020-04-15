@@ -57,7 +57,7 @@ class ExperimentalItem(StatusTag):
             cli_ctx=cli_ctx,
             object_type=object_type,
             target=target,
-            color='red',
+            color='cyan',
             tag_func=tag_func or (lambda _: _EXPERIMENTAL_TAG),
             message_func=message_func or _default_get_message
         )
