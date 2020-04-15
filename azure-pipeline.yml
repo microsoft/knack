@@ -43,3 +43,31 @@ jobs:
         displayName: 'Run Test'
         env:
           TOXENV: $(tox_env)
+
+  - job: BuildPythonWheel
+    condition: succeeded()
+    pool:
+      image: 'ubuntu-16.04'
+    steps:
+      - task: UsePythonVersion@0
+        displayName: Use Python 3.6
+        inputs:
+          versionSpec: 3.6
+      - bash: |
+          set -ev
+
+          : "${BUILD_STAGINGDIRECTORY:?BUILD_STAGINGDIRECTORY environment variable not set}"
+          : "${BUILD_SOURCESDIRECTORY:=$(cd $(dirname $0); cd ../../; pwd)}"
+
+          cd "${BUILD_SOURCESDIRECTORY}"
+
+          echo "Build knack"
+          pip install -U pip setuptools wheel
+          python setup.py bdist_wheel -d "${BUILD_STAGINGDIRECTORY}"
+          python setup.py sdist -d "${BUILD_STAGINGDIRECTORY}"
+        displayName: Build Wheel
+      - task: PublishPipelineArtifact@0
+        displayName: 'Publish Artifact: pypi'
+        inputs:
+          TargetPath: $(Build.ArtifactStagingDirectory)
+          ArtifactName: pypi
