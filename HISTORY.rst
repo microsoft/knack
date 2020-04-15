@@ -3,12 +3,12 @@
 Release History
 ===============
 
-0.7.0rc2
-+++++
+0.7.0rc3
+++++++++
 * Change experimental tag color to cyan
 
 0.7.0rc1
-+++++
+++++++++
 * Allow disabling color (#171)
 * Support yaml and yamlc output (#173)
 * Drop support for python 2 and 3.5 (#174)
