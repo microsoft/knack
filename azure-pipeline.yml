@@ -71,3 +71,15 @@ jobs:
         inputs:
           TargetPath: $(Build.ArtifactStagingDirectory)
           ArtifactName: pypi
+      - task: DownloadPipelineArtifact@1
+        displayName: 'Download PyPI Packages'
+        inputs:
+          TargetPath: '$(Build.ArtifactStagingDirectory)/pypi'
+          artifactName: pypi
+      - bash: |
+          set -ev
+
+          cd $BUILD_ARTIFACTSTAGINGDIRECTORY/pypi
+          pwd
+          ls -la
+        displayName: Test Build Wheel
