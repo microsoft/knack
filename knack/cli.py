@@ -204,7 +204,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             self.logging.configure(args)
             logger.debug('Command arguments: %s', args)
 
-            self.raise_event(EVENT_CLI_PRE_EXECUTE)
+            self.raise_event(EVENT_CLI_PRE_EXECUTE, args=args)
             if CLI._should_show_version(args):
                 self.show_version()
                 self.result = CommandResultItem(None)
