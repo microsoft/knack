@@ -167,6 +167,8 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         """ The default exception handler """
         if isinstance(ex, CLIError):
             logger.error(ex)
+        elif isinstance(ex, SystemExit):
+            return ex.code
         else:
             logger.exception(ex)
         return 1
