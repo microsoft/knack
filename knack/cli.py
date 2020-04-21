@@ -167,8 +167,6 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         """ The default exception handler """
         if isinstance(ex, CLIError):
             logger.error(ex)
-        elif isinstance(ex, SystemExit):
-            return ex.code
         else:
             logger.exception(ex)
         return 1
@@ -228,13 +226,13 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             exit_code = self.exception_handler(ex)
             self.result = CommandResultItem(None, error=ex)
         except SystemExit as ex:
-            exit_code = self.exception_handler(ex)
             self.result = CommandResultItem(None, error=ex)
+            exit_code = ex.code
             raise ex
         finally:
             self.raise_event(EVENT_CLI_POST_EXECUTE)
 
             if self.enable_color:
                 colorama.deinit()
-        self.result.exit_code = exit_code
+            self.result.exit_code = exit_code
         return exit_code
