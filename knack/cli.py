@@ -220,14 +220,14 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
                     formatter = self.output.get_formatter(output_type)
                     self.output.out(cmd_result, formatter=formatter, out_file=out_file)
         except KeyboardInterrupt as ex:
-            self.result = CommandResultItem(None, error=ex)
             exit_code = 1
+            self.result = CommandResultItem(None, error=ex, exit_code=exit_code)
         except Exception as ex:  # pylint: disable=broad-except
             exit_code = self.exception_handler(ex)
-            self.result = CommandResultItem(None, error=ex)
+            self.result = CommandResultItem(None, error=ex, exit_code=exit_code)
         except SystemExit as ex:
-            self.result = CommandResultItem(None, error=ex)
             exit_code = ex.code
+            self.result = CommandResultItem(None, error=ex, exit_code=exit_code)
             raise ex
         finally:
             self.raise_event(EVENT_CLI_POST_EXECUTE)
@@ -235,6 +235,4 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             if self.enable_color:
                 colorama.deinit()
 
-            if self.result:
-                self.result.exit_code = exit_code
         return exit_code
