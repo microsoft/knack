@@ -234,5 +234,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
 
             if self.enable_color:
                 colorama.deinit()
-            self.result.exit_code = exit_code
+
+            if self.result:
+                self.result.exit_code = exit_code
         return exit_code
