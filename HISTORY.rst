@@ -3,6 +3,11 @@
 Release History
 ===============
 
+0.7.0rc4
+++++++++
+* Change to timing to raise EVENT_CLI_POST_EXECUTE event
+* Make CLI.invoke() catch SystemExit
+
 0.7.0rc3
 ++++++++
 * Change experimental tag color to cyan
