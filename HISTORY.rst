@@ -10,7 +10,7 @@ Release History
 
 0.7.0rc3
 ++++++++
-* Change experimental tag color to cyan
+* Change experimental tag color to cyan (#196)
 
 0.7.0rc1
 ++++++++
