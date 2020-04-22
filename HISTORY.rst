@@ -5,8 +5,8 @@ Release History
 
 0.7.0rc4
 ++++++++
-* Change the timing to raise EVENT_CLI_POST_EXECUTE event
-* Make CLI.invoke() catch SystemExit
+* Change the timing to raise EVENT_CLI_POST_EXECUTE event (#199)
+* Make CLI.invoke() catch SystemExit (#199)
 
 0.7.0rc3
 ++++++++
