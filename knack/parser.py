@@ -27,7 +27,8 @@ ARGPARSE_SUPPORTED_KWARGS = [
     'required',
     'help',
     'metavar',
-    'action'
+    'action',
+    'default_from'
 ]
 
 
@@ -174,6 +175,7 @@ class CLICommandParser(argparse.ArgumentParser):
                 param.deprecate_info = arg.deprecate_info
                 param.preview_info = arg.preview_info
                 param.experimental_info = arg.experimental_info
+                param.default_from = arg.default_from
             command_parser.set_defaults(
                 func=metadata,
                 command=command_name,
