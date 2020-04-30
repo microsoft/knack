@@ -225,7 +225,7 @@ class _ConfigFile(object):
         config = get_config_parser()
         config.read(self.config_path)
         for section in config.sections():
-           config.remove_section(section)
+            config.remove_section(section)
         self.set(config)
 
     def sections(self):
