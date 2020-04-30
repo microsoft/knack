@@ -141,14 +141,21 @@ class CLIConfig(object):
     def set_to_use_local_config(self, use_local_config):
         self.use_local_config = use_local_config
 
+    def remove_option(self, section, option):
+        for config in self._config_file_chain if self.use_local_config else self._config_file_chain[-1:]:
+            if config.remove_option(section, option):
+                return True
+        return False
+
 
 class _ConfigFile(object):
     _BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                        '0': False, 'no': False, 'false': False, 'off': False}
 
-    def __init__(self, config_dir, config_path):
+    def __init__(self, config_dir, config_path, config_notice=None):
         self.config_dir = config_dir
         self.config_path = config_path
+        self.config_notice = config_notice
         self.config_parser = get_config_parser()
         if os.path.exists(config_path):
             self.config_parser.read(config_path)
@@ -179,6 +186,8 @@ class _ConfigFile(object):
     def set(self, config):
         ensure_dir(self.config_dir)
         with open(self.config_path, 'w') as configfile:
+            if self.config_notice:
+                configfile.write(self.config_notice + '\n')
             config.write(configfile)
         os.chmod(self.config_path, stat.S_IRUSR | stat.S_IWUSR)
         self.config_parser.read(self.config_path)
@@ -192,3 +201,32 @@ class _ConfigFile(object):
             pass
         config.set(section, option, value)
         self.set(config)
+
+    def remove_option(self, section, option):
+        config = get_config_parser()
+        config.read(self.config_path)
+        ret = False
+        try:
+            ret = config.remove_option(section, option)
+            self.set(config)
+        except configparser.NoSectionError:
+            pass
+        return ret
+
+    def remove_section(self, section):
+        config = get_config_parser()
+        config.read(self.config_path)
+        if config.remove_section(section):
+            self.set(config)
+            return True
+        return False
+
+    def clear(self):
+        config = get_config_parser()
+        config.read(self.config_path)
+        for section in config.sections():
+           config.remove_section(section)
+        self.set(config)
+
+    def sections(self):
+        return self.config_parser.sections()
