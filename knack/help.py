@@ -320,7 +320,7 @@ class CommandHelpFile(HelpFile):
             'deprecate_info': getattr(param, 'deprecate_info', None),
             'preview_info': getattr(param, 'preview_info', None),
             'experimental_info': getattr(param, 'experimental_info', None),
-            'default_from': getattr(param, 'default_from', None)
+            'default_value_source': getattr(param, 'default_value_source', None)
         })
         self.parameters.append(HelpParameter(**param_kwargs))
 
@@ -344,7 +344,7 @@ class CommandHelpFile(HelpFile):
 class HelpParameter(HelpObject):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, name_source, description, required, choices=None, default=None, group_name=None,
-                 deprecate_info=None, preview_info=None, experimental_info=None, default_from=None):
+                 deprecate_info=None, preview_info=None, experimental_info=None, default_value_source=None):
         super(HelpParameter, self).__init__()
         self.name_source = name_source
         self.name = ' '.join(sorted(name_source))
@@ -359,7 +359,7 @@ class HelpParameter(HelpObject):  # pylint: disable=too-many-instance-attributes
         self.deprecate_info = deprecate_info
         self.preview_info = preview_info
         self.experimental_info = experimental_info
-        self.default_from = default_from
+        self.default_value_source = default_value_source
 
     def update_from_data(self, data):
         if self.name != data.get('name'):

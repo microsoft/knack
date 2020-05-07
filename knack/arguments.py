@@ -45,7 +45,7 @@ class CLIArgumentType(object):
 class CLICommandArgument(object):
 
     NAMED_ARGUMENTS = ['options_list', 'validator', 'completer', 'arg_group', 'deprecate_info', 'preview_info',
-                       'experimental_info', 'default_from']
+                       'experimental_info', 'default_value_source']
 
     def __init__(self, dest=None, argtype=None, **kwargs):
         """An argument that has a specific destination parameter.
