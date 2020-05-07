@@ -205,13 +205,13 @@ class _ConfigFile(object):
     def remove_option(self, section, option):
         config = get_config_parser()
         config.read(self.config_path)
-        ret = False
+        existed = False
         try:
-            ret = config.remove_option(section, option)
+            existed = config.remove_option(section, option)
             self.set(config)
         except configparser.NoSectionError:
             pass
-        return ret
+        return existed
 
     def remove_section(self, section):
         config = get_config_parser()
