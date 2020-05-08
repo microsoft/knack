@@ -11,9 +11,9 @@ try:
     import mock
 except ImportError:
     from unittest import mock
-from six.moves import configparser
+import configparser
 
-from knack.config import CLIConfig, get_config_parser
+from knack.config import CLIConfig
 from .util import TEMP_FOLDER_NAME, new_temp_folder
 
 
@@ -171,7 +171,7 @@ class TestCLIConfig(unittest.TestCase):
 
     def test_set_config_value(self):
         self.cli_config.set_value('test_section', 'test_option', 'a_value')
-        config = get_config_parser()
+        config = configparser.ConfigParser()
         config.read(self.cli_config.config_path)
         self.assertEqual(config.get('test_section', 'test_option'), 'a_value')
 
