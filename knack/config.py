@@ -148,17 +148,17 @@ class _ConfigFile(object):
                        '0': False, 'no': False, 'false': False, 'off': False}
 
     def __init__(self, config_dir, config_path, config_comment=None):
-        """ Manages configuration options available in the CLI
+        """ Manage configuration options available in the CLI
 
-        :param config_dir: The directory to store config file
+        :param config_dir: The directory to store the config file
         :type config_dir: str
-        :param config_path: The path of config file
+        :param config_path: The path of the config file
         :type config_path: str
-        :param config_comment: The comment which will be written into head of config file
+        :param config_comment: The comment which will be written into the head of the config file
         :type config_comment: str
 
         When 'config_comment' is given, each line should start with # or ;. For details about INI file comment,
-        you can reference this link https://docs.python.org/3/library/configparser.html#supported-ini-file-structure
+        see https://docs.python.org/3/library/configparser.html#supported-ini-file-structure
         """
         self.config_dir = config_dir
         self.config_path = config_path
