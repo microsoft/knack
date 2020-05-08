@@ -3,17 +3,12 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 import os
-import sys
 import stat
-from six.moves import configparser
+import configparser
 
 from .util import ensure_dir
 
 _UNSET = object()
-
-
-def get_config_parser():
-    return configparser.ConfigParser() if sys.version_info.major == 3 else configparser.SafeConfigParser()
 
 
 class CLIConfig(object):
@@ -141,15 +136,34 @@ class CLIConfig(object):
     def set_to_use_local_config(self, use_local_config):
         self.use_local_config = use_local_config
 
+    def remove_option(self, section, option):
+        for config in self._config_file_chain if self.use_local_config else self._config_file_chain[-1:]:
+            if config.remove_option(section, option):
+                return True
+        return False
+
 
 class _ConfigFile(object):
     _BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                        '0': False, 'no': False, 'false': False, 'off': False}
 
-    def __init__(self, config_dir, config_path):
+    def __init__(self, config_dir, config_path, config_comment=None):
+        """ Manage configuration options available in the CLI
+
+        :param config_dir: The directory to store the config file
+        :type config_dir: str
+        :param config_path: The path of the config file
+        :type config_path: str
+        :param config_comment: The comment which will be written into the head of the config file
+        :type config_comment: str
+
+        When 'config_comment' is given, each line should start with # or ;. For details about INI file comment,
+        see https://docs.python.org/3/library/configparser.html#supported-ini-file-structure
+        """
         self.config_dir = config_dir
         self.config_path = config_path
-        self.config_parser = get_config_parser()
+        self.config_comment = config_comment
+        self.config_parser = configparser.ConfigParser()
         if os.path.exists(config_path):
             self.config_parser.read(config_path)
 
@@ -179,12 +193,14 @@ class _ConfigFile(object):
     def set(self, config):
         ensure_dir(self.config_dir)
         with open(self.config_path, 'w') as configfile:
+            if self.config_comment:
+                configfile.write(self.config_comment + '\n')
             config.write(configfile)
         os.chmod(self.config_path, stat.S_IRUSR | stat.S_IWUSR)
         self.config_parser.read(self.config_path)
 
     def set_value(self, section, option, value):
-        config = get_config_parser()
+        config = configparser.ConfigParser()
         config.read(self.config_path)
         try:
             config.add_section(section)
@@ -192,3 +208,28 @@ class _ConfigFile(object):
             pass
         config.set(section, option, value)
         self.set(config)
+
+    def remove_option(self, section, option):
+        existed = False
+        if self.config_parser:
+            try:
+                existed = self.config_parser.remove_option(section, option)
+                self.set(self.config_parser)
+            except configparser.NoSectionError:
+                pass
+        return existed
+
+    def remove_section(self, section):
+        if self.config_parser and self.config_parser.remove_section(section):
+            self.set(self.config_parser)
+            return True
+        return False
+
+    def clear(self):
+        if self.config_parser:
+            for section in self.config_parser.sections():
+                self.config_parser.remove_section(section)
+            self.set(self.config_parser)
+
+    def sections(self):
+        return self.config_parser.sections()

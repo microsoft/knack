@@ -99,6 +99,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
             logger.info("Configured default '%s' for arg %s", config_value, arg.name)
             overrides.settings['default'] = DefaultStr(config_value)
             overrides.settings['required'] = False
+            overrides.settings['default_value_source'] = 'Config'
 
     def load_arguments(self):
         if self.arguments_loader:
