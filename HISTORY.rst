@@ -3,6 +3,14 @@
 Release History
 ===============
 
+0.7.0
+++++++++
+* Add a `default_value_source` property in `HelpParameter` (#202)
+* Support removing option/section from config file (#201)
+* Support writing comment to config file (#201)
+* Import `configparser` directly instead of from `six` (#201)
+* Drop `get_config_parser` function from `config.py` (#201)
+
 0.7.0rc4
 ++++++++
 * Change the timing to raise `EVENT_CLI_POST_EXECUTE` event (#199)
