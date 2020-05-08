@@ -3,17 +3,12 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 import os
-import sys
 import stat
-from six.moves import configparser
+import configparser
 
 from .util import ensure_dir
 
 _UNSET = object()
-
-
-def get_config_parser():
-    return configparser.ConfigParser() if sys.version_info.major == 3 else configparser.SafeConfigParser()
 
 
 class CLIConfig(object):
@@ -152,11 +147,23 @@ class _ConfigFile(object):
     _BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                        '0': False, 'no': False, 'false': False, 'off': False}
 
-    def __init__(self, config_dir, config_path, config_notice=None):
+    def __init__(self, config_dir, config_path, config_comment=None):
+        """ Manages configuration options available in the CLI
+
+        :param config_dir: The directory to store config file
+        :type config_dir: str
+        :param config_path: The path of config file
+        :type config_path: str
+        :param config_comment: The comment which will be written into head of config file
+        :type config_comment: str
+
+        When 'config_comment' is given, each line should start with # or ;. For details about INI file comment,
+        you can reference this link https://docs.python.org/3/library/configparser.html#supported-ini-file-structure
+        """
         self.config_dir = config_dir
         self.config_path = config_path
-        self.config_notice = config_notice
-        self.config_parser = get_config_parser()
+        self.config_comment = config_comment
+        self.config_parser = configparser.ConfigParser()
         if os.path.exists(config_path):
             self.config_parser.read(config_path)
 
@@ -186,14 +193,14 @@ class _ConfigFile(object):
     def set(self, config):
         ensure_dir(self.config_dir)
         with open(self.config_path, 'w') as configfile:
-            if self.config_notice:
-                configfile.write(self.config_notice + '\n')
+            if self.config_comment:
+                configfile.write(self.config_comment + '\n')
             config.write(configfile)
         os.chmod(self.config_path, stat.S_IRUSR | stat.S_IWUSR)
         self.config_parser.read(self.config_path)
 
     def set_value(self, section, option, value):
-        config = get_config_parser()
+        config = configparser.ConfigParser()
         config.read(self.config_path)
         try:
             config.add_section(section)
