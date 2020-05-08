@@ -11,7 +11,6 @@ import traceback
 import sys
 from collections import OrderedDict
 from six import StringIO, text_type, u, string_types
-import yaml
 
 from .util import CLIError, CommandResultItem, CtxTypeError
 from .events import EVENT_INVOKER_POST_PARSE_ARGS, EVENT_PARSER_GLOBAL_CREATE
@@ -48,6 +47,7 @@ def format_json_color(obj):
 
 
 def format_yaml(obj):
+    import yaml
     try:
         return yaml.safe_dump(obj.result, default_flow_style=False, allow_unicode=True)
     except yaml.representer.RepresenterError:
