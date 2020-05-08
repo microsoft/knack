@@ -203,30 +203,26 @@ class _ConfigFile(object):
         self.set(config)
 
     def remove_option(self, section, option):
-        config = get_config_parser()
-        config.read(self.config_path)
         existed = False
-        try:
-            existed = config.remove_option(section, option)
-            self.set(config)
-        except configparser.NoSectionError:
-            pass
+        if self.config_parser:
+            try:
+                existed = self.config_parser.remove_option(section, option)
+                self.set(self.config_parser)
+            except configparser.NoSectionError:
+                pass
         return existed
 
     def remove_section(self, section):
-        config = get_config_parser()
-        config.read(self.config_path)
-        if config.remove_section(section):
-            self.set(config)
+        if self.config_parser and self.config_parser.remove_section(section):
+            self.set(self.config_parser)
             return True
         return False
 
     def clear(self):
-        config = get_config_parser()
-        config.read(self.config_path)
-        for section in config.sections():
-            config.remove_section(section)
-        self.set(config)
+        if self.config_parser:
+            for section in self.config_parser.sections():
+                self.config_parser.remove_section(section)
+            self.set(self.config_parser)
 
     def sections(self):
         return self.config_parser.sections()
