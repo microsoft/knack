@@ -3,6 +3,10 @@
 Release History
 ===============
 
+0.7.1
+++++++++
+* Rollback `get_config_parser` in `config.py` (#205)
+
 0.7.0
 ++++++++
 * Add a `default_value_source` property in `HelpParameter` (#202)
