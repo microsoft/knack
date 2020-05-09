@@ -11,6 +11,10 @@ from .util import ensure_dir
 _UNSET = object()
 
 
+def get_config_parser():
+    return configparser.ConfigParser()  # keep this for backward compatibility
+
+
 class CLIConfig(object):
     _BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                        '0': False, 'no': False, 'false': False, 'off': False}
