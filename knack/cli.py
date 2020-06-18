@@ -91,8 +91,8 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         self.output = self.output_cls(cli_ctx=self)
         self.result = None
         self.query = query_cls(cli_ctx=self)
-        self.only_show_errors = self.config.get('core', 'only_show_errors', fallback=False)
-        self.enable_color = not self.config.get('core', 'no_color', fallback=False)
+        self.only_show_errors = self.config.getboolean('core', 'only_show_errors', fallback=False)
+        self.enable_color = not self.config.getboolean('core', 'no_color', fallback=False)
 
     @staticmethod
     def _should_show_version(args):
