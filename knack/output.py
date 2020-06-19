@@ -8,7 +8,6 @@ from __future__ import print_function
 import errno
 import json
 import traceback
-import sys
 from collections import OrderedDict
 from six import StringIO, text_type, u, string_types
 
@@ -162,9 +161,9 @@ class OutputProducer(object):
 
     def get_formatter(self, format_type):  # pylint: disable=no-self-use
         # remove color if stdout is not a tty
-        if not sys.stdout.isatty() and format_type == 'jsonc':
+        if not self.cli_ctx.enable_color and format_type == 'jsonc':
             return OutputProducer._FORMAT_DICT['json']
-        if not sys.stdout.isatty() and format_type == 'yamlc':
+        if not self.cli_ctx.enable_color and format_type == 'yamlc':
             return OutputProducer._FORMAT_DICT['yaml']
         return OutputProducer._FORMAT_DICT[format_type]
 

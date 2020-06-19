@@ -26,18 +26,23 @@ def redirect_io(func):
     original_stdout = sys.stdout
 
     def wrapper(self):
+        # Ensure a clean startup - no log handlers
+        root_logger = logging.getLogger()
+        cli_logger = logging.getLogger(CLI_LOGGER_NAME)
+        root_logger.handlers.clear()
+        cli_logger.handlers.clear()
+
         sys.stdout = sys.stderr = self.io = StringIO()
-        func(self)
+        with mock.patch("knack.cli._KNACK_TEST_FORCE_ENABLE_COLOR", True):
+            func(self)
         self.io.close()
-        sys.stdout = original_stderr
+        sys.stdout = original_stdout
         sys.stderr = original_stderr
 
         # Remove the handlers added by CLI, so that the next invoke call init them again with the new stderr
         # Otherwise, the handlers will write to a closed StringIO from a preview test
-        root_logger = logging.getLogger()
-        cli_logger = logging.getLogger(CLI_LOGGER_NAME)
-        root_logger.handlers = root_logger.handlers[:-1]
-        cli_logger.handlers = cli_logger.handlers[:-1]
+        root_logger.handlers.clear()
+        cli_logger.handlers.clear()
     return wrapper
 
 
@@ -72,6 +77,8 @@ class DummyCLI(CLI):
     def __init__(self, **kwargs):
         kwargs['config_dir'] = new_temp_folder()
         super(DummyCLI, self).__init__(**kwargs)
+        # Force colorama to initialize
+        self.enable_color = True
 
 
 def new_temp_folder():

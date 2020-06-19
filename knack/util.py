@@ -151,3 +151,18 @@ def todict(obj, post_processor=None):  # pylint: disable=too-many-return-stateme
                   if not callable(v) and not k.startswith('_')}
         return post_processor(obj, result) if post_processor else result
     return obj
+
+
+def isatty(stream):
+    # Code copied from
+    # https://github.com/tartley/colorama/blob/3d8d48a95de10be25b161c914f274ec6c41d3129/colorama/ansitowin32.py#L43-L53
+    import sys
+    if 'PYCHARM_HOSTED' in os.environ:
+        if stream is not None and (stream is sys.__stdout__ or stream is sys.__stderr__):
+            return True
+    try:
+        stream_isatty = stream.isatty
+    except AttributeError:
+        return False
+    else:
+        return stream_isatty()

@@ -277,17 +277,16 @@ qwerty  0b1f6472qwerty  True
         result = format_tsv(CommandResultItem([obj1, obj2]))
         self.assertEqual(result, '1\t2\n3\t4\n')
 
-    @mock.patch('sys.stdout.isatty', autospec=True)
-    def test_remove_color_no_tty(self, mock_isatty):
+    def test_remove_color_no_tty(self):
         output_producer = OutputProducer(cli_ctx=self.mock_ctx)
 
-        mock_isatty.return_value = False
+        self.mock_ctx.enable_color = False
         formatter = output_producer.get_formatter('jsonc')
         self.assertEqual(formatter, format_json)
         formatter = output_producer.get_formatter('yamlc')
         self.assertEqual(formatter, format_yaml)
 
-        mock_isatty.return_value = True
+        self.mock_ctx.enable_color = True
         formatter = output_producer.get_formatter('jsonc')
         self.assertEqual(formatter, format_json_color)
         formatter = output_producer.get_formatter('yamlc')

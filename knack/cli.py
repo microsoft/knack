@@ -12,7 +12,7 @@ from .invocation import CommandInvoker
 from .completion import CLICompletion
 from .output import OutputProducer
 from .log import CLILogging, get_logger
-from .util import CLIError
+from .util import CLIError, isatty
 from .config import CLIConfig
 from .query import CLIQuery
 from .events import EVENT_CLI_PRE_EXECUTE, EVENT_CLI_POST_EXECUTE
@@ -21,6 +21,10 @@ from .commands import CLICommandsLoader
 from .help import CLIHelp
 
 logger = get_logger(__name__)
+
+# Temporarily force color to be enabled even when out_file is not stdout.
+# This is only intended for testing purpose.
+_KNACK_TEST_FORCE_ENABLE_COLOR = False
 
 
 class CLI(object):  # pylint: disable=too-many-instance-attributes
@@ -91,8 +95,29 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         self.output = self.output_cls(cli_ctx=self)
         self.result = None
         self.query = query_cls(cli_ctx=self)
+
+        # As logging is initialized in `invoke`, call `logger.debug` or `logger.info` here won't work.
+        self.init_debug_log = []
+        self.init_info_log = []
+
         self.only_show_errors = self.config.getboolean('core', 'only_show_errors', fallback=False)
-        self.enable_color = not self.config.getboolean('core', 'no_color', fallback=False)
+
+        # Color is only enabled when all conditions are met:
+        #     1. [core] no_color config is not set
+        #     2. stdout is a tty
+        #         Otherwise, if the downstream command doesn't support color, Knack will fail with
+        #         BrokenPipeError: [Errno 32] Broken pipe, like `az --version | head --lines=1`
+        #         https://github.com/Azure/azure-cli/issues/13413
+        #     3. stderr is a tty
+        #         Otherwise, the output in stderr won't have LEVEL tag
+        #     4. out_file is stdout
+        conditions = (not self.config.getboolean('core', 'no_color', fallback=False),
+                      isatty(sys.stdout), isatty(sys.stderr), self.out_file is sys.stdout)
+        self.enable_color = all(conditions)
+        # Delay showing the debug message, as logging is not initialized yet
+        self.init_debug_log.append("enable_color({}) = enable_color_config({}) && "
+                                   "stdout.isatty({}) && stderr.isatty({}) && out_file_is_stdout({})"
+                                   .format(self.enable_color, *conditions))
 
     @staticmethod
     def _should_show_version(args):
@@ -171,6 +196,15 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             logger.exception(ex)
         return 1
 
+    def print_init_log(self):
+        """Print the debug/info log from CLI.__init__"""
+        if self.init_debug_log:
+            logger.debug('__init__ debug log:\n%s', '\n'.join(self.init_debug_log))
+            self.init_debug_log.clear()
+        if self.init_info_log:
+            logger.info('__init__ info log:\n%s', '\n'.join(self.init_info_log))
+            self.init_info_log.clear()
+
     def invoke(self, args, initial_invocation_data=None, out_file=None):
         """ Invoke a command.
 
@@ -189,18 +223,18 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             raise TypeError('args should be a list or tuple.')
         exit_code = 0
         try:
-            if self.enable_color:
+            out_file = out_file or self.out_file
+            if out_file is sys.stdout and self.enable_color or _KNACK_TEST_FORCE_ENABLE_COLOR:
                 import colorama
                 colorama.init()
-                if self.out_file == sys.__stdout__:
-                    # point out_file to the new sys.stdout which is overwritten by colorama
-                    self.out_file = sys.stdout
+                # point out_file to the new sys.stdout which is overwritten by colorama
+                out_file = sys.stdout
 
             args = self.completion.get_completion_args() or args
-            out_file = out_file or self.out_file
 
             self.logging.configure(args)
             logger.debug('Command arguments: %s', args)
+            self.print_init_log()
 
             self.raise_event(EVENT_CLI_PRE_EXECUTE)
             if CLI._should_show_version(args):
@@ -232,7 +266,8 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         finally:
             self.raise_event(EVENT_CLI_POST_EXECUTE)
 
-            if self.enable_color:
+            if self.enable_color or _KNACK_TEST_FORCE_ENABLE_COLOR:
+                import colorama
                 colorama.deinit()
 
         return exit_code
