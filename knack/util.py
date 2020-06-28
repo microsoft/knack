@@ -9,8 +9,6 @@ import re
 from datetime import date, time, datetime, timedelta
 from enum import Enum
 
-NO_COLOR_VARIABLE_NAME = 'KNACK_NO_COLOR'
-
 
 class CommandResultItem(object):  # pylint: disable=too-few-public-methods
     def __init__(self, result, table_transformer=None, is_query_active=False,
@@ -57,7 +55,7 @@ class ColorizedString(object):
 
 class StatusTag(object):
 
-    # pylint: disable=unused-argument
+    # pylint: disable=unused-argument, protected-access
     def __init__(self, cli_ctx, object_type, target, tag_func, message_func, color, **kwargs):
         self.cli_ctx = cli_ctx
         self.object_type = object_type
@@ -65,6 +63,13 @@ class StatusTag(object):
         self._color = color
         self._get_tag = tag_func
         self._get_message = message_func
+
+        # For example: EXAPP2_CORE_ONLY_SHOW_ERRORS, AZURE_CORE_ONLY_SHOW_ERRORS
+        disable_env_var = cli_ctx.config._env_var_format.format(section='core'.upper(),
+                                                                option='only_show_errors'.upper())
+        self._disable_instruction = ("To disable this warning during invocation, set option --only-show-errors, "
+                                     "configuration '[core] only_show_errors=true' or environment variable {}=true."
+                                     .format(disable_env_var))
 
     def __deepcopy__(self, memo):
         import copy
@@ -97,7 +102,8 @@ class StatusTag(object):
     @property
     def message(self):
         """ Returns a tuple with the formatted message string and the message length. """
-        return ColorizedString(self._get_message(self), self._color) if self.cli_ctx.enable_color \
+        message = self._get_message(self) + " " + self._disable_instruction
+        return ColorizedString(message, self._color) if self.cli_ctx.enable_color \
             else "WARNING: " + self._get_message(self)
 
 

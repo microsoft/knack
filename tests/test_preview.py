@@ -18,7 +18,7 @@ import argparse
 from knack.arguments import ArgumentsContext
 from knack.commands import CLICommandsLoader, CommandGroup
 
-from tests.util import DummyCLI, redirect_io, disable_color
+from tests.util import DummyCLI, redirect_io, disable_color, remove_space
 
 
 def example_handler(arg1, arg2=None, arg3=None):
@@ -85,8 +85,11 @@ Commands:
         """ Ensure general warning displayed when running preview command. """
         self.cli_ctx.invoke('cmd1 -b b'.split())
         actual = self.io.getvalue()
-        expected = "This command is in preview. It may be changed/removed in a future release."
-        self.assertIn(expected, actual)
+        expected = "This command is in preview. It may be changed/removed in a future release. " \
+                   "To disable this warning during invocation, set option --only-show-errors, " \
+                   "configuration '[core] only_show_errors=true' or environment variable " \
+                   "CLI_CORE_ONLY_SHOW_ERRORS=true."
+        self.assertIn(remove_space(expected), remove_space(actual))
 
     @redirect_io
     def test_preview_command_plain_execute_only_show_error(self):
@@ -170,11 +173,8 @@ class TestCommandGroupPreview(unittest.TestCase):
 Group
     cli group1 : A group.
         This command group is in preview. It may be changed/removed in a future release.
-Commands:
-    cmd1 : Short summary here.
-
 """.format(self.cli_ctx.name)
-        self.assertEqual(expected, actual)
+        self.assertIn(remove_space(expected), remove_space(actual))
 
     @redirect_io
     @disable_color
@@ -203,10 +203,9 @@ Commands:
 Command
     {} group1 cmd1 : Short summary here.
         Long summary here. Still long summary.
-        Command group 'group1' is in preview. It may be changed/removed in a future
-        release.
+        Command group 'group1' is in preview. It may be changed/removed in a future release.
 """.format(self.cli_ctx.name)
-        self.assertIn(expected, actual)
+        self.assertIn(remove_space(expected), remove_space(actual))
 
 
 class TestArgumentPreview(unittest.TestCase):
@@ -249,7 +248,7 @@ Arguments
     --arg1 [Preview] [Required] : Arg1.
         Argument '--arg1' is in preview. It may be changed/removed in a future release.
 """.format(self.cli_ctx.name)
-        self.assertIn(expected, actual)
+        self.assertIn(remove_space(expected), remove_space(actual))
 
     @redirect_io
     @disable_color

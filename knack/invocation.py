@@ -219,8 +219,8 @@ class CommandInvoker(object):
                 print(d.message, file=sys.stderr)
             for p in previews:
                 print(p.message, file=sys.stderr)
-            for p in experimentals:
-                print(p.message, file=sys.stderr)
+            for e in experimentals:
+                print(e.message, file=sys.stderr)
 
         cmd_result = parsed_args.func(params)
         cmd_result = todict(cmd_result)

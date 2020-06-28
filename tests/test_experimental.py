@@ -135,9 +135,6 @@ class TestCommandGroupExperimental(unittest.TestCase):
 Group
     cli group1 : A group.
         This command group is experimental and not covered by customer support. Please use with discretion.
-Commands:
-    cmd1 : Short summary here.
-
 """.format(self.cli_ctx.name)
         self.assertIn(remove_space(expected), remove_space(actual))
 

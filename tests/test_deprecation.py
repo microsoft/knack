@@ -15,7 +15,7 @@ from threading import Lock
 from knack.arguments import ArgumentsContext
 from knack.commands import CLICommand, CLICommandsLoader, CommandGroup
 
-from tests.util import DummyCLI, redirect_io, disable_color
+from tests.util import DummyCLI, redirect_io, disable_color, remove_space
 
 
 def example_handler(arg1, arg2=None, arg3=None):
@@ -96,13 +96,8 @@ Command
         Long summary here. Still long summary.
         This command has been deprecated and will be removed in a future release. Use 'alt-
         cmd3' instead.
-
-Arguments
-    -b      [Required] : Allowed values: a, b, c.
-    --arg -a           : Allowed values: 1, 2, 3.
-    --arg3
 """.format(self.cli_ctx.name)
-        self.assertIn(expected, actual)
+        self.assertIn(remove_space(expected), remove_space(actual))
 
     @redirect_io
     def test_deprecate_command_plain_execute(self):
@@ -208,12 +203,8 @@ Group
     cli group1 : A group.
         This command group has been deprecated and will be removed in a future release. Use
         'alt-group1' instead.
-
-Commands:
-    cmd1 : Short summary here.
-
 """.format(self.cli_ctx.name)
-        self.assertEqual(expected, actual)
+        self.assertIn(remove_space(expected), remove_space(actual))
 
     @redirect_io
     def test_deprecate_command_group_help_hidden(self):
@@ -226,12 +217,8 @@ Group
     {} group3
         This command group has been deprecated and will be removed in a future release. Use
         'alt-group3' instead.
-
-Commands:
-    cmd1 : Short summary here.
-
 """.format(self.cli_ctx.name)
-        self.assertIn(expected, actual)
+        self.assertIn(remove_space(expected), remove_space(actual))
 
     @redirect_io
     def test_deprecate_command_group_help_expiring(self):
@@ -245,7 +232,7 @@ Group
         This command group has been deprecated and will be removed in version '1.0.0'. Use
         'alt-group4' instead.
 """.format(self.cli_ctx.name)
-        self.assertIn(expected, actual)
+        self.assertIn(remove_space(expected), remove_space(actual))
 
     @redirect_io
     @disable_color
@@ -284,7 +271,7 @@ Command
         This command is implicitly deprecated because command group 'group1' is deprecated and
         will be removed in a future release. Use 'alt-group1' instead.
 """.format(self.cli_ctx.name)
-        self.assertIn(expected, actual)
+        self.assertIn(remove_space(expected), remove_space(actual))
 
 
 class TestArgumentDeprecation(unittest.TestCase):
@@ -330,25 +317,37 @@ class TestArgumentDeprecation(unittest.TestCase):
         actual = self.io.getvalue()
         expected = """
 Command
-    {} arg-test
+    cli arg-test
 
 Arguments
     --alt1 [Deprecated] [Required] : Opt1.
         Option '--alt1' has been deprecated and will be removed in a future release. Use '--
-        opt1' instead.
+        opt1' instead. To disable this warning during invocation, set option --only-show-errors,
+        configuration '[core] only_show_errors=true' or environment variable
+        CLI_CORE_ONLY_SHOW_ERRORS=true.
     --arg1 [Deprecated] [Required] : Arg1.
-        Argument 'arg1' has been deprecated and will be removed in a future release.
+        Argument 'arg1' has been deprecated and will be removed in a future release. To disable
+        this warning during invocation, set option --only-show-errors, configuration '[core]
+        only_show_errors=true' or environment variable CLI_CORE_ONLY_SHOW_ERRORS=true.
     --opt1              [Required] : Opt1.
     --alt2            [Deprecated] : Opt2.
         Option '--alt2' has been deprecated and will be removed in a future release. Use '--
-        opt2' instead.
+        opt2' instead. To disable this warning during invocation, set option --only-show-errors,
+        configuration '[core] only_show_errors=true' or environment variable
+        CLI_CORE_ONLY_SHOW_ERRORS=true.
     --alt4            [Deprecated]
         Option '--alt4' has been deprecated and will be removed in version '1.0.0'. Use '--
-        opt4' instead.
+        opt4' instead. To disable this warning during invocation, set option --only-show-errors,
+        configuration '[core] only_show_errors=true' or environment variable
+        CLI_CORE_ONLY_SHOW_ERRORS=true.
     --arg2            [Deprecated] : Arg2.
-        Argument 'arg2' has been deprecated and will be removed in a future release.
+        Argument 'arg2' has been deprecated and will be removed in a future release. To disable
+        this warning during invocation, set option --only-show-errors, configuration '[core]
+        only_show_errors=true' or environment variable CLI_CORE_ONLY_SHOW_ERRORS=true.
     --arg4            [Deprecated]
-        Argument 'arg4' has been deprecated and will be removed in version '1.0.0'.
+        Argument 'arg4' has been deprecated and will be removed in version '1.0.0'. To disable
+        this warning during invocation, set option --only-show-errors, configuration '[core]
+        only_show_errors=true' or environment variable CLI_CORE_ONLY_SHOW_ERRORS=true.
     --opt2                         : Opt2.
     --opt3                         : Opt3.
     --opt4
