@@ -196,7 +196,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             logger.exception(ex)
         return 1
 
-    def print_init_log(self):
+    def _print_init_log(self):
         """Print the debug/info log from CLI.__init__"""
         if self.init_debug_log:
             logger.debug('__init__ debug log:\n%s', '\n'.join(self.init_debug_log))
@@ -234,7 +234,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
 
             self.logging.configure(args)
             logger.debug('Command arguments: %s', args)
-            self.print_init_log()
+            self._print_init_log()
 
             self.raise_event(EVENT_CLI_PRE_EXECUTE)
             if CLI._should_show_version(args):
