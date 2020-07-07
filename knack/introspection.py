@@ -54,10 +54,9 @@ def option_descriptions(operation):
             temp = lines[index].strip()
             if any(temp.startswith(x) for x in param_breaks):
                 break
-            else:
-                if temp:
-                    arg_desc += (' ' + temp)
-                index += 1
+            if temp:
+                arg_desc += (' ' + temp)
+            index += 1
 
         option_descs[arg_name] = arg_desc
 
