@@ -100,7 +100,7 @@ class CLIConfig(object):
     def items(self, section):
         import re
         pattern = self.env_var_name(section, '.+')
-        candidates = [(k.split('_')[-1], os.environ[k], k) for k in os.environ.keys() if re.match(pattern, k)]
+        candidates = [(k.split('_')[-1], os.environ[k], k) for k in os.environ if re.match(pattern, k)]
         result = {c[0]: c for c in candidates}
         for config in self._config_file_chain if self.use_local_config else self._config_file_chain[-1:]:
             try:
@@ -180,7 +180,7 @@ class _ConfigFile(object):
     def get(self, section, option):
         if self.config_parser:
             return self.config_parser.get(section, option)
-        raise configparser.NoOptionError(section, option)
+        raise configparser.NoOptionError(option, section)
 
     def getint(self, section, option):
         return int(self.get(section, option))
