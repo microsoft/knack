@@ -97,6 +97,16 @@ class CLIConfig(object):
             raise last_ex  # pylint:disable=raising-bad-type
         return fallback
 
+    def sections(self):
+        combined_sections = []
+        # Go through the config chain and combine all sections
+        for config in self._config_file_chain if self.use_local_config else self._config_file_chain[-1:]:
+            sections = config.sections()
+            for section in sections:
+                if section not in combined_sections:
+                    combined_sections.append(section)
+        return combined_sections
+
     def items(self, section):
         import re
         pattern = self.env_var_name(section, '.+')
@@ -173,6 +183,9 @@ class _ConfigFile(object):
 
     def items(self, section):
         return self.config_parser.items(section) if self.config_parser else []
+
+    def sections(self):
+        return self.config_parser.sections() if self.config_parser else []
 
     def has_option(self, section, option):
         return self.config_parser.has_option(section, option) if self.config_parser else False
