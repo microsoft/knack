@@ -247,6 +247,3 @@ class _ConfigFile(object):
             for section in self.config_parser.sections():
                 self.config_parser.remove_section(section)
             self.set(self.config_parser)
-
-    def sections(self):
-        return self.config_parser.sections()
