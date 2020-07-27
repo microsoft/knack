@@ -3,6 +3,10 @@
 Release History
 ===============
 
+0.7.2
+++++++++
+* [Config] Support listing sections (#217)
+
 0.7.1
 ++++++++
 * Rollback `get_config_parser` in `config.py` (#205)
