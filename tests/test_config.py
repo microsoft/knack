@@ -169,6 +169,20 @@ class TestCLIConfig(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.cli_config.getboolean(section, option)
 
+    def test_items_case_insensitive(self):
+        section = 'MySection'
+        self.cli_config.set_value(section, 'option', 'value')
+        self.cli_config.set_to_use_local_config(True)
+        self.cli_config.set_value(section, 'Option', 'localValue')
+        items_result = self.cli_config.items(section)
+        self.assertEqual(len(items_result), 1)
+        self.assertEqual(items_result[0]['value'], 'localValue')
+
+        with mock.patch.dict('os.environ', {self.cli_config.env_var_name(section, 'OPTION'): 'envValue'}):
+            items_result = self.cli_config.items(section)
+            self.assertEqual(len(items_result), 1)
+            self.assertEqual(items_result[0]['value'], 'envValue')
+
     def test_set_config_value(self):
         self.cli_config.set_value('test_section', 'test_option', 'a_value')
         config = configparser.ConfigParser()
