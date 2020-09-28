@@ -109,14 +109,14 @@ class CLIConfig(object):
 
     def items(self, section):
         import re
-        pattern = self.env_var_name(section, '.+')
+        pattern = self.env_var_name(section, '[0-9A-Z]+')
         candidates = [(k.split('_')[-1], os.environ[k], k) for k in os.environ if re.match(pattern, k)]
         result = {c[0].lower(): c for c in candidates}
         for config in self._config_file_chain if self.use_local_config else self._config_file_chain[-1:]:
             try:
                 entries = config.items(section)
                 for name, value in entries:
-                    if name.lower() not in result:
+                    if name not in result:
                         result[name] = (name, value, config.config_path)
             except (configparser.NoSectionError, configparser.NoOptionError):
                 pass

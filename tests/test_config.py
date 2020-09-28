@@ -170,18 +170,14 @@ class TestCLIConfig(unittest.TestCase):
             self.cli_config.getboolean(section, option)
 
     def test_items_case_insensitive(self):
-        section = 'MySection'
+        section = 'MYSECTION'
+        envOption = '{}_{}_{}'.format(CLIConfig._DEFAULT_CONFIG_ENV_VAR_PREFIX, section, 'OPTION')
+        envVaule = 'envValue'
+        configOption = 'option'
+        configValue = 'value'
 
-        self.cli_config.set_value(section, 'option', 'value')
-        self.cli_config.set_to_use_local_config(True)
-        self.cli_config.set_value(section, 'Option', 'localValue')
-        items_result = self.cli_config.items(section)
-        # The items function is expected to
-        # return local config instead of returning both local config 'Option' and global config 'option'
-        self.assertEqual(len(items_result), 1)
-        self.assertEqual(items_result[0]['value'], 'localValue')
-
-        with mock.patch.dict('os.environ', {self.cli_config.env_var_name(section, 'OPTION'): 'envValue'}):
+        with mock.patch.dict('os.environ', {envOption: envVaule}):
+            self.cli_config.set_value(section, configOption, configValue)
             items_result = self.cli_config.items(section)
             # The items function is expected to
             # return environment setting instead of
