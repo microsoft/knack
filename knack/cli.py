@@ -15,7 +15,7 @@ from .log import CLILogging, get_logger
 from .util import CLIError
 from .config import CLIConfig
 from .query import CLIQuery
-from .events import EVENT_CLI_PRE_EXECUTE, EVENT_CLI_POST_EXECUTE
+from .events import EVENT_CLI_PRE_EXECUTE, EVENT_CLI_SUCCESSFUL_EXECUTE, EVENT_CLI_POST_EXECUTE
 from .parser import CLICommandParser
 from .commands import CLICommandsLoader
 from .help import CLIHelp
@@ -219,6 +219,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
                 if cmd_result and cmd_result.result is not None:
                     formatter = self.output.get_formatter(output_type)
                     self.output.out(cmd_result, formatter=formatter, out_file=out_file)
+            self.raise_event(EVENT_CLI_SUCCESSFUL_EXECUTE)
         except KeyboardInterrupt as ex:
             exit_code = 1
             self.result = CommandResultItem(None, error=ex, exit_code=exit_code)
