@@ -171,9 +171,9 @@ class TestCLIConfig(unittest.TestCase):
 
     def test_items_case_insensitive(self):
         section = 'MYSECTION'
-        envOption = '{}_{}_{}'.format(CLIConfig._DEFAULT_CONFIG_ENV_VAR_PREFIX, section, 'OPTION')
+        envOption = '{}_{}_{}'.format(CLIConfig._DEFAULT_CONFIG_ENV_VAR_PREFIX, section, 'TEST_OPTION')
         envVaule = 'envValue'
-        configOption = 'option'
+        configOption = 'test_option'
         configValue = 'value'
 
         with mock.patch.dict('os.environ', {envOption: envVaule}):
