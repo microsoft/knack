@@ -101,7 +101,9 @@ class TestLoggingLevel(unittest.TestCase):
 
     def test_get_module_logger(self):
         module_logger = get_logger('a.module')
-        self.assertEqual(module_logger.name, 'cli.a.module')
+        self.assertEqual(module_logger.name, 'a.module')
+        module_logger = get_logger()
+        self.assertEqual(module_logger.name, 'cli')
 
 
 class TestCustomStreamHandler(unittest.TestCase):
