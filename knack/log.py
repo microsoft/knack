@@ -227,7 +227,7 @@ class CLILogging(object):  # pylint: disable=too-many-instance-attributes
             Show the level name if coloring is disabled (e.g. INFO).
             Also, root logger should always show the logger name.
         """
-        if self.log_level == CliLogLevel.ERROR:
+        if self.log_level == CliLogLevel.DEBUG:
             # If --debug flag is specified, show the logger name as well
             cli_logger_format = {
                 True: '%(name)s: %(message)s',
