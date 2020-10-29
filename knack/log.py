@@ -5,11 +5,21 @@
 
 import os
 import logging
+from enum import IntEnum
 
 from .util import CtxTypeError, ensure_dir, CLIError
 from .events import EVENT_PARSER_GLOBAL_CREATE
 
-CLI_LOGGER_NAME = 'cli'
+
+CLI_LOGGER_NAME = 'knack'
+
+
+class CliLogLevel(IntEnum):
+    CRITICAL = 0
+    ERROR = 1
+    WARNING = 2
+    INFO = 3
+    DEBUG = 4
 
 
 def get_logger(module_name=None):
@@ -69,7 +79,7 @@ class _CustomStreamHandler(logging.StreamHandler):
         return msg
 
 
-class CLILogging(object):
+class CLILogging(object):  # pylint: disable=too-many-instance-attributes
 
     DEBUG_FLAG = '--debug'
     VERBOSE_FLAG = '--verbose'
@@ -104,10 +114,13 @@ class CLILogging(object):
         self.logfile_name = '{}.log'.format(name)
         self.file_log_enabled = CLILogging._is_file_log_enabled(cli_ctx)
         self.log_dir = CLILogging._get_log_dir(cli_ctx)
-        self.console_log_configs = self._get_console_log_configs()
-        self.console_log_format = self._get_console_log_format()
         self.cli_ctx = cli_ctx
         self.cli_ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, CLILogging.on_global_arguments)
+
+        # These attributes' value are determined when `configure` is called
+        self.log_level = None
+        self.console_log_configs = None
+        self.console_log_format = None
 
     def configure(self, args):
         """ Configure the loggers with the appropriate log level etc.
@@ -115,8 +128,10 @@ class CLILogging(object):
         :param args: The arguments from the command line
         :type args: list
         """
-        log_level = self._determine_log_level(args)
-        log_level_config = self.console_log_configs[log_level]
+        self.log_level = self._determine_log_level(args)
+        self.console_log_configs = self._get_console_log_configs()
+        self.console_log_format = self._get_console_log_format()
+        log_level_config = self.console_log_configs[self.log_level]
         root_logger = logging.getLogger()
         cli_logger = logging.getLogger(self._cli_logger_name)
         # Set the levels of the loggers to lowest level.
@@ -139,16 +154,17 @@ class CLILogging(object):
             if CLILogging.DEBUG_FLAG in args or CLILogging.VERBOSE_FLAG in args:
                 raise CLIError("--only-show-errors can't be used together with --debug or --verbose")
             self.cli_ctx.only_show_errors = True
-            return 1
+            return CliLogLevel.ERROR
         if CLILogging.DEBUG_FLAG in args:
             self.cli_ctx.only_show_errors = False
-            return 4
+            return CliLogLevel.DEBUG
         if CLILogging.VERBOSE_FLAG in args:
             self.cli_ctx.only_show_errors = False
-            return 3
+            return CliLogLevel.INFO
         if self.cli_ctx.only_show_errors:
-            return 1
-        return 2  # default to show WARNINGs and above
+            # only_show_errors is enabled by config
+            return CliLogLevel.ERROR
+        return CliLogLevel.WARNING  # default to show WARNINGs and above
 
     def _init_console_handlers(self, root_logger, cli_logger, log_level_config):
         root_logger.addHandler(_CustomStreamHandler(log_level_config['root'],
@@ -209,13 +225,22 @@ class CLILogging(object):
     def _get_console_log_format(self):
         """ Formats for console logging if coloring is enabled or not.
             Show the level name if coloring is disabled (e.g. INFO).
-            Also, Root logger should show the logger name.
+            Also, root logger should always show the logger name.
         """
-        return {
-            self._cli_logger_name: {
+        if self.log_level == CliLogLevel.ERROR:
+            # If --debug flag is specified, show the logger name as well
+            cli_logger_format = {
                 True: '%(name)s: %(message)s',
-                False: '%(levelname)s: %(name)s: %(message)s',
-            },
+                False: '%(levelname)s: %(name)s: %(message)s'
+            }
+        else:
+            cli_logger_format = {
+                True: '%(message)s',
+                False: '%(levelname)s: %(message)s'
+            }
+
+        return {
+            self._cli_logger_name: cli_logger_format,
             'root': {
                 True: '%(name)s: %(message)s',
                 False: '%(levelname)s: %(name)s: %(message)s',

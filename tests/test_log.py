@@ -103,7 +103,7 @@ class TestLoggingLevel(unittest.TestCase):
         module_logger = get_logger('a.module')
         self.assertEqual(module_logger.name, 'a.module')
         module_logger = get_logger()
-        self.assertEqual(module_logger.name, 'cli')
+        self.assertEqual(module_logger.name, 'knack')
 
 
 class TestCustomStreamHandler(unittest.TestCase):
