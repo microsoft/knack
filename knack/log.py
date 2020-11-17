@@ -119,8 +119,8 @@ class CLILogging(object):  # pylint: disable=too-many-instance-attributes
 
         # These attributes' value are determined when `configure` is called
         self.log_level = None
-        self.console_log_configs = None
-        self.console_log_format = None
+        self._console_log_configs = None
+        self._console_log_format = None
 
     def configure(self, args):
         """ Configure the loggers with the appropriate log level etc.
@@ -129,9 +129,9 @@ class CLILogging(object):  # pylint: disable=too-many-instance-attributes
         :type args: list
         """
         self.log_level = self._determine_log_level(args)
-        self.console_log_configs = self._get_console_log_configs()
-        self.console_log_format = self._get_console_log_format()
-        log_level_config = self.console_log_configs[self.log_level]
+        self._console_log_configs = self._get_console_log_configs()
+        self._console_log_format = self._get_console_log_format()
+        log_level_config = self._console_log_configs[self.log_level]
         root_logger = logging.getLogger()
         cli_logger = logging.getLogger(self._cli_logger_name)
         # Set the levels of the loggers to lowest level.
@@ -168,10 +168,10 @@ class CLILogging(object):  # pylint: disable=too-many-instance-attributes
 
     def _init_console_handlers(self, root_logger, cli_logger, log_level_config):
         root_logger.addHandler(_CustomStreamHandler(log_level_config['root'],
-                                                    self.console_log_format['root'],
+                                                    self._console_log_format['root'],
                                                     self.cli_ctx.enable_color))
         cli_logger.addHandler(_CustomStreamHandler(log_level_config[self._cli_logger_name],
-                                                   self.console_log_format[self._cli_logger_name],
+                                                   self._console_log_format[self._cli_logger_name],
                                                    self.cli_ctx.enable_color))
 
     def _init_logfile_handlers(self, root_logger, cli_logger):
