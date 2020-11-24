@@ -35,7 +35,7 @@ class TestLoggingEventHandling(unittest.TestCase):
                                                            help=mock.ANY)
 
 
-class TestLoggingLevel(unittest.TestCase):
+class TestCLILogging(unittest.TestCase):
     def setUp(self):
         self.mock_ctx = MockContext()
         self.cli_logging = CLILogging('clitest', cli_ctx=self.mock_ctx)
@@ -104,6 +104,66 @@ class TestLoggingLevel(unittest.TestCase):
         self.assertEqual(module_logger.name, 'a.module')
         module_logger = get_logger()
         self.assertEqual(module_logger.name, 'knack')
+
+    def test_get_console_log_levels(self):
+        # CRITICAL
+        self.cli_logging.log_level = 0
+        levels = self.cli_logging._get_console_log_levels()
+        expected = {'knack': 50, 'root': 50}
+        self.assertEqual(levels, expected)
+
+        # ERROR
+        self.cli_logging.log_level = 1
+        levels = self.cli_logging._get_console_log_levels()
+        expected = {'knack': 40, 'root': 50}
+        self.assertEqual(levels, expected)
+
+        # WARNING
+        self.cli_logging.log_level = 2
+        levels = self.cli_logging._get_console_log_levels()
+        expected = {'knack': 30, 'root': 50}
+        self.assertEqual(levels, expected)
+
+        # INFO
+        self.cli_logging.log_level = 3
+        levels = self.cli_logging._get_console_log_levels()
+        expected = {'knack': 20, 'root': 50}
+        self.assertEqual(levels, expected)
+
+        # DEBUG
+        self.cli_logging.log_level = 4
+        levels = self.cli_logging._get_console_log_levels()
+        expected = {'knack': 10, 'root': 10}
+        self.assertEqual(levels, expected)
+
+    def test_get_console_log_formats(self):
+        # DEBUG level, color enabled
+        self.cli_logging.log_level = 4
+        self.cli_logging.cli_ctx.enable_color = True
+        formats = self.cli_logging._get_console_log_formats()
+        expected = {'knack': '%(name)s: %(message)s', 'root': '%(name)s: %(message)s'}
+        self.assertEqual(formats, expected)
+
+        # DEBUG level, color disabled
+        self.cli_logging.log_level = 4
+        self.cli_logging.cli_ctx.enable_color = False
+        formats = self.cli_logging._get_console_log_formats()
+        expected = {'knack': '%(levelname)s: %(name)s: %(message)s', 'root': '%(levelname)s: %(name)s: %(message)s'}
+        self.assertEqual(formats, expected)
+
+        # WARNING level, color enabled
+        self.cli_logging.log_level = 2
+        self.cli_logging.cli_ctx.enable_color = True
+        formats = self.cli_logging._get_console_log_formats()
+        expected = {'knack': '%(message)s', 'root': '%(message)s'}
+        self.assertEqual(formats, expected)
+
+        # WARNING level, color disabled
+        self.cli_logging.log_level = 2
+        self.cli_logging.cli_ctx.enable_color = False
+        formats = self.cli_logging._get_console_log_formats()
+        expected = {'knack': '%(levelname)s: %(message)s', 'root': '%(levelname)s: %(message)s'}
+        self.assertEqual(formats, expected)
 
 
 class TestCustomStreamHandler(unittest.TestCase):
