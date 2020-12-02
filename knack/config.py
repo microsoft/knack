@@ -109,9 +109,18 @@ class CLIConfig(object):
 
     def items(self, section):
         import re
-        pattern = self.env_var_name(section, '[0-9A-Z][0-9A-Z_]*')
-        candidates = [(k.replace(self.env_var_name(section, ''), ''), os.environ[k], k) for k in os.environ if re.match(pattern, k)]
-        result = {c[0].lower(): c for c in candidates}
+        pattern = self.env_var_name(section, '([0-9A-Z][0-9A-Z_]*)')
+        env_entries = []
+        for k in os.environ:
+            matched = re.match(pattern, k)
+            if matched:
+                # (name, value, ENV_VAR_NAME)
+                item = (matched.group(1).lower(), os.environ[k], k)
+                env_entries.append(item)
+
+        # Prepare result with env entries first
+        result = {c[0]: c for c in env_entries}
+        # Add entries from config files if they do not exist yet
         for config in self._config_file_chain if self.use_local_config else self._config_file_chain[-1:]:
             try:
                 entries = config.items(section)
