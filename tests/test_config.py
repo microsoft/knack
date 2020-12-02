@@ -215,14 +215,12 @@ class TestCLIConfig(unittest.TestCase):
         # Windows' env var is case-insensitive, so skip
         import platform
         if platform.system() != 'Windows':
-            file_value = 'file_value'
-
             # Not shown
             with mock.patch.dict('os.environ', {'CLI_MYSECTION_Test_Option': env_value}):
                 items_result = self.cli_config.items(file_section)
                 self.assertEqual(len(items_result), 0)
 
-            # Not overridden
+            # No overriding
             self.cli_config.set_value(file_section, 'test_option', file_value)
             with mock.patch.dict('os.environ', {'CLI_MYSECTION_Test_Option': env_value}):
                 items_result = self.cli_config.items(file_section)

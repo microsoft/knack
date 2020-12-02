@@ -109,10 +109,12 @@ class CLIConfig(object):
 
     def items(self, section):
         import re
-        pattern = self.env_var_name(section, '([0-9A-Z][0-9A-Z_]*)')
+        # Only allow valid env vars, in all caps: CLI_SECTION_TEST_OPTION, CLI_SECTION__TEST_OPTION
+        pattern = self.env_var_name(section, '([0-9A-Z_]+)')
         env_entries = []
         for k in os.environ:
-            matched = re.match(pattern, k)
+            # Must be a full match, otherwise CLI_SECTION_T part in CLI_MYSECTION_Test_Option will match
+            matched = re.fullmatch(pattern, k)
             if matched:
                 # (name, value, ENV_VAR_NAME)
                 item = (matched.group(1).lower(), os.environ[k], k)
