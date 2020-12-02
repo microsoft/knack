@@ -12,7 +12,7 @@ from .invocation import CommandInvoker
 from .completion import CLICompletion
 from .output import OutputProducer
 from .log import CLILogging, get_logger
-from .util import CLIError, isatty
+from .util import CLIError
 from .config import CLIConfig
 from .query import CLIQuery
 from .events import EVENT_CLI_PRE_EXECUTE, EVENT_CLI_POST_EXECUTE
@@ -101,23 +101,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         self.init_info_log = []
 
         self.only_show_errors = self.config.getboolean('core', 'only_show_errors', fallback=False)
-
-        # Color is only enabled when all conditions are met:
-        #     1. [core] no_color config is not set
-        #     2. stdout is a tty
-        #         Otherwise, if the downstream command doesn't support color, Knack will fail with
-        #         BrokenPipeError: [Errno 32] Broken pipe, like `az --version | head --lines=1`
-        #         https://github.com/Azure/azure-cli/issues/13413
-        #     3. stderr is a tty
-        #         Otherwise, the output in stderr won't have LEVEL tag
-        #     4. out_file is stdout
-        conditions = (not self.config.getboolean('core', 'no_color', fallback=False),
-                      isatty(sys.stdout), isatty(sys.stderr), self.out_file is sys.stdout)
-        self.enable_color = all(conditions)
-        # Delay showing the debug message, as logging is not initialized yet
-        self.init_debug_log.append("enable_color({}) = enable_color_config({}) && "
-                                   "stdout.isatty({}) && stderr.isatty({}) && out_file_is_stdout({})"
-                                   .format(self.enable_color, *conditions))
+        self.enable_color = self._should_enable_color()
 
     @staticmethod
     def _should_show_version(args):
@@ -271,3 +255,33 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
                 colorama.deinit()
 
         return exit_code
+
+    def _should_enable_color(self):
+        # When run in a normal terminal, color is only enabled when all conditions are met:
+        #   1. [core] no_color config is not set
+        #   2. stdout is a tty
+        #      - Otherwise, if the downstream command doesn't support color, Knack will fail with
+        #      BrokenPipeError: [Errno 32] Broken pipe, like `az --version | head --lines=1`
+        #      https://github.com/Azure/azure-cli/issues/13413
+        #      - May also hit https://github.com/tartley/colorama/issues/200
+        #   3. stderr is a tty.
+        #      - Otherwise, the output in stderr won't have LEVEL tag
+        #   4. out_file is stdout
+
+        no_color_config = self.config.getboolean('core', 'no_color', fallback=False)
+        # If color is disabled by config explicitly, never enable color
+        if no_color_config:
+            self.init_debug_log.append("Color is disabled by config.")
+            return False
+
+        if 'PYCHARM_HOSTED' in os.environ:
+            if sys.stdout == sys.__stdout__ and sys.stderr == sys.__stderr__:
+                self.init_debug_log.append("Enable color in PyCharm.")
+                return True
+        else:
+            if sys.stdout.isatty() and sys.stderr.isatty() and self.out_file is sys.stdout:
+                self.init_debug_log.append("Enable color in terminal.")
+                return True
+
+        self.init_debug_log.append("Cannot enable color.")
+        return False
