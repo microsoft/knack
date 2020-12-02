@@ -169,21 +169,65 @@ class TestCLIConfig(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.cli_config.getboolean(section, option)
 
-    def test_items_case_insensitive(self):
-        section = 'MYSECTION'
-        envOption = '{}_{}_{}'.format(CLIConfig._DEFAULT_CONFIG_ENV_VAR_PREFIX, section, 'TEST_OPTION')
-        envVaule = 'envValue'
-        configOption = 'test_option'
-        configValue = 'value'
+    def test_items(self):
+        file_section = "MySection"
+        file_value = 'file_value'
+        env_value = 'env_value'
 
-        with mock.patch.dict('os.environ', {envOption: envVaule}):
-            self.cli_config.set_value(section, configOption, configValue)
-            items_result = self.cli_config.items(section)
-            # The items function is expected to
-            # return environment setting instead of
-            # returning both local config 'Option' and environment variable 'OPTION'
+        # Test file-only options are listed
+        file_only_option = 'file_only_option'
+        self.cli_config.set_value(file_section, file_only_option, file_value)
+        items_result = self.cli_config.items(file_section)
+        self.assertEqual(len(items_result), 1)
+        self.assertEqual(items_result[0]['name'], file_only_option)
+        self.assertEqual(items_result[0]['value'], file_value)
+        self.cli_config.remove_option(file_section, file_only_option)
+
+        # Test env-only options are listed
+        with mock.patch.dict('os.environ', {'CLI_MYSECTION_ENV_ONLY_OPTION': env_value}):
+            items_result = self.cli_config.items(file_section)
             self.assertEqual(len(items_result), 1)
-            self.assertEqual(items_result[0]['value'], 'envValue')
+            self.assertEqual(items_result[0]['name'], 'env_only_option')
+            self.assertEqual(items_result[0]['value'], env_value)
+
+        # Test file options are overridden by env options, for both single-word and multi-word options
+        test_options = [
+            # file_option, file_value, env_name, env_value
+            # Test single-word option
+            ('optionsingle', 'file_value_single', 'CLI_MYSECTION_OPTIONSINGLE', 'env_value_single'),
+            # Test multi-word option
+            ('option_multiple', 'file_value_multiple', 'CLI_MYSECTION_OPTION_MULTIPLE', 'env_value_multiple')
+        ]
+        for file_option, file_value, env_name, env_value in test_options:
+            self.cli_config.set_value(file_section, file_option, file_value)
+            items_result = self.cli_config.items(file_section)
+            self.assertEqual(len(items_result), 1)
+            self.assertEqual(items_result[0]['value'], file_value)
+
+            with mock.patch.dict('os.environ', {env_name: env_value}):
+                items_result = self.cli_config.items(file_section)
+                self.assertEqual(len(items_result), 1)
+                self.assertEqual(items_result[0]['value'], env_value)
+
+            self.cli_config.remove_option(file_section, file_option)
+
+        # Test Invalid_Env_Var is not accepted on Linux
+        # Windows' env var is case-insensitive, so skip
+        import platform
+        if platform.system() != 'Windows':
+            file_value = 'file_value'
+
+            # Not shown
+            with mock.patch.dict('os.environ', {'CLI_MYSECTION_Test_Option': env_value}):
+                items_result = self.cli_config.items(file_section)
+                self.assertEqual(len(items_result), 0)
+
+            # Not overridden
+            self.cli_config.set_value(file_section, 'test_option', file_value)
+            with mock.patch.dict('os.environ', {'CLI_MYSECTION_Test_Option': env_value}):
+                items_result = self.cli_config.items(file_section)
+                self.assertEqual(len(items_result), 1)
+                self.assertEqual(items_result[0]['value'], file_value)
 
     def test_set_config_value(self):
         self.cli_config.set_value('test_section', 'test_option', 'a_value')
