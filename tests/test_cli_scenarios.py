@@ -126,23 +126,33 @@ class TestCLIScenarios(unittest.TestCase):
         self.assertEqual(expected_output, mock_stdout.getvalue())
         self.assertEqual(0, exit_code)
 
-    @mock.patch('sys.stderr.isatty', return_value=True)
-    @mock.patch('sys.stdout.isatty', return_value=True)
+    @mock.patch('sys.stderr.isatty')
+    @mock.patch('sys.stdout.isatty')
     @mock.patch.dict('os.environ')
-    def test_enable_color(self, *_):
+    def test_should_enable_color(self, stdout_isatty_mock, stderr_isatty_mock):
         # Make sure we mock a normal terminal, instead of PyCharm terminal
         os.environ.pop('PYCHARM_HOSTED', None)
         cli = CLI()
-        self.assertEqual(cli.enable_color, True)
-        with mock.patch.dict("os.environ", {"CLI_CORE_NO_COLOR": "true"}):
-            cli = CLI()
-            self.assertEqual(cli.enable_color, False)
-        with mock.patch("sys.stderr.isatty", return_value=False):
-            cli = CLI()
-            self.assertEqual(cli.enable_color, False)
-        with mock.patch("sys.stdout.isatty", return_value=False):
-            cli = CLI()
-            self.assertEqual(cli.enable_color, False)
+
+        # Color is turned on by default
+        stdout_isatty_mock.return_value = True
+        stderr_isatty_mock.return_value = True
+        self.assertEqual(cli._should_enable_color(), True)
+
+        # Color is turned off with a main switch
+        os.environ['CLI_CORE_NO_COLOR'] = 'yes'
+        self.assertEqual(cli._should_enable_color(), False)
+        del os.environ['CLI_CORE_NO_COLOR']
+
+        # Mock stderr is not a TTY
+        stdout_isatty_mock.return_value = False
+        stderr_isatty_mock.return_value = True
+        self.assertEqual(cli._should_enable_color(), False)
+
+        # Mock stdout is not a TTY
+        stdout_isatty_mock.return_value = True
+        stderr_isatty_mock.return_value = False
+        self.assertEqual(cli._should_enable_color(), False)
 
     @redirect_io
     def test_init_log(self):
