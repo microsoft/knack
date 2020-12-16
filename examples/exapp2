@@ -16,47 +16,47 @@ from knack.help_files import helps
 cli_name = os.path.basename(__file__)
 
 helps['abc'] = """
-    type: group
-    short-summary: Manage the alphabet of words.
+type: group
+short-summary: Manage the alphabet of words.
 """
 
 helps['abc list'] = """
-    type: command
-    short-summary: List the alphabet.
-    examples:
-        - name: It's pretty straightforward.
-          text: {cli_name} abc list
+type: command
+short-summary: List the alphabet.
+examples:
+    - name: It's pretty straightforward.
+      text: {cli_name} abc list
 """.format(cli_name=cli_name)
 
 helps['abc first'] = """
-    type: command
-    short-summary: List the first several letters in the alphabet.
-    examples:
-        - name: Show the list of abc
-          text: {cli_name} abc first --number 3
+type: command
+short-summary: List the first several letters in the alphabet.
+examples:
+    - name: Show the list of abc
+      text: {cli_name} abc first --number 3
 """.format(cli_name=cli_name)
 
 helps['abc last'] = """
-    type: command
-    short-summary: List the last several letters in the alphabet.
-    examples:
-        - name: Show the list of xyz
-          text: {cli_name} abc last --number 3
+type: command
+short-summary: List the last several letters in the alphabet.
+examples:
+    - name: Show the list of xyz
+      text: {cli_name} abc last --number 3
 """.format(cli_name=cli_name)
 
 helps['ga'] = """
-    type: group
-    short-summary: A general available command group
+type: group
+short-summary: A general available command group
 """
 
 helps['pre'] = """
-    type: group
-    short-summary: A preview command group
+type: group
+short-summary: A preview command group
 """
 
 helps['exp'] = """
-    type: group
-    short-summary: An experimental command group
+type: group
+short-summary: An experimental command group
 """
 
 
@@ -166,12 +166,22 @@ class MyCommandsLoader(CLICommandsLoader):
             g.command('get', 'abc_show_command_handler', deprecate_info=g.deprecate(redirect='show', hide='1.0.0'))
             g.command('first', 'abc_first_command_handler', is_preview=True)
             g.command('last', 'abc_last_command_handler', is_experimental=True)
+
+        # A GA command group
         with CommandGroup(self, 'ga', '__main__#{}') as g:
             g.command('range', 'range_command_handler')
+
+        # A preview command group
         with CommandGroup(self, 'pre', '__main__#{}', is_preview=True) as g:
             g.command('first', 'abc_first_command_handler', is_preview=True)
             g.command('range', 'range_command_handler')
+
+        # An experimental command group
         with CommandGroup(self, 'exp', '__main__#{}', is_experimental=True) as g:
+            g.command('range', 'range_command_handler')
+
+        # A deprecated command group
+        with CommandGroup(self, 'dep', '__main__#{}', deprecate_info=g.deprecate(redirect='ga', hide='1.0.0')) as g:
             g.command('range', 'range_command_handler')
         return super(MyCommandsLoader, self).load_command_table(args)
 

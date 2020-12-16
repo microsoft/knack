@@ -16,16 +16,16 @@ from knack.help_files import helps
 cli_name = os.path.basename(__file__)
 
 helps['abc'] = """
-    type: group
-    short-summary: Manage the alphabet of words.
+type: group
+short-summary: Manage the alphabet of words.
 """
 
 helps['abc list'] = """
-    type: command
-    short-summary: List the alphabet.
-    examples:
-        - name: It's pretty straightforward.
-          text: {cli_name} abc list
+type: command
+short-summary: List the alphabet.
+examples:
+    - name: It's pretty straightforward.
+      text: {cli_name} abc list
 """.format(cli_name=cli_name)
 
 
