@@ -188,7 +188,7 @@ class CommandInvoker(object):
             deprecate_kwargs['object_type'] = 'command'
             del deprecate_kwargs['_get_tag']
             del deprecate_kwargs['_get_message']
-            deprecations.append(ImplicitDeprecated(**deprecate_kwargs))
+            deprecations.append(ImplicitDeprecated(cli_ctx=self.cli_ctx, **deprecate_kwargs))
 
         # search for implicit preview
         path_comps = cmd.name.split()[:-1]
@@ -200,7 +200,7 @@ class CommandInvoker(object):
         if implicit_preview_info:
             preview_kwargs = implicit_preview_info.__dict__.copy()
             preview_kwargs['object_type'] = 'command'
-            previews.append(ImplicitPreviewItem(**preview_kwargs))
+            previews.append(ImplicitPreviewItem(cli_ctx=self.cli_ctx, **preview_kwargs))
 
         # search for implicit experimental
         path_comps = cmd.name.split()[:-1]
@@ -212,7 +212,7 @@ class CommandInvoker(object):
         if implicit_experimental_info:
             experimental_kwargs = implicit_experimental_info.__dict__.copy()
             experimental_kwargs['object_type'] = 'command'
-            experimentals.append(ImplicitExperimentalItem(**experimental_kwargs))
+            experimentals.append(ImplicitExperimentalItem(cli_ctx=self.cli_ctx, **experimental_kwargs))
 
         if not self.cli_ctx.only_show_errors:
             for d in deprecations:
