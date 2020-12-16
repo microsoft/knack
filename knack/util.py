@@ -11,6 +11,14 @@ from enum import Enum
 
 NO_COLOR_VARIABLE_NAME = 'KNACK_NO_COLOR'
 
+# Override these values to customize the status message.
+# The message should contain a placeholder indicating the subject (like 'This command group', 'Commend group xxx').
+# (A dict is used to avoid the "from A import B" pitfall that creates a copy of the imported B.)
+status_tag_messages = {
+    'preview': "{} is in preview. It may be changed/removed in a future release.",
+    'experimental': "{} is experimental and under development."
+}
+
 
 class CommandResultItem(object):  # pylint: disable=too-few-public-methods
     def __init__(self, result, table_transformer=None, is_query_active=False,

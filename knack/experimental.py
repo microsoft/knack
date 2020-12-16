@@ -3,7 +3,7 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from .util import StatusTag
+from .util import StatusTag, status_tag_messages
 
 _EXPERIMENTAL_TAG = '[Experimental]'
 _experimental_kwarg = 'experimental_info'
@@ -50,8 +50,7 @@ class ExperimentalItem(StatusTag):
         """
 
         def _default_get_message(self):
-            return "This {} is experimental and not covered by customer support. " \
-                   "Please use with discretion.".format(self.object_type)
+            return status_tag_messages['experimental'].format("This " + self.object_type)
 
         super(ExperimentalItem, self).__init__(
             cli_ctx=cli_ctx,
@@ -68,8 +67,7 @@ class ImplicitExperimentalItem(ExperimentalItem):
     def __init__(self, **kwargs):
 
         def get_implicit_experimental_message(self):
-            return "Command group '{}' is experimental and not covered by customer support. " \
-                   "Please use with discretion.".format(self.target)
+            return status_tag_messages['experimental'].format("Command group '{}'".format(self.target))
 
         kwargs.update({
             'tag_func': lambda _: '',
