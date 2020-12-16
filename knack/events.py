@@ -4,6 +4,7 @@
 # --------------------------------------------------------------------------------------------
 
 EVENT_CLI_PRE_EXECUTE = 'Cli.PreExecute'
+EVENT_CLI_SUCCESSFUL_EXECUTE = 'Cli.SuccessfulExecute'
 EVENT_CLI_POST_EXECUTE = 'Cli.PostExecute'
 
 EVENT_INVOKER_PRE_CMD_TBL_CREATE = 'CommandInvoker.OnPreCommandTableCreate'
