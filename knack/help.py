@@ -153,7 +153,7 @@ class HelpFile(HelpObject):
                 help_ctx.cli_ctx.invocation.commands_loader.command_table else 'command group'
             del deprecate_kwargs['_get_tag']
             del deprecate_kwargs['_get_message']
-            self.deprecate_info = ImplicitDeprecated(**deprecate_kwargs)
+            self.deprecate_info = ImplicitDeprecated(cli_ctx=help_ctx.cli_ctx, **deprecate_kwargs)
 
         # resolve preview info
         direct_preview_info = resolve_preview_info(help_ctx.cli_ctx, delimiters)
@@ -173,7 +173,7 @@ class HelpFile(HelpObject):
                 preview_kwargs['object_type'] = 'command'
             else:
                 preview_kwargs['object_type'] = 'command group'
-            self.preview_info = ImplicitPreviewItem(**preview_kwargs)
+            self.preview_info = ImplicitPreviewItem(cli_ctx=help_ctx.cli_ctx, **preview_kwargs)
 
         # resolve experimental info
         direct_experimental_info = resolve_experimental_info(help_ctx.cli_ctx, delimiters)
@@ -193,7 +193,7 @@ class HelpFile(HelpObject):
                 experimental_kwargs['object_type'] = 'command'
             else:
                 experimental_kwargs['object_type'] = 'command group'
-            self.experimental_info = ImplicitExperimentalItem(**experimental_kwargs)
+            self.experimental_info = ImplicitExperimentalItem(cli_ctx=help_ctx.cli_ctx, **experimental_kwargs)
 
     def load(self, options):
         description = getattr(options, 'description', None)

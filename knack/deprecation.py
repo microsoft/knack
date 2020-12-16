@@ -84,6 +84,7 @@ class Deprecated(StatusTag):
         self.redirect = redirect
         self.hide = hide
         self.expiration = expiration
+        self._cli_version = cli_ctx.get_cli_version()
 
         super(Deprecated, self).__init__(
             cli_ctx=cli_ctx,
@@ -103,8 +104,7 @@ class Deprecated(StatusTag):
 
     def expired(self):
         if self.expiration:
-            cli_version = self.cli_ctx.get_cli_version()
-            return self._version_less_than_or_equal_to(self.expiration, cli_version)
+            return self._version_less_than_or_equal_to(self.expiration, self._cli_version)
         return False
 
     def hidden(self):
@@ -112,8 +112,7 @@ class Deprecated(StatusTag):
         if isinstance(self.hide, bool):
             hidden = self.hide
         elif isinstance(self.hide, STRING_TYPES):
-            cli_version = self.cli_ctx.get_cli_version()
-            hidden = self._version_less_than_or_equal_to(self.hide, cli_version)
+            hidden = self._version_less_than_or_equal_to(self.hide, self._cli_version)
         return hidden
 
     def show_in_help(self):
