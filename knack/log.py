@@ -5,11 +5,21 @@
 
 import os
 import logging
+from enum import IntEnum
 
 from .util import CtxTypeError, ensure_dir, CLIError
 from .events import EVENT_PARSER_GLOBAL_CREATE
 
-CLI_LOGGER_NAME = 'cli'
+
+CLI_LOGGER_NAME = 'knack'
+
+
+class CliLogLevel(IntEnum):
+    CRITICAL = 0
+    ERROR = 1
+    WARNING = 2
+    INFO = 3
+    DEBUG = 4
 
 
 def get_logger(module_name=None):
@@ -24,7 +34,7 @@ def get_logger(module_name=None):
     :rtype: logger
     """
     if module_name:
-        logger_name = '{}.{}'.format(CLI_LOGGER_NAME, module_name)
+        logger_name = module_name
     else:
         logger_name = CLI_LOGGER_NAME
     return logging.getLogger(logger_name)
@@ -57,7 +67,7 @@ class _CustomStreamHandler(logging.StreamHandler):
         logging.StreamHandler.__init__(self)
         self.setLevel(log_level_config)
         self.enable_color = enable_color
-        self.setFormatter(logging.Formatter(log_format[self.enable_color]))
+        self.setFormatter(logging.Formatter(log_format))
 
     def format(self, record):
         msg = logging.StreamHandler.format(self, record)
@@ -69,7 +79,7 @@ class _CustomStreamHandler(logging.StreamHandler):
         return msg
 
 
-class CLILogging(object):
+class CLILogging(object):  # pylint: disable=too-many-instance-attributes
 
     DEBUG_FLAG = '--debug'
     VERBOSE_FLAG = '--verbose'
@@ -87,24 +97,28 @@ class CLILogging(object):
                                action='store_true',
                                help='Only show errors, suppressing warnings.')
 
-    def __init__(self, name, cli_ctx=None):
+    def __init__(self, name, cli_ctx=None, cli_logger_name=None):
         """
 
         :param name: The name to be used for log files
         :type name: str
         :param cli_ctx: CLI Context
         :type cli_ctx: knack.cli.CLI
+        :param cli_logger_name: Used to override CLI_LOGGER_NAME
+        :type cli_logger_name: str
         """
         from .cli import CLI
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
             raise CtxTypeError(cli_ctx)
+        self.cli_logger_name = cli_logger_name or CLI_LOGGER_NAME
         self.logfile_name = '{}.log'.format(name)
         self.file_log_enabled = CLILogging._is_file_log_enabled(cli_ctx)
         self.log_dir = CLILogging._get_log_dir(cli_ctx)
-        self.console_log_configs = CLILogging._get_console_log_configs()
-        self.console_log_format = CLILogging._get_console_log_format()
         self.cli_ctx = cli_ctx
         self.cli_ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, CLILogging.on_global_arguments)
+
+        # The value is determined when `configure` is called
+        self.log_level = None
 
     def configure(self, args):
         """ Configure the loggers with the appropriate log level etc.
@@ -112,10 +126,11 @@ class CLILogging(object):
         :param args: The arguments from the command line
         :type args: list
         """
-        log_level = self._determine_log_level(args)
-        log_level_config = self.console_log_configs[log_level]
+        self.log_level = self._determine_log_level(args)
+        console_log_levels = self._get_console_log_levels()
+        console_log_formats = self._get_console_log_formats()
         root_logger = logging.getLogger()
-        cli_logger = logging.getLogger(CLI_LOGGER_NAME)
+        cli_logger = logging.getLogger(self.cli_logger_name)
         # Set the levels of the loggers to lowest level.
         # Handlers can override by choosing a higher level.
         root_logger.setLevel(logging.DEBUG)
@@ -124,7 +139,7 @@ class CLILogging(object):
         if root_logger.handlers and cli_logger.handlers:
             # loggers already configured
             return
-        self._init_console_handlers(root_logger, cli_logger, log_level_config)
+        self._init_console_handlers(root_logger, cli_logger, console_log_levels, console_log_formats)
         if self.file_log_enabled:
             self._init_logfile_handlers(root_logger, cli_logger)
             get_logger(__name__).debug("File logging enabled - writing logs to '%s'.", self.log_dir)
@@ -136,23 +151,24 @@ class CLILogging(object):
             if CLILogging.DEBUG_FLAG in args or CLILogging.VERBOSE_FLAG in args:
                 raise CLIError("--only-show-errors can't be used together with --debug or --verbose")
             self.cli_ctx.only_show_errors = True
-            return 1
+            return CliLogLevel.ERROR
         if CLILogging.DEBUG_FLAG in args:
             self.cli_ctx.only_show_errors = False
-            return 4
+            return CliLogLevel.DEBUG
         if CLILogging.VERBOSE_FLAG in args:
             self.cli_ctx.only_show_errors = False
-            return 3
+            return CliLogLevel.INFO
         if self.cli_ctx.only_show_errors:
-            return 1
-        return 2  # default to show WARNINGs and above
+            # only_show_errors is enabled by config
+            return CliLogLevel.ERROR
+        return CliLogLevel.WARNING  # default to show WARNINGs and above
 
-    def _init_console_handlers(self, root_logger, cli_logger, log_level_config):
-        root_logger.addHandler(_CustomStreamHandler(log_level_config['root'],
-                                                    self.console_log_format['root'],
+    def _init_console_handlers(self, root_logger, cli_logger, log_levels, log_formats):
+        root_logger.addHandler(_CustomStreamHandler(log_levels['root'],
+                                                    log_formats['root'],
                                                     self.cli_ctx.enable_color))
-        cli_logger.addHandler(_CustomStreamHandler(log_level_config[CLI_LOGGER_NAME],
-                                                   self.console_log_format[CLI_LOGGER_NAME],
+        cli_logger.addHandler(_CustomStreamHandler(log_levels[self.cli_logger_name],
+                                                   log_formats[self.cli_logger_name],
                                                    self.cli_ctx.enable_color))
 
     def _init_logfile_handlers(self, root_logger, cli_logger):
@@ -175,48 +191,65 @@ class CLILogging(object):
         default_dir = (os.path.join(cli_ctx.config.config_dir, 'logs'))
         return os.path.expanduser(cli_ctx.config.get('logging', 'log_dir', fallback=default_dir))
 
-    @staticmethod
-    def _get_console_log_configs():
-        return [
+    def _get_console_log_levels(self):
+        """Levels of cli logger and root logger for console logging.
+
+        - cli logger level is controlled by the overall log level
+        - root logger is only shown at DEBUG overall level
+        """
+        level_list = [
             # --only-show-critical [RESERVED]
             {
-                CLI_LOGGER_NAME: logging.CRITICAL,
+                self.cli_logger_name: logging.CRITICAL,
                 'root': logging.CRITICAL
             },
             # --only-show-errors
             {
-                CLI_LOGGER_NAME: logging.ERROR,
+                self.cli_logger_name: logging.ERROR,
                 'root': logging.CRITICAL
             },
             # (default)
             {
-                CLI_LOGGER_NAME: logging.WARNING,
+                self.cli_logger_name: logging.WARNING,
                 'root': logging.CRITICAL,
             },
             # --verbose
             {
-                CLI_LOGGER_NAME: logging.INFO,
+                self.cli_logger_name: logging.INFO,
                 'root': logging.CRITICAL,
             },
             # --debug
             {
-                CLI_LOGGER_NAME: logging.DEBUG,
+                self.cli_logger_name: logging.DEBUG,
                 'root': logging.DEBUG,
             }]
+        return level_list[self.log_level]
 
-    @staticmethod
-    def _get_console_log_format():
-        """ Formats for console logging if coloring is enabled or not.
-            Show the level name if coloring is disabled (e.g. INFO).
-            Also, Root logger should show the logger name.
+    def _get_console_log_formats(self):
+        """Formats of cli logger and root logger for console logging, depending on color and level settings.
+
+        - color:
+          - True: Hide level names
+          - False: Show level names (ERROR, WARNING, INFO, DEBUG)
+
+        - level:
+          - DEBUG: both cli and root logger names are shown
+          - others: no logger names are shown (root logger won't be shown anyway)
         """
+
+        elements = []
+
+        if not self.cli_ctx.enable_color:
+            elements.append('%(levelname)s')
+
+        if self.log_level == CliLogLevel.DEBUG:
+            elements.append('%(name)s')
+
+        elements.append('%(message)s')
+
+        log_format = ': '.join(elements)
         return {
-            CLI_LOGGER_NAME: {
-                True: '%(message)s',
-                False: '%(levelname)s: %(message)s',
-            },
-            'root': {
-                True: '%(name)s : %(message)s',
-                False: '%(levelname)s: %(name)s : %(message)s',
-            }
+            # Even though these loggers use the same format, keep the dict for further tuning
+            self.cli_logger_name: log_format,
+            'root': log_format
         }
