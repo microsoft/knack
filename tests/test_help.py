@@ -5,32 +5,13 @@
 
 import sys
 import unittest
+
 import mock
-from six import StringIO
-
-
-from knack.help import ArgumentGroupRegistry, HelpObject
 from knack.arguments import ArgumentsContext
-from knack.commands import CLICommand, CLICommandsLoader, CommandGroup
+from knack.commands import CLICommandsLoader, CommandGroup
 from knack.events import EVENT_PARSER_GLOBAL_CREATE
-from knack.invocation import CommandInvoker
-
-from tests.util import MockContext, DummyCLI
-
-io = {}
-
-
-def redirect_io(func):
-    def wrapper(self):
-        global io
-        old_stdout = sys.stdout
-        old_stderr = sys.stderr
-        sys.stdout = sys.stderr = io = StringIO()
-        func(self)
-        io.close()
-        sys.stdout = old_stdout
-        sys.stderr = old_stderr
-    return wrapper
+from knack.help import ArgumentGroupRegistry, HelpObject
+from tests.util import DummyCLI, redirect_io
 
 
 def example_handler(arg1, arg2=None, arg3=None):
@@ -206,7 +187,7 @@ class TestHelp(unittest.TestCase):
         """ Ensure choice_list works with integer lists. """
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('n1 -h'.split())
-        actual = io.getvalue()
+        actual = self.io.getvalue()
         expected = 'Allowed values: 1, 2, 3'
         self.assertIn(expected, actual)
 
@@ -227,7 +208,7 @@ class TestHelp(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('n1 -h'.split())
-        actual = io.getvalue()
+        actual = self.io.getvalue()
         expected = '\nCommand\n    {} n1 : Short summary here.\n        Long summary here. Still long summary.'.format(self.cli_ctx.name)
         self.assertTrue(actual.startswith(expected))
 
@@ -238,7 +219,7 @@ class TestHelp(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('n2 -h'.split())
-        actual = io.getvalue()
+        actual = self.io.getvalue()
         expected = '\nCommand\n    {} n2 : YAML short summary.\n        YAML long summary. More summary.'.format(self.cli_ctx.name)
         self.assertTrue(actual.startswith(expected))
 
@@ -248,7 +229,7 @@ class TestHelp(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('n3 -h'.split())
-        actual = io.getvalue()
+        actual = self.io.getvalue()
         expected = '\nCommand\n    {} n3 : Short summary here.\n        Line1\n        line2.\n'.format(self.cli_ctx.name)
         self.assertTrue(actual.startswith(expected))
 
@@ -269,7 +250,7 @@ Arguments
         Paragraph(s).
     --foobar3            : The foobar3.
 """
-        actual = io.getvalue()
+        actual = self.io.getvalue()
         expected = expected.format(self.cli_ctx.name)
         self.assertTrue(actual.startswith(expected))
 
@@ -307,7 +288,7 @@ Examples
         example details
 
 """
-        actual = io.getvalue()
+        actual = self.io.getvalue()
         expected = expected.format(self.cli_ctx.name)
         self.assertTrue(actual.startswith(expected))
 
@@ -338,7 +319,7 @@ Global Arguments
     --verbose          : Increase logging verbosity. Use --debug for full debug logs.
 
 """
-        actual = io.getvalue()
+        actual = self.io.getvalue()
         expected = expected.format(self.cli_ctx.name)
         self.assertEqual(actual, expected)
 
@@ -358,7 +339,7 @@ Subgroups:
     beta
 
 """
-        actual = io.getvalue()
+        actual = self.io.getvalue()
         expected = expected.format(self.cli_ctx.name)
         self.assertEqual(actual, expected)
 
@@ -377,7 +358,7 @@ Subgroups:
             with self.assertRaises(SystemExit):
                 self.cli_ctx.invoke('n1 -a 1 --arg 2'.split())
 
-            actual = io.getvalue()
+            actual = self.io.getvalue()
             self.assertTrue('required' in actual and '-b' in actual)
 
     @redirect_io
@@ -395,7 +376,7 @@ Subgroups:
             with self.assertRaises(SystemExit):
                 self.cli_ctx.invoke('n1 -a 1 -b c -c extra'.split())
 
-        actual = io.getvalue()
+        actual = self.io.getvalue()
         expected = 'unrecognized arguments: -c extra'
         self.assertIn(expected, actual)
 
@@ -415,7 +396,7 @@ Commands:
     n1 : This module does xyz one-line or so.
 
 """
-        actual = io.getvalue()
+        actual = self.io.getvalue()
         expected = expected.format(self.cli_ctx.name)
         self.assertEqual(actual, expected)
 
@@ -455,7 +436,7 @@ Global Arguments
     --verbose          : Increase logging verbosity. Use --debug for full debug logs.
 
 """
-        actual = io.getvalue()
+        actual = self.io.getvalue()
         expected = s.format(self.cli_ctx.name)
         self.assertEqual(actual, expected)
 

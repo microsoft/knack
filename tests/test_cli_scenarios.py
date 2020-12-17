@@ -17,7 +17,7 @@ from six import StringIO
 from knack import CLI
 from knack.commands import CLICommand, CLICommandsLoader
 from knack.invocation import CommandInvoker
-from tests.util import MockContext
+from tests.util import MockContext, redirect_io
 
 
 class TestCLIScenarios(unittest.TestCase):
@@ -125,6 +125,47 @@ class TestCLIScenarios(unittest.TestCase):
         mycli.invoke(['abc', 'list', '--query', '[0].a'], out_file=mock_stdout)
         self.assertEqual(expected_output, mock_stdout.getvalue())
         self.assertEqual(0, exit_code)
+
+    @mock.patch('sys.stderr.isatty')
+    @mock.patch('sys.stdout.isatty')
+    @mock.patch.dict('os.environ')
+    def test_should_enable_color(self, stdout_isatty_mock, stderr_isatty_mock):
+        # Make sure we mock a normal terminal, instead of PyCharm terminal
+        os.environ.pop('PYCHARM_HOSTED', None)
+        cli = CLI()
+
+        # Color is turned on by default
+        stdout_isatty_mock.return_value = True
+        stderr_isatty_mock.return_value = True
+        self.assertEqual(cli._should_enable_color(), True)
+
+        # Color is turned off with a main switch
+        os.environ['CLI_CORE_NO_COLOR'] = 'yes'
+        self.assertEqual(cli._should_enable_color(), False)
+        del os.environ['CLI_CORE_NO_COLOR']
+
+        # Mock stderr is not a TTY
+        stdout_isatty_mock.return_value = False
+        stderr_isatty_mock.return_value = True
+        self.assertEqual(cli._should_enable_color(), False)
+
+        # Mock stdout is not a TTY
+        stdout_isatty_mock.return_value = True
+        stderr_isatty_mock.return_value = False
+        self.assertEqual(cli._should_enable_color(), False)
+
+    @redirect_io
+    def test_init_log(self):
+        class MyCLI(CLI):
+            def __init__(self, **kwargs):
+                super(MyCLI, self).__init__(**kwargs)
+                self.init_debug_log.append("init debug log: 6aa19a11")
+                self.init_info_log.append("init info log: b0746f58")
+        cli = MyCLI()
+        cli.invoke(["--debug"])
+        actual = self.io.getvalue()
+        self.assertIn("6aa19a11", actual)
+        self.assertIn("b0746f58", actual)
 
 
 if __name__ == '__main__':

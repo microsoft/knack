@@ -22,6 +22,10 @@ from .help import CLIHelp
 
 logger = get_logger(__name__)
 
+# Temporarily force color to be enabled even when out_file is not stdout.
+# This is only intended for testing purpose.
+_KNACK_TEST_FORCE_ENABLE_COLOR = False
+
 
 class CLI(object):  # pylint: disable=too-many-instance-attributes
     """ The main driver for the CLI """
@@ -91,8 +95,13 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         self.output = self.output_cls(cli_ctx=self)
         self.result = None
         self.query = query_cls(cli_ctx=self)
+
+        # As logging is initialized in `invoke`, call `logger.debug` or `logger.info` here won't work.
+        self.init_debug_log = []
+        self.init_info_log = []
+
         self.only_show_errors = self.config.getboolean('core', 'only_show_errors', fallback=False)
-        self.enable_color = not self.config.getboolean('core', 'no_color', fallback=False)
+        self.enable_color = self._should_enable_color()
 
     @staticmethod
     def _should_show_version(args):
@@ -171,6 +180,15 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             logger.exception(ex)
         return 1
 
+    def _print_init_log(self):
+        """Print the debug/info log from CLI.__init__"""
+        if self.init_debug_log:
+            logger.debug('__init__ debug log:\n%s', '\n'.join(self.init_debug_log))
+            self.init_debug_log.clear()
+        if self.init_info_log:
+            logger.info('__init__ info log:\n%s', '\n'.join(self.init_info_log))
+            self.init_info_log.clear()
+
     def invoke(self, args, initial_invocation_data=None, out_file=None):
         """ Invoke a command.
 
@@ -189,18 +207,18 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             raise TypeError('args should be a list or tuple.')
         exit_code = 0
         try:
-            if self.enable_color:
+            out_file = out_file or self.out_file
+            if out_file is sys.stdout and self.enable_color or _KNACK_TEST_FORCE_ENABLE_COLOR:
                 import colorama
                 colorama.init()
-                if self.out_file == sys.__stdout__:
-                    # point out_file to the new sys.stdout which is overwritten by colorama
-                    self.out_file = sys.stdout
+                # point out_file to the new sys.stdout which is overwritten by colorama
+                out_file = sys.stdout
 
             args = self.completion.get_completion_args() or args
-            out_file = out_file or self.out_file
 
             self.logging.configure(args)
             logger.debug('Command arguments: %s', args)
+            self._print_init_log()
 
             self.raise_event(EVENT_CLI_PRE_EXECUTE)
             if CLI._should_show_version(args):
@@ -233,7 +251,38 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         finally:
             self.raise_event(EVENT_CLI_POST_EXECUTE)
 
-            if self.enable_color:
+            if self.enable_color or _KNACK_TEST_FORCE_ENABLE_COLOR:
+                import colorama
                 colorama.deinit()
 
         return exit_code
+
+    def _should_enable_color(self):
+        # When run in a normal terminal, color is only enabled when all conditions are met:
+        #   1. [core] no_color config is not set
+        #   2. stdout is a tty
+        #      - Otherwise, if the downstream command doesn't support color, Knack will fail with
+        #      BrokenPipeError: [Errno 32] Broken pipe, like `az --version | head --lines=1`
+        #      https://github.com/Azure/azure-cli/issues/13413
+        #      - May also hit https://github.com/tartley/colorama/issues/200
+        #   3. stderr is a tty.
+        #      - Otherwise, the output in stderr won't have LEVEL tag
+        #   4. out_file is stdout
+
+        no_color_config = self.config.getboolean('core', 'no_color', fallback=False)
+        # If color is disabled by config explicitly, never enable color
+        if no_color_config:
+            self.init_debug_log.append("Color is disabled by config.")
+            return False
+
+        if 'PYCHARM_HOSTED' in os.environ:
+            if sys.stdout == sys.__stdout__ and sys.stderr == sys.__stderr__:
+                self.init_debug_log.append("Enable color in PyCharm.")
+                return True
+        else:
+            if sys.stdout.isatty() and sys.stderr.isatty() and self.out_file is sys.stdout:
+                self.init_debug_log.append("Enable color in terminal.")
+                return True
+
+        self.init_debug_log.append("Cannot enable color.")
+        return False
