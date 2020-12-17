@@ -117,7 +117,7 @@ class CLILogging(object):  # pylint: disable=too-many-instance-attributes
         self.cli_ctx = cli_ctx
         self.cli_ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, CLILogging.on_global_arguments)
 
-        # These attributes' value are determined when `configure` is called
+        # The value is determined when `configure` is called
         self.log_level = None
 
     def configure(self, args):
