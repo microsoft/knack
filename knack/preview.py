@@ -3,7 +3,7 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from .util import StatusTag
+from .util import StatusTag, status_tag_messages
 
 _PREVIEW_TAG = '[Preview]'
 _preview_kwarg = 'preview_info'
@@ -50,7 +50,7 @@ class PreviewItem(StatusTag):
         """
 
         def _default_get_message(self):
-            return "This {} is in preview. It may be changed/removed in a future release.".format(self.object_type)
+            return status_tag_messages['preview'].format("This " + self.object_type)
 
         super(PreviewItem, self).__init__(
             cli_ctx=cli_ctx,
@@ -67,8 +67,7 @@ class ImplicitPreviewItem(PreviewItem):
     def __init__(self, **kwargs):
 
         def get_implicit_preview_message(self):
-            return "Command group '{}' is in preview. It may be changed/removed " \
-                   "in a future release.".format(self.target)
+            return status_tag_messages['preview'].format("Command group '{}'".format(self.target))
 
         kwargs.update({
             'tag_func': lambda _: '',

@@ -10,7 +10,7 @@ from .deprecation import Deprecated
 from .preview import PreviewItem
 from .experimental import ExperimentalItem
 from .log import get_logger
-from .util import CLIError
+from .util import CLIError, status_tag_messages
 
 
 logger = get_logger(__name__)
@@ -250,8 +250,9 @@ class ArgumentsContext(object):
             return PreviewArgumentAction
 
         def _get_preview_arg_message(self):
-            return "{} '{}' is in preview. It may be changed/removed in a future release.".format(
-                self.object_type.capitalize(), self.target)
+            # "Argument xxx"
+            subject = "{} '{}'".format(self.object_type.capitalize(), self.target)
+            return status_tag_messages['preview'].format(subject)
 
         options_list = kwargs.get('options_list', None)
         object_type = 'argument'
@@ -300,8 +301,9 @@ class ArgumentsContext(object):
             return ExperimentalArgumentAction
 
         def _get_experimental_arg_message(self):
-            return "{} '{}' is experimental and not covered by customer support. " \
-                   "Please use with discretion.".format(self.object_type.capitalize(), self.target)
+            # "Argument xxx"
+            subject = "{} '{}'".format(self.object_type.capitalize(), self.target)
+            return status_tag_messages['experimental'].format(subject)
 
         options_list = kwargs.get('options_list', None)
         object_type = 'argument'

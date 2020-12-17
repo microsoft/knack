@@ -65,8 +65,7 @@ class TestCommandExperimental(unittest.TestCase):
         """ Ensure general warning displayed when running command from an experimental parent group. """
         self.cli_ctx.invoke('grp1 cmd1 -b b'.split())
         actual = self.io.getvalue()
-        expected = "Command group 'grp1' is experimental and not covered by customer support. " \
-                   "Please use with discretion."
+        expected = "Command group 'grp1' is experimental and under development."
         self.assertIn(remove_space(expected), remove_space(actual))
 
     @redirect_io
@@ -93,7 +92,7 @@ Commands:
         """ Ensure general warning displayed when running experimental command. """
         self.cli_ctx.invoke('cmd1 -b b'.split())
         actual = self.io.getvalue()
-        expected = "This command is experimental and not covered by customer support. Please use with discretion."
+        expected = "This command is experimental and under development."
         self.assertIn(remove_space(expected), remove_space(actual))
 
 
@@ -134,7 +133,7 @@ class TestCommandGroupExperimental(unittest.TestCase):
         expected = """
 Group
     cli group1 : A group.
-        This command group is experimental and not covered by customer support. Please use with discretion.
+        This command group is experimental and under development.
 Commands:
     cmd1 : Short summary here.
 
@@ -151,7 +150,7 @@ Commands:
 Command
     {} group1 cmd1 : Short summary here.
         Long summary here. Still long summary.
-        Command group 'group1' is experimental and not covered by customer support. Please use with discretion.
+        Command group 'group1' is experimental and under development.
 """.format(self.cli_ctx.name)
         self.assertIn(remove_space(expected), remove_space(actual))
 
@@ -194,7 +193,7 @@ class TestArgumentExperimental(unittest.TestCase):
         expected = """
 Arguments
     --arg1 [Experimental] [Required] : Arg1.
-        Argument '--arg1' is experimental and not covered by customer support. Please use with discretion.
+        Argument '--arg1' is experimental and under development.
 """.format(self.cli_ctx.name)
         self.assertIn(remove_space(expected), remove_space(actual))
 
@@ -203,8 +202,7 @@ Arguments
         """ Ensure deprecated arguments can be used. """
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar'.split())
         actual = self.io.getvalue()
-        experimental_expected = "Argument '--arg1' is experimental and not covered by customer support. " \
-                                "Please use with discretion."
+        experimental_expected = "Argument '--arg1' is experimental and under development."
         self.assertIn(experimental_expected, actual)
 
         action_expected = "Side-effect from some original action!"
