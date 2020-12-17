@@ -105,7 +105,6 @@ Commands:
         self.cli_ctx.config.set_value('core', 'only_show_errors', '')
         self.cli_ctx.only_show_errors = False
 
-
     @redirect_io
     @disable_color
     def test_preview_command_plain_execute_no_color(self):
