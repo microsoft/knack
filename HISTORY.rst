@@ -3,6 +3,15 @@
 Release History
 ===============
 
+0.8.0rc1
+++++++++
+* Make config item names case-insensitive (#220)
+* `get_logger` uses `module_name` directly and no longer adds `cli` prefix (#221)
+* `CLILogging` accepts a custom `cli_logger_name` (#221)
+* Support ppc64le arch in Travis CI (#222)
+* Allow customizing tag message (#223)
+* Add `EVENT_CLI_SUCCESSFUL_EXECUTE` (#224)
+
 0.7.2
 ++++++++
 * [Config] Support listing sections (#217)
