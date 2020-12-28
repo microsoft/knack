@@ -11,7 +11,10 @@ from .util import CtxTypeError, ensure_dir, CLIError
 from .events import EVENT_PARSER_GLOBAL_CREATE
 
 
-CLI_LOGGER_NAME = 'knack'
+CLI_LOGGER_NAME = 'cli'
+# Add more logger names to this list so that ERROR, WARNING, INFO logs from these loggers can also be displayed
+# without --debug flag.
+cli_logger_names = [CLI_LOGGER_NAME]
 
 
 class CliLogLevel(IntEnum):
@@ -34,7 +37,7 @@ def get_logger(module_name=None):
     :rtype: logger
     """
     if module_name:
-        logger_name = module_name
+        logger_name = '{}.{}'.format(CLI_LOGGER_NAME, module_name)
     else:
         logger_name = CLI_LOGGER_NAME
     return logging.getLogger(logger_name)
@@ -79,7 +82,7 @@ class _CustomStreamHandler(logging.StreamHandler):
         return msg
 
 
-class CLILogging(object):  # pylint: disable=too-many-instance-attributes
+class CLILogging:  # pylint: disable=too-many-instance-attributes
 
     DEBUG_FLAG = '--debug'
     VERBOSE_FLAG = '--verbose'
@@ -97,20 +100,17 @@ class CLILogging(object):  # pylint: disable=too-many-instance-attributes
                                action='store_true',
                                help='Only show errors, suppressing warnings.')
 
-    def __init__(self, name, cli_ctx=None, cli_logger_name=None):
+    def __init__(self, name, cli_ctx=None):
         """
 
         :param name: The name to be used for log files
         :type name: str
         :param cli_ctx: CLI Context
         :type cli_ctx: knack.cli.CLI
-        :param cli_logger_name: Used to override CLI_LOGGER_NAME
-        :type cli_logger_name: str
         """
         from .cli import CLI
         if cli_ctx is not None and not isinstance(cli_ctx, CLI):
             raise CtxTypeError(cli_ctx)
-        self.cli_logger_name = cli_logger_name or CLI_LOGGER_NAME
         self.logfile_name = '{}.log'.format(name)
         self.file_log_enabled = CLILogging._is_file_log_enabled(cli_ctx)
         self.log_dir = CLILogging._get_log_dir(cli_ctx)
@@ -129,19 +129,23 @@ class CLILogging(object):  # pylint: disable=too-many-instance-attributes
         self.log_level = self._determine_log_level(args)
         console_log_levels = self._get_console_log_levels()
         console_log_formats = self._get_console_log_formats()
+
         root_logger = logging.getLogger()
-        cli_logger = logging.getLogger(self.cli_logger_name)
         # Set the levels of the loggers to lowest level.
         # Handlers can override by choosing a higher level.
         root_logger.setLevel(logging.DEBUG)
-        cli_logger.setLevel(logging.DEBUG)
-        cli_logger.propagate = False
-        if root_logger.handlers and cli_logger.handlers:
-            # loggers already configured
+
+        cli_loggers = [logging.getLogger(logger_name) for logger_name in cli_logger_names]
+        for cli_logger in cli_loggers:
+            cli_logger.setLevel(logging.DEBUG)
+            cli_logger.propagate = False
+
+        if root_logger.handlers:
+            # handlers already configured
             return
-        self._init_console_handlers(root_logger, cli_logger, console_log_levels, console_log_formats)
+        self._init_console_handlers(root_logger, cli_loggers, console_log_levels, console_log_formats)
         if self.file_log_enabled:
-            self._init_logfile_handlers(root_logger, cli_logger)
+            self._init_logfile_handlers(root_logger, cli_loggers)
             get_logger(__name__).debug("File logging enabled - writing logs to '%s'.", self.log_dir)
 
     def _determine_log_level(self, args):
@@ -163,15 +167,16 @@ class CLILogging(object):  # pylint: disable=too-many-instance-attributes
             return CliLogLevel.ERROR
         return CliLogLevel.WARNING  # default to show WARNINGs and above
 
-    def _init_console_handlers(self, root_logger, cli_logger, log_levels, log_formats):
+    def _init_console_handlers(self, root_logger, cli_loggers, log_levels, log_formats):
         root_logger.addHandler(_CustomStreamHandler(log_levels['root'],
                                                     log_formats['root'],
                                                     self.cli_ctx.enable_color))
-        cli_logger.addHandler(_CustomStreamHandler(log_levels[self.cli_logger_name],
-                                                   log_formats[self.cli_logger_name],
-                                                   self.cli_ctx.enable_color))
+        cli_logger_console_handler = _CustomStreamHandler(log_levels['cli'], log_formats['cli'],
+                                                          self.cli_ctx.enable_color)
+        for cli_logger in cli_loggers:
+            cli_logger.addHandler(cli_logger_console_handler)
 
-    def _init_logfile_handlers(self, root_logger, cli_logger):
+    def _init_logfile_handlers(self, root_logger, cli_loggers):
         ensure_dir(self.log_dir)
         log_file_path = os.path.join(self.log_dir, self.logfile_name)
         from logging.handlers import RotatingFileHandler
@@ -180,7 +185,8 @@ class CLILogging(object):  # pylint: disable=too-many-instance-attributes
         logfile_handler.setFormatter(lfmt)
         logfile_handler.setLevel(logging.DEBUG)
         root_logger.addHandler(logfile_handler)
-        cli_logger.addHandler(logfile_handler)
+        for cli_logger in cli_loggers:
+            cli_logger.addHandler(logfile_handler)
 
     @staticmethod
     def _is_file_log_enabled(cli_ctx):
@@ -200,27 +206,27 @@ class CLILogging(object):  # pylint: disable=too-many-instance-attributes
         level_list = [
             # --only-show-critical [RESERVED]
             {
-                self.cli_logger_name: logging.CRITICAL,
+                'cli': logging.CRITICAL,
                 'root': logging.CRITICAL
             },
             # --only-show-errors
             {
-                self.cli_logger_name: logging.ERROR,
+                'cli': logging.ERROR,
                 'root': logging.CRITICAL
             },
             # (default)
             {
-                self.cli_logger_name: logging.WARNING,
+                'cli': logging.WARNING,
                 'root': logging.CRITICAL,
             },
             # --verbose
             {
-                self.cli_logger_name: logging.INFO,
+                'cli': logging.INFO,
                 'root': logging.CRITICAL,
             },
             # --debug
             {
-                self.cli_logger_name: logging.DEBUG,
+                'cli': logging.DEBUG,
                 'root': logging.DEBUG,
             }]
         return level_list[self.log_level]
@@ -250,6 +256,6 @@ class CLILogging(object):  # pylint: disable=too-many-instance-attributes
         log_format = ': '.join(elements)
         return {
             # Even though these loggers use the same format, keep the dict for further tuning
-            self.cli_logger_name: log_format,
+            'cli': log_format,
             'root': log_format
         }
