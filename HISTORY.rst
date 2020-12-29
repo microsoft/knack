@@ -3,6 +3,11 @@
 Release History
 ===============
 
+0.8.0rc2
+++++++++
+
+* Support multiple cli loggers by adding more logger names to `knack.log.cli_logger_names` list (#227)
+
 0.8.0rc1
 ++++++++
 * Make config item names case-insensitive (#220)
