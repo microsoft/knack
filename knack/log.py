@@ -126,11 +126,16 @@ class CLILogging:  # pylint: disable=too-many-instance-attributes
         :param args: The arguments from the command line
         :type args: list
         """
+        root_logger = logging.getLogger()
+
+        if root_logger.handlers:
+            # handlers already configured
+            return
+
         self.log_level = self._determine_log_level(args)
         console_log_levels = self._get_console_log_levels()
         console_log_formats = self._get_console_log_formats()
 
-        root_logger = logging.getLogger()
         # Set the levels of the loggers to lowest level.
         # Handlers can override by choosing a higher level.
         root_logger.setLevel(logging.DEBUG)
@@ -140,9 +145,6 @@ class CLILogging:  # pylint: disable=too-many-instance-attributes
             cli_logger.setLevel(logging.DEBUG)
             cli_logger.propagate = False
 
-        if root_logger.handlers:
-            # handlers already configured
-            return
         self._init_console_handlers(root_logger, cli_loggers, console_log_levels, console_log_formats)
         if self.file_log_enabled:
             self._init_logfile_handlers(root_logger, cli_loggers)
