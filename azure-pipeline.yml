@@ -29,6 +29,9 @@ jobs:
         Python38:
           python.version: '3.8'
           tox_env: 'py38'
+        Python39:
+          python.version: '3.9'
+          tox_env: 'py39'
     steps:
       - task: UsePythonVersion@0
         displayName: 'Use Python $(python.version)'
