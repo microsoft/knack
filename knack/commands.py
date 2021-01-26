@@ -279,8 +279,8 @@ class CLICommandsLoader(object):
             if isinstance(op, types.FunctionType):
                 return op
             return six.get_method_function(op)
-        except (ValueError, AttributeError):
-            raise ValueError("The operation '{}' is invalid.".format(operation))
+        except (ValueError, AttributeError) as ex:
+            raise ValueError("The operation '{}' is invalid.".format(operation)) from ex
 
     def deprecate(self, **kwargs):
         kwargs['object_type'] = 'command group'

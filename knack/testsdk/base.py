@@ -251,7 +251,7 @@ class ExecutionResult(object):
             self.exit_code = self.cli.invoke(shlex.split(command), out_file=out_buffer) or 0
             self.output = out_buffer.getvalue()
         except vcr.errors.CannotOverwriteExistingCassetteException as ex:
-            raise AssertionError(ex)
+            raise AssertionError(ex) from ex
         except CliExecutionError as ex:
             if ex.exception:
                 raise ex.exception
