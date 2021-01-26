@@ -3,6 +3,12 @@
 Release History
 ===============
 
+0.8.0
++++++
+
+* [CI] Support Python 3.9 (#229)
+* [Log] `CLILogging.configure` returns as early as possible (#228)
+
 0.8.0rc2
 ++++++++
 
