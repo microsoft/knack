@@ -52,7 +52,7 @@ class ExperimentalItem(StatusTag):
         def _default_get_message(self):
             return status_tag_messages['experimental'].format("This " + self.object_type)
 
-        super(ExperimentalItem, self).__init__(
+        super().__init__(
             cli_ctx=cli_ctx,
             object_type=object_type,
             target=target,
@@ -73,4 +73,4 @@ class ImplicitExperimentalItem(ExperimentalItem):
             'tag_func': lambda _: '',
             'message_func': get_implicit_experimental_message
         })
-        super(ImplicitExperimentalItem, self).__init__(**kwargs)
+        super().__init__(**kwargs)

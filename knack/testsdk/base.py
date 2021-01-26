@@ -26,7 +26,7 @@ logger = logging.getLogger('clicore.testsdk')
 
 class IntegrationTestBase(unittest.TestCase):
     def __init__(self, cli, method_name):
-        super(IntegrationTestBase, self).__init__(method_name)
+        super().__init__(method_name)
         self.cli = cli
         self.diagnose = os.environ.get(ENV_TEST_DIAGNOSE, None) == 'True'
 
@@ -82,7 +82,7 @@ class LiveTest(IntegrationTestBase):
 class ScenarioTest(IntegrationTestBase):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, cli, method_name, filter_headers=None):
-        super(ScenarioTest, self).__init__(cli, method_name)
+        super().__init__(cli, method_name)
         self.name_replacer = GeneralNameReplacer()
         self.recording_processors = [LargeRequestBodyProcessor(),
                                      LargeResponseBodyProcessor(),
@@ -113,7 +113,7 @@ class ScenarioTest(IntegrationTestBase):  # pylint: disable=too-many-instance-at
         self.original_env = os.environ.copy()
 
     def setUp(self):
-        super(ScenarioTest, self).setUp()
+        super().setUp()
 
         # set up cassette
         cm = self.vcr.use_cassette(self.recording_file)
