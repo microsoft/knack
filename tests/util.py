@@ -11,7 +11,7 @@ import sys
 import tempfile
 import shutil
 import os
-from six import StringIO
+from io import StringIO
 import logging
 from knack.log import CLI_LOGGER_NAME
 
