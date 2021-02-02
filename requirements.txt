@@ -7,6 +7,5 @@ Pygments==2.7.4
 pylint==2.6.0
 pytest==6.2.2
 PyYAML==5.4.1
-six==1.15.0
 tabulate==0.8.7
 vcrpy==4.0.2
