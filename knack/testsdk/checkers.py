@@ -63,9 +63,9 @@ class NoneCheck(object):  # pylint: disable=too-few-public-methods
         try:
             data = execution_result.output.strip()
             assert not data or data in none_strings
-        except AssertionError:
+        except AssertionError as ex:
             raise AssertionError("Actual value '{}' != Expected value falsy (None, '', []) or "
-                                 "string in {}".format(data, none_strings))
+                                 "string in {}".format(data, none_strings)) from ex
 
 
 class StringCheck(object):  # pylint: disable=too-few-public-methods
@@ -76,9 +76,9 @@ class StringCheck(object):  # pylint: disable=too-few-public-methods
         try:
             result = execution_result.output.strip().strip('"')
             assert result == self.expected_result
-        except AssertionError:
+        except AssertionError as ex:
             raise AssertionError(
-                "Actual value '{}' != Expected value {}".format(result, self.expected_result))
+                "Actual value '{}' != Expected value {}".format(result, self.expected_result)) from ex
 
 
 class StringContainCheck(object):  # pylint: disable=too-few-public-methods
@@ -89,7 +89,7 @@ class StringContainCheck(object):  # pylint: disable=too-few-public-methods
         try:
             result = execution_result.output.strip('"')
             assert self.expected_result in result
-        except AssertionError:
+        except AssertionError as ex:
             raise AssertionError(
                 "Actual value '{}' doesn't contain Expected value {}".format(result,
-                                                                             self.expected_result))
+                                                                             self.expected_result)) from ex

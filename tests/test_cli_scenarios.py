@@ -12,7 +12,7 @@ except ImportError:
     from unittest import mock
 import mock
 
-from six import StringIO
+from io import StringIO
 
 from knack import CLI
 from knack.commands import CLICommand, CLICommandsLoader
@@ -158,7 +158,7 @@ class TestCLIScenarios(unittest.TestCase):
     def test_init_log(self):
         class MyCLI(CLI):
             def __init__(self, **kwargs):
-                super(MyCLI, self).__init__(**kwargs)
+                super().__init__(**kwargs)
                 self.init_debug_log.append("init debug log: 6aa19a11")
                 self.init_info_log.append("init info log: b0746f58")
         cli = MyCLI()

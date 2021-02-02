@@ -11,7 +11,7 @@ import sys
 import tempfile
 import shutil
 import os
-from six import StringIO
+from io import StringIO
 import logging
 from knack.log import CLI_LOGGER_NAME
 
@@ -61,7 +61,7 @@ def remove_space(str):
 class MockContext(CLI):
 
     def __init__(self):
-        super(MockContext, self).__init__(config_dir=new_temp_folder())
+        super().__init__(config_dir=new_temp_folder())
         loader = CLICommandsLoader(cli_ctx=self)
         invocation = mock.MagicMock(spec=CommandInvoker)
         invocation.data = {}
@@ -76,7 +76,7 @@ class DummyCLI(CLI):
 
     def __init__(self, **kwargs):
         kwargs['config_dir'] = new_temp_folder()
-        super(DummyCLI, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         # Force colorama to initialize
         self.enable_color = True
 

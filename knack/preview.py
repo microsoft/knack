@@ -52,7 +52,7 @@ class PreviewItem(StatusTag):
         def _default_get_message(self):
             return status_tag_messages['preview'].format("This " + self.object_type)
 
-        super(PreviewItem, self).__init__(
+        super().__init__(
             cli_ctx=cli_ctx,
             object_type=object_type,
             target=target,
@@ -73,4 +73,4 @@ class ImplicitPreviewItem(PreviewItem):
             'tag_func': lambda _: '',
             'message_func': get_implicit_preview_message
         })
-        super(ImplicitPreviewItem, self).__init__(**kwargs)
+        super().__init__(**kwargs)

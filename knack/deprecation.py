@@ -3,8 +3,6 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from six import string_types as STRING_TYPES
-
 from .util import StatusTag
 
 DEFAULT_DEPRECATED_TAG = '[Deprecated]'
@@ -40,7 +38,7 @@ class Deprecated(StatusTag):
         deprecate_info = kwargs.get('deprecate_info', None)
         if isinstance(deprecate_info, Deprecated):
             deprecate_info.object_type = object_type
-        elif isinstance(deprecate_info, STRING_TYPES):
+        elif isinstance(deprecate_info, str):
             deprecate_info = Deprecated(cli_ctx, redirect=deprecate_info, object_type=object_type)
         kwargs['deprecate_info'] = deprecate_info
         return deprecate_info
@@ -86,7 +84,7 @@ class Deprecated(StatusTag):
         self.expiration = expiration
         self._cli_version = cli_ctx.get_cli_version()
 
-        super(Deprecated, self).__init__(
+        super().__init__(
             cli_ctx=cli_ctx,
             object_type=object_type,
             target=target,
@@ -111,7 +109,7 @@ class Deprecated(StatusTag):
         hidden = False
         if isinstance(self.hide, bool):
             hidden = self.hide
-        elif isinstance(self.hide, STRING_TYPES):
+        elif isinstance(self.hide, str):
             hidden = self._version_less_than_or_equal_to(self.hide, self._cli_version)
         return hidden
 
@@ -138,4 +136,4 @@ class ImplicitDeprecated(Deprecated):
             'tag_func': lambda _: '',
             'message_func': get_implicit_deprecation_message
         })
-        super(ImplicitDeprecated, self).__init__(**kwargs)
+        super().__init__(**kwargs)

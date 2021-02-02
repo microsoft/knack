@@ -83,7 +83,7 @@ class CLICommandArgument(object):
 
     def __setattr__(self, name, value):  # pylint: disable=inconsistent-return-statements
         if name == 'type':
-            return super(CLICommandArgument, self).__setattr__(name, value)
+            return super().__setattr__(name, value)
         self.type.settings[name] = value
 
 
@@ -186,7 +186,7 @@ class ArgumentsContext(object):
                     else:
                         namespace._argument_deprecations.append(deprecate_info)  # pylint: disable=protected-access
                     try:
-                        super(DeprecatedArgumentAction, self).__call__(parser, namespace, values, option_string)
+                        super().__call__(parser, namespace, values, option_string)
                     except NotImplementedError:
                         setattr(namespace, self.dest, values)
 
@@ -209,7 +209,7 @@ class ArgumentsContext(object):
                         else:
                             namespace._argument_deprecations.append(deprecated_opt)  # pylint: disable=protected-access
                     try:
-                        super(DeprecatedOptionAction, self).__call__(parser, namespace, values, option_string)
+                        super().__call__(parser, namespace, values, option_string)
                     except NotImplementedError:
                         setattr(namespace, self.dest, values)
 
@@ -243,7 +243,7 @@ class ArgumentsContext(object):
                     else:
                         namespace._argument_previews.append(preview_info)  # pylint: disable=protected-access
                     try:
-                        super(PreviewArgumentAction, self).__call__(parser, namespace, values, option_string)
+                        super().__call__(parser, namespace, values, option_string)
                     except NotImplementedError:
                         setattr(namespace, self.dest, values)
 
@@ -294,7 +294,7 @@ class ArgumentsContext(object):
                     else:
                         namespace._argument_experimentals.append(experimental_info)  # pylint: disable=protected-access
                     try:
-                        super(ExperimentalArgumentAction, self).__call__(parser, namespace, values, option_string)
+                        super().__call__(parser, namespace, values, option_string)
                     except NotImplementedError:
                         setattr(namespace, self.dest, values)
 

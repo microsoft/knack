@@ -11,7 +11,7 @@ import shlex
 import tempfile
 import shutil
 import logging
-import six
+import io
 import vcr
 
 from .patches import patch_time_sleep_api
@@ -26,7 +26,7 @@ logger = logging.getLogger('clicore.testsdk')
 
 class IntegrationTestBase(unittest.TestCase):
     def __init__(self, cli, method_name):
-        super(IntegrationTestBase, self).__init__(method_name)
+        super().__init__(method_name)
         self.cli = cli
         self.diagnose = os.environ.get(ENV_TEST_DIAGNOSE, None) == 'True'
 
@@ -82,7 +82,7 @@ class LiveTest(IntegrationTestBase):
 class ScenarioTest(IntegrationTestBase):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, cli, method_name, filter_headers=None):
-        super(ScenarioTest, self).__init__(cli, method_name)
+        super().__init__(cli, method_name)
         self.name_replacer = GeneralNameReplacer()
         self.recording_processors = [LargeRequestBodyProcessor(),
                                      LargeResponseBodyProcessor(),
@@ -113,7 +113,7 @@ class ScenarioTest(IntegrationTestBase):  # pylint: disable=too-many-instance-at
         self.original_env = os.environ.copy()
 
     def setUp(self):
-        super(ScenarioTest, self).setUp()
+        super().setUp()
 
         # set up cassette
         cm = self.vcr.use_cassette(self.recording_file)
@@ -161,7 +161,7 @@ class ScenarioTest(IntegrationTestBase):  # pylint: disable=too-many-instance-at
             response['headers'] = headers
 
             body = response['body']['string']
-            if body and not isinstance(body, six.string_types):
+            if body and not isinstance(body, str):
                 response['body']['string'] = body.decode('utf-8')
 
             for processor in self.recording_processors:
@@ -179,7 +179,7 @@ class ScenarioTest(IntegrationTestBase):  # pylint: disable=too-many-instance-at
     @classmethod
     def _custom_request_query_matcher(cls, r1, r2):
         """ Ensure method, path, and query parameters match. """
-        from six.moves.urllib_parse import urlparse, parse_qs  # pylint: disable=useless-suppression
+        from urllib.parse import urlparse, parse_qs  # pylint: disable=useless-suppression
 
         url1 = urlparse(r1.uri)
         url2 = urlparse(r2.uri)
@@ -244,14 +244,14 @@ class ExecutionResult(object):
         if command.startswith(cli_name_prefixed):
             command = command[len(cli_name_prefixed):]
 
-        out_buffer = six.StringIO()
+        out_buffer = io.StringIO()
         try:
             # issue: stderr cannot be redirect in this form, as a result some failure information
             # is lost when command fails.
             self.exit_code = self.cli.invoke(shlex.split(command), out_file=out_buffer) or 0
             self.output = out_buffer.getvalue()
         except vcr.errors.CannotOverwriteExistingCassetteException as ex:
-            raise AssertionError(ex)
+            raise AssertionError(ex) from ex
         except CliExecutionError as ex:
             if ex.exception:
                 raise ex.exception

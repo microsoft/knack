@@ -42,8 +42,7 @@ class CtxTypeError(TypeError):
 
     def __init__(self, obj):
         from .cli import CLI
-        super(CtxTypeError, self).__init__('expected instance of {} got {}'.format(CLI.__name__,
-                                                                                   obj.__class__.__name__))
+        super().__init__('expected instance of {} got {}'.format(CLI.__name__, obj.__class__.__name__))
 
 
 class ColorizedString(object):

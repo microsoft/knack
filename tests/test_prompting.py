@@ -9,7 +9,7 @@ try:
     import mock
 except ImportError:
     from unittest import mock
-from six import StringIO
+from io import StringIO
 
 from knack.prompting import (verify_is_a_tty, NoTTYException, _INVALID_PASSWORD_MSG, prompt,
                              prompt_int, prompt_pass, prompt_y_n, prompt_t_f, prompt_choice_list)

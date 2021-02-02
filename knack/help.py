@@ -3,7 +3,6 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from __future__ import print_function, unicode_literals
 import argparse
 import sys
 import textwrap
@@ -92,7 +91,7 @@ class HelpObject(object):
     def __init__(self, **kwargs):
         self._short_summary = ''
         self._long_summary = ''
-        super(HelpObject, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     @property
     def short_summary(self):
@@ -123,7 +122,7 @@ class HelpFile(HelpObject):
             return text
 
     def __init__(self, help_ctx, delimiters):  # pylint: disable=too-many-statements
-        super(HelpFile, self).__init__()
+        super().__init__()
         self.help_ctx = help_ctx
         self.delimiters = delimiters
         self.name = delimiters.split()[-1] if delimiters else delimiters
@@ -242,7 +241,7 @@ class GroupHelpFile(HelpFile):
 
     def __init__(self, help_ctx, delimiters, parser):
 
-        super(GroupHelpFile, self).__init__(help_ctx, delimiters)
+        super().__init__(help_ctx, delimiters)
         self.type = 'group'
 
         self.children = []
@@ -266,7 +265,7 @@ class CommandHelpFile(HelpFile):
 
     def __init__(self, help_ctx, delimiters, parser):
 
-        super(CommandHelpFile, self).__init__(help_ctx, delimiters)
+        super().__init__(help_ctx, delimiters)
         self.type = 'command'
 
         self.parameters = []
@@ -325,7 +324,7 @@ class CommandHelpFile(HelpFile):
         self.parameters.append(HelpParameter(**param_kwargs))
 
     def _load_from_data(self, data):
-        super(CommandHelpFile, self)._load_from_data(data)
+        super()._load_from_data(data)
 
         if isinstance(data, str) or not self.parameters or not data.get('parameters'):
             return
@@ -345,7 +344,7 @@ class HelpParameter(HelpObject):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, name_source, description, required, choices=None, default=None, group_name=None,
                  deprecate_info=None, preview_info=None, experimental_info=None, default_value_source=None):
-        super(HelpParameter, self).__init__()
+        super().__init__()
         self.name_source = name_source
         self.name = ' '.join(sorted(name_source))
         self.required = required

@@ -4,7 +4,7 @@
 # --------------------------------------------------------------------------------------------
 
 import unittest
-from six import StringIO
+from io import StringIO
 
 from knack.parser import CLICommandParser
 from knack.commands import CLICommand

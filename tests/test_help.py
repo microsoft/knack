@@ -62,7 +62,7 @@ class TestHelp(unittest.TestCase):
 
         class HelpTestCommandLoader(CLICommandsLoader):
             def load_command_table(self, args):
-                super(HelpTestCommandLoader, self).load_command_table(args)
+                super().load_command_table(args)
                 with CommandGroup(self, '', '{}#{{}}'.format(__name__)) as g:
                     g.command('n1', 'example_handler')
                     g.command('n2', 'example_handler')
@@ -90,7 +90,7 @@ class TestHelp(unittest.TestCase):
                         c.argument('arg2', options_list=['--foobar2'], required=True)
                         c.argument('arg3', options_list=['--foobar3'], help='the foobar3')
 
-                super(HelpTestCommandLoader, self).load_arguments(command)
+                super().load_arguments(command)
 
         helps['n2'] = """
     type: command

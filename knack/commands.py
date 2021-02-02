@@ -7,8 +7,6 @@ import types
 from collections import OrderedDict, defaultdict
 from importlib import import_module
 
-import six
-
 from .deprecation import Deprecated
 from .preview import PreviewItem
 from .experimental import ExperimentalItem
@@ -152,7 +150,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         if callable(confirmation):
             return confirmation(command_args)
         try:
-            if isinstance(confirmation, six.string_types):
+            if isinstance(confirmation, str):
                 return prompt_y_n(confirmation)
             return prompt_y_n('Are you sure you want to perform this operation?')
         except NoTTYException:
@@ -242,7 +240,7 @@ class CLICommandsLoader(object):
 
     def create_command(self, name, operation, **kwargs):
         """ Constructs the command object that can then be added to the command table """
-        if not isinstance(operation, six.string_types):
+        if not isinstance(operation, str):
             raise ValueError("Operation must be a string. Got '{}'".format(operation))
 
         name = ' '.join(name.split())
@@ -278,9 +276,10 @@ class CLICommandsLoader(object):
                 op = getattr(op, part)
             if isinstance(op, types.FunctionType):
                 return op
-            return six.get_method_function(op)
-        except (ValueError, AttributeError):
-            raise ValueError("The operation '{}' is invalid.".format(operation))
+            # op as types.MethodType
+            return op.__func__
+        except (ValueError, AttributeError) as ex:
+            raise ValueError("The operation '{}' is invalid.".format(operation)) from ex
 
     def deprecate(self, **kwargs):
         kwargs['object_type'] = 'command group'
