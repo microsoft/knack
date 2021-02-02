@@ -35,7 +35,7 @@ class TestCommandDeprecation(unittest.TestCase):
 
         class DeprecationTestCommandLoader(CLICommandsLoader):
             def load_command_table(self, args):
-                super(DeprecationTestCommandLoader, self).load_command_table(args)
+                super().load_command_table(args)
                 with CommandGroup(self, '', '{}#{{}}'.format(__name__)) as g:
                     g.command('cmd1', 'example_handler', deprecate_info=g.deprecate(redirect='alt-cmd1'))
                     g.command('cmd2', 'example_handler', deprecate_info=g.deprecate(redirect='alt-cmd2', hide='1.0.0'))
@@ -53,7 +53,7 @@ class TestCommandDeprecation(unittest.TestCase):
                     c.argument('arg1', options_list=['--arg', '-a'], required=False, type=int, choices=[1, 2, 3])
                     c.argument('arg2', options_list=['-b'], required=True, choices=['a', 'b', 'c'])
 
-                super(DeprecationTestCommandLoader, self).load_arguments(command)
+                super().load_arguments(command)
 
         helps['grp1'] = """
     type: group
@@ -163,7 +163,7 @@ class TestCommandGroupDeprecation(unittest.TestCase):
 
         class DeprecationTestCommandLoader(CLICommandsLoader):
             def load_command_table(self, args):
-                super(DeprecationTestCommandLoader, self).load_command_table(args)
+                super().load_command_table(args)
 
                 with CommandGroup(self, 'group1', '{}#{{}}'.format(__name__), deprecate_info=self.deprecate(redirect='alt-group1')) as g:
                     g.command('cmd1', 'example_handler')
@@ -187,7 +187,7 @@ class TestCommandGroupDeprecation(unittest.TestCase):
                     c.argument('arg1', options_list=['--arg', '-a'], required=False, type=int, choices=[1, 2, 3])
                     c.argument('arg2', options_list=['-b'], required=True, choices=['a', 'b', 'c'])
 
-                super(DeprecationTestCommandLoader, self).load_arguments(command)
+                super().load_arguments(command)
 
         helps['group1'] = """
     type: group
@@ -293,7 +293,7 @@ class TestArgumentDeprecation(unittest.TestCase):
 
         class DeprecationTestCommandLoader(CLICommandsLoader):
             def load_command_table(self, args):
-                super(DeprecationTestCommandLoader, self).load_command_table(args)
+                super().load_command_table(args)
                 with CommandGroup(self, '', '{}#{{}}'.format(__name__)) as g:
                     g.command('arg-test', 'example_arg_handler')
                 return self.command_table
@@ -311,7 +311,7 @@ class TestArgumentDeprecation(unittest.TestCase):
                     c.argument('arg5', deprecate_info=c.deprecate(expiration='0.1.0'))
                     c.argument('opt5', options_list=['--opt5', c.deprecate(redirect='--opt5', target='--alt5', expiration='0.1.0')])
 
-                super(DeprecationTestCommandLoader, self).load_arguments(command)
+                super().load_arguments(command)
 
         helps['grp1'] = """
     type: group

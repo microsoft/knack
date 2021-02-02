@@ -107,7 +107,7 @@ class CLICommandParser(argparse.ArgumentParser):
         # or description for a command. We better stash it away before handing it off for
         # "normal" argparse handling...
         self._description = kwargs.pop('description', None)
-        super(CLICommandParser, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def load_command_table(self, command_loader):
         """ Process the command table and load it into the parser
@@ -221,7 +221,7 @@ class CLICommandParser(argparse.ArgumentParser):
         return parent_subparser
 
     def validation_error(self, message):
-        return super(CLICommandParser, self).error(message)
+        return super().error(message)
 
     def is_group(self):
         """ Determine if this parser instance represents a group
@@ -257,7 +257,7 @@ class CLICommandParser(argparse.ArgumentParser):
         by ArgumentParser.parse_args as usual
         """
         self._expand_prefixed_files(args)
-        return super(CLICommandParser, self).parse_args(args)
+        return super().parse_args(args)
 
     def _check_value(self, action, value):
         # Override to customize the error message when a argument is not among the available choices

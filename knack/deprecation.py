@@ -84,7 +84,7 @@ class Deprecated(StatusTag):
         self.expiration = expiration
         self._cli_version = cli_ctx.get_cli_version()
 
-        super(Deprecated, self).__init__(
+        super().__init__(
             cli_ctx=cli_ctx,
             object_type=object_type,
             target=target,
@@ -136,4 +136,4 @@ class ImplicitDeprecated(Deprecated):
             'tag_func': lambda _: '',
             'message_func': get_implicit_deprecation_message
         })
-        super(ImplicitDeprecated, self).__init__(**kwargs)
+        super().__init__(**kwargs)

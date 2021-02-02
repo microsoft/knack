@@ -36,7 +36,7 @@ class TestCommandPreview(unittest.TestCase):
 
         class PreviewTestCommandLoader(CLICommandsLoader):
             def load_command_table(self, args):
-                super(PreviewTestCommandLoader, self).load_command_table(args)
+                super().load_command_table(args)
                 with CommandGroup(self, '', '{}#{{}}'.format(__name__)) as g:
                     g.command('cmd1', 'example_handler', is_preview=True)
 
@@ -50,7 +50,7 @@ class TestCommandPreview(unittest.TestCase):
                     c.argument('arg1', options_list=['--arg', '-a'], required=False, type=int, choices=[1, 2, 3])
                     c.argument('arg2', options_list=['-b'], required=True, choices=['a', 'b', 'c'])
 
-                super(PreviewTestCommandLoader, self).load_arguments(command)
+                super().load_arguments(command)
 
         helps['grp1'] = """
     type: group
@@ -136,7 +136,7 @@ class TestCommandGroupPreview(unittest.TestCase):
 
         class PreviewTestCommandLoader(CLICommandsLoader):
             def load_command_table(self, args):
-                super(PreviewTestCommandLoader, self).load_command_table(args)
+                super().load_command_table(args)
 
                 with CommandGroup(self, 'group1', '{}#{{}}'.format(__name__), is_preview=True) as g:
                     g.command('cmd1', 'example_handler')
@@ -148,7 +148,7 @@ class TestCommandGroupPreview(unittest.TestCase):
                     c.argument('arg1', options_list=['--arg', '-a'], required=False, type=int, choices=[1, 2, 3])
                     c.argument('arg2', options_list=['-b'], required=True, choices=['a', 'b', 'c'])
 
-                super(PreviewTestCommandLoader, self).load_arguments(command)
+                super().load_arguments(command)
 
         helps['group1'] = """
     type: group
@@ -217,7 +217,7 @@ class TestArgumentPreview(unittest.TestCase):
 
         class PreviewTestCommandLoader(CLICommandsLoader):
             def load_command_table(self, args):
-                super(PreviewTestCommandLoader, self).load_command_table(args)
+                super().load_command_table(args)
                 with CommandGroup(self, '', '{}#{{}}'.format(__name__)) as g:
                     g.command('arg-test', 'example_arg_handler')
                 return self.command_table
@@ -226,7 +226,7 @@ class TestArgumentPreview(unittest.TestCase):
                 with ArgumentsContext(self, 'arg-test') as c:
                     c.argument('arg1', help='Arg1', is_preview=True, action=LoggerAction)
 
-                super(PreviewTestCommandLoader, self).load_arguments(command)
+                super().load_arguments(command)
 
         helps['grp1'] = """
     type: group

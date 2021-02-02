@@ -22,9 +22,9 @@ class CLIQuery(object):
         from jmespath import compile as compile_jmespath
         try:
             return compile_jmespath(raw_query)
-        except KeyError:
+        except KeyError as ex:
             # Raise a ValueError which argparse can handle
-            raise ValueError
+            raise ValueError from ex
 
     @staticmethod
     def on_global_arguments(_, **kwargs):

@@ -74,11 +74,11 @@ def format_table(obj):
         should_sort_keys = not obj.is_query_active and not obj.table_transformer
         to = _TableOutput(should_sort_keys)
         return to.dump(result_list)
-    except:
+    except Exception as ex:
         logger.debug(traceback.format_exc())
         raise CLIError("Table output unavailable. "
                        "Use the --query option to specify an appropriate query. "
-                       "Use --debug for more info.")
+                       "Use --debug for more info.") from ex
 
 
 def format_tsv(obj):

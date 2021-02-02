@@ -41,7 +41,7 @@ class TestCommandWithConfiguredDefaults(unittest.TestCase):
         class TestCommandsLoader(CLICommandsLoader):
 
             def load_command_table(self, args):
-                super(TestCommandsLoader, self).load_command_table(args)
+                super().load_command_table(args)
                 with CommandGroup(self, 'foo', '{}#{{}}'.format(__name__)) as g:
                     g.command('list', 'list_foo')
                 return self.command_table
@@ -50,7 +50,7 @@ class TestCommandWithConfiguredDefaults(unittest.TestCase):
                 with ArgumentsContext(self, 'foo') as c:
                     c.argument('my_param', options_list='--my-param',
                                configured_default='param', required=required)
-                super(TestCommandsLoader, self).load_arguments(command)
+                super().load_arguments(command)
         self.cli_ctx = DummyCLI(commands_loader_cls=TestCommandsLoader)
 
     @mock.patch.dict(os.environ, {'CLI_DEFAULTS_PARAM': 'myVal'})

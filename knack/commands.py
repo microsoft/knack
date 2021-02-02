@@ -276,10 +276,10 @@ class CLICommandsLoader(object):
                 op = getattr(op, part)
             if isinstance(op, types.FunctionType):
                 return op
-            # MethodType
+            # op as types.MethodType
             return op.__func__
-        except (ValueError, AttributeError):
-            raise ValueError("The operation '{}' is invalid.".format(operation))
+        except (ValueError, AttributeError) as ex:
+            raise ValueError("The operation '{}' is invalid.".format(operation)) from ex
 
     def deprecate(self, **kwargs):
         kwargs['object_type'] = 'command group'
