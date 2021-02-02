@@ -6,12 +6,10 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from __future__ import print_function
-
 import unittest
 import mock
 from collections import OrderedDict
-from six import StringIO
+from io import StringIO
 
 from knack.output import OutputProducer, format_json, format_json_color, format_yaml, format_yaml_color, \
     format_table, format_tsv

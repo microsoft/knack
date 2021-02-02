@@ -12,7 +12,7 @@ except ImportError:
     from unittest import mock
 import mock
 
-from six import StringIO
+from io import StringIO
 
 from knack import CLI
 from knack.commands import CLICommand, CLICommandsLoader

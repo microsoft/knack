@@ -11,7 +11,7 @@ import shlex
 import tempfile
 import shutil
 import logging
-import six
+import io
 import vcr
 
 from .patches import patch_time_sleep_api
@@ -161,7 +161,7 @@ class ScenarioTest(IntegrationTestBase):  # pylint: disable=too-many-instance-at
             response['headers'] = headers
 
             body = response['body']['string']
-            if body and not isinstance(body, six.string_types):
+            if body and not isinstance(body, str):
                 response['body']['string'] = body.decode('utf-8')
 
             for processor in self.recording_processors:
@@ -179,7 +179,7 @@ class ScenarioTest(IntegrationTestBase):  # pylint: disable=too-many-instance-at
     @classmethod
     def _custom_request_query_matcher(cls, r1, r2):
         """ Ensure method, path, and query parameters match. """
-        from six.moves.urllib_parse import urlparse, parse_qs  # pylint: disable=useless-suppression
+        from urllib.parse import urlparse, parse_qs  # pylint: disable=useless-suppression
 
         url1 = urlparse(r1.uri)
         url2 = urlparse(r2.uri)
@@ -244,7 +244,7 @@ class ExecutionResult(object):
         if command.startswith(cli_name_prefixed):
             command = command[len(cli_name_prefixed):]
 
-        out_buffer = six.StringIO()
+        out_buffer = io.StringIO()
         try:
             # issue: stderr cannot be redirect in this form, as a result some failure information
             # is lost when command fails.
