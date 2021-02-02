@@ -3,24 +3,22 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from __future__ import print_function
-
 import errno
 import json
 import traceback
 from collections import OrderedDict
-from six import StringIO, text_type, u, string_types
+from io import StringIO
 
-from .util import CLIError, CommandResultItem, CtxTypeError
 from .events import EVENT_INVOKER_POST_PARSE_ARGS, EVENT_PARSER_GLOBAL_CREATE
 from .log import get_logger
+from .util import CLIError, CommandResultItem, CtxTypeError
 
 logger = get_logger(__name__)
 
 
 def _decode_str(output):
-    if not isinstance(output, text_type):
-        output = u(str(output))
+    if not isinstance(output, str):
+        output = str(output)
     return output
 
 
@@ -227,7 +225,7 @@ class _TsvOutput(object):  # pylint: disable=too-few-public-methods
             # and a dictionary value in other...
             stream.write('')
         else:
-            to_write = data if isinstance(data, string_types) else str(data)
+            to_write = data if isinstance(data, str) else str(data)
             stream.write(to_write)
 
     @staticmethod

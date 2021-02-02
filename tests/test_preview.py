@@ -3,9 +3,6 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from __future__ import unicode_literals, print_function
-
-import os
 import unittest
 try:
     import mock
