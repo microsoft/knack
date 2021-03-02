@@ -35,7 +35,7 @@ def _get_action_name(argument):
     if argument is None:
         return None
     if argument.option_strings:
-        return  '/'.join(argument.option_strings)
+        return '/'.join(argument.option_strings)
     if argument.metavar not in (None, argparse.SUPPRESS):
         return argument.metavar
     if argument.dest not in (None, argparse.SUPPRESS):
