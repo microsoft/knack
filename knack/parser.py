@@ -265,6 +265,8 @@ class CLICommandParser(argparse.ArgumentParser):
         import difflib
         import sys
 
+        super(CLICommandParser, self)._check_value(action, value)
+
         if action.choices is not None and value not in action.choices:
             # parser has no `command_source`, value is part of command itself
             error_msg = "{prog}: '{value}' is not in the '{prog}' command group. See '{prog} --help'.".format(
