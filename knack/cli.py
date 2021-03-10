@@ -101,6 +101,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
 
         self.only_show_errors = self.config.getboolean('core', 'only_show_errors', fallback=False)
         self.enable_color = self._should_enable_color()
+        self._should_init_colorama = self.enable_color and os.name == 'nt'
 
     @staticmethod
     def _should_show_version(args):
@@ -207,7 +208,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         exit_code = 0
         try:
             out_file = out_file or self.out_file
-            if out_file is sys.stdout and self.enable_color or _KNACK_TEST_FORCE_ENABLE_COLOR:
+            if out_file is sys.stdout and self._should_init_colorama or _KNACK_TEST_FORCE_ENABLE_COLOR:
                 import colorama
                 colorama.init()
                 # point out_file to the new sys.stdout which is overwritten by colorama
@@ -250,7 +251,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         finally:
             self.raise_event(EVENT_CLI_POST_EXECUTE)
 
-            if self.enable_color or _KNACK_TEST_FORCE_ENABLE_COLOR:
+            if self._should_init_colorama or _KNACK_TEST_FORCE_ENABLE_COLOR:
                 import colorama
                 colorama.deinit()
 
