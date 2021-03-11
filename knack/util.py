@@ -142,3 +142,24 @@ def todict(obj, post_processor=None):  # pylint: disable=too-many-return-stateme
                   if not callable(v) and not k.startswith('_')}
         return post_processor(obj, result) if post_processor else result
     return obj
+
+
+def is_modern_terminal():
+    """Detect whether the current terminal is a modern terminal that supports Unicode and
+    Console Virtual Terminal Sequences.
+
+    Currently, these terminals can be detected:
+      - VS Code terminal
+      - PyCharm
+      - Windows Terminal
+    """
+    # VS Code: https://github.com/microsoft/vscode/pull/30346
+    if os.environ.get('TERM_PROGRAM', '').lower() == 'vscode':
+        return True
+    # PyCharm: https://youtrack.jetbrains.com/issue/PY-4853
+    if 'PYCHARM_HOSTED' in os.environ:
+        return True
+    # Windows Terminal: https://github.com/microsoft/terminal/issues/1040
+    if 'WT_SESSION' in os.environ:
+        return True
+    return False

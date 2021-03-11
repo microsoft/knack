@@ -11,7 +11,7 @@ from .invocation import CommandInvoker
 from .completion import CLICompletion
 from .output import OutputProducer
 from .log import CLILogging, get_logger
-from .util import CLIError
+from .util import CLIError, is_modern_terminal
 from .config import CLIConfig
 from .query import CLIQuery
 from .events import EVENT_CLI_PRE_EXECUTE, EVENT_CLI_SUCCESSFUL_EXECUTE, EVENT_CLI_POST_EXECUTE
@@ -101,7 +101,8 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
 
         self.only_show_errors = self.config.getboolean('core', 'only_show_errors', fallback=False)
         self.enable_color = self._should_enable_color()
-        self._should_init_colorama = self.enable_color and os.name == 'nt'
+        # Init colorama only in Windows legacy terminal
+        self._should_init_colorama = self.enable_color and os.name == 'nt' and not is_modern_terminal()
 
     @staticmethod
     def _should_show_version(args):
@@ -209,6 +210,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         try:
             out_file = out_file or self.out_file
             if out_file is sys.stdout and self._should_init_colorama or _KNACK_TEST_FORCE_ENABLE_COLOR:
+                self.init_debug_log.append("Init colorama.")
                 import colorama
                 colorama.init()
                 # point out_file to the new sys.stdout which is overwritten by colorama
@@ -275,14 +277,13 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             self.init_debug_log.append("Color is disabled by config.")
             return False
 
-        if 'PYCHARM_HOSTED' in os.environ:
-            if sys.stdout == sys.__stdout__ and sys.stderr == sys.__stderr__:
-                self.init_debug_log.append("Enable color in PyCharm.")
-                return True
-        else:
-            if sys.stdout.isatty() and sys.stderr.isatty() and self.out_file is sys.stdout:
-                self.init_debug_log.append("Enable color in terminal.")
-                return True
+        if sys.stdout.isatty() and sys.stderr.isatty() and self.out_file is sys.stdout:
+            self.init_debug_log.append("Enable color in terminal.")
+            return True
+
+        if 'PYCHARM_HOSTED' in os.environ and sys.stdout == sys.__stdout__ and sys.stderr == sys.__stderr__:
+            self.init_debug_log.append("Enable color in PyCharm.")
+            return True
 
         self.init_debug_log.append("Cannot enable color.")
         return False

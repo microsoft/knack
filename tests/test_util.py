@@ -3,11 +3,12 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from collections import namedtuple
 import unittest
+from collections import namedtuple
 from datetime import date, time, datetime
+from unittest import mock
 
-from knack.util import todict, to_snake_case
+from knack.util import todict, to_snake_case, is_modern_terminal
 
 
 class TestUtils(unittest.TestCase):
@@ -86,6 +87,16 @@ class TestUtils(unittest.TestCase):
         expected = 'this_is_snake_cased'
         actual = to_snake_case(the_input)
         self.assertEqual(expected, actual)
+
+    def test_is_modern_terminal(self):
+        with mock.patch.dict("os.environ", clear=True):
+            self.assertEqual(is_modern_terminal(), False)
+        with mock.patch.dict("os.environ", TERM_PROGRAM='vscode'):
+            self.assertEqual(is_modern_terminal(), True)
+        with mock.patch.dict("os.environ", PYCHARM_HOSTED='1'):
+            self.assertEqual(is_modern_terminal(), True)
+        with mock.patch.dict("os.environ", WT_SESSION='c25cb945-246a-49e5-b37a-1e4b6671b916'):
+            self.assertEqual(is_modern_terminal(), True)
 
 
 if __name__ == '__main__':
