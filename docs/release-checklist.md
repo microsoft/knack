@@ -8,16 +8,16 @@ number and Z is the patch release number. This project strictly follows
 
 Modify the version number in `setup.py` and create a pull request for the changes.
 
-### Release with Travis CI (preferred option)
+### Release with Azure DevOps (preferred option)
 
-Once the changes have been merged to master, create a tag on GitHub for that commit.
+Once the changes have been merged to `dev`, create a tag on GitHub for that commit.
 Follow the format of other releases in the release notes you create on GitHub.
 
-A Travis CI build will be kicked-off that will publish to PyPI.
+Visit [Knack Release](https://dev.azure.com/azure-sdk/internal/_release?definitionId=83) to publish to PyPI.
 
 ### Release manually (backup option)
 
-Once the changes have been merged to master, continue with the rest of the release.
+Once the changes have been merged to `dev`, continue with the rest of the release.
 
 ```
 git clone https://github.com/microsoft/knack
