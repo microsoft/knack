@@ -7,8 +7,8 @@ Knack
 .. image:: https://img.shields.io/pypi/pyversions/knack.svg
     :target: https://pypi.python.org/pypi/knack
 
-.. image:: https://travis-ci.org/Microsoft/knack.svg?branch=dev
-    :target: https://travis-ci.org/Microsoft/knack
+.. image:: https://dev.azure.com/azure-sdk/public/_apis/build/status/cli/microsoft.knack?branchName=dev
+    :target: https://dev.azure.com/azure-sdk/public/_build/latest?definitionId=1643&branchName=dev
 
 
 ------------
