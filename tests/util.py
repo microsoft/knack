@@ -7,15 +7,16 @@ try:
     import mock
 except ImportError:
     from unittest import mock
+import logging
+import os
+import re
+import shutil
 import sys
 import tempfile
-import shutil
-import os
 from io import StringIO
-import logging
-from knack.log import CLI_LOGGER_NAME
 
 from knack.cli import CLI, CLICommandsLoader, CommandInvoker
+from knack.log import CLI_LOGGER_NAME
 
 TEMP_FOLDER_NAME = "knack_temp"
 
@@ -33,8 +34,7 @@ def redirect_io(func):
         cli_logger.handlers.clear()
 
         sys.stdout = sys.stderr = self.io = StringIO()
-        with mock.patch("knack.cli._KNACK_TEST_FORCE_ENABLE_COLOR", True):
-            func(self)
+        func(self)
         self.io.close()
         sys.stdout = original_stdout
         sys.stderr = original_stderr
@@ -54,8 +54,17 @@ def disable_color(func):
     return wrapper
 
 
-def remove_space(str):
-    return str.replace(' ', '').replace('\n', '')
+def _remove_control_sequence(string):
+    return re.sub(r'\x1b[^m]+m', '', string)
+
+
+def _remove_whitespace(string):
+    return re.sub(r'\s', '', string)
+
+
+def assert_in_multi_line(sub_string, string):
+    # assert sub_string is in string, with all whitespaces, line breaks and control sequences ignored
+    assert _remove_whitespace(sub_string) in _remove_control_sequence(_remove_whitespace(string))
 
 
 class MockContext(CLI):
@@ -77,7 +86,7 @@ class DummyCLI(CLI):
     def __init__(self, **kwargs):
         kwargs['config_dir'] = new_temp_folder()
         super().__init__(**kwargs)
-        # Force colorama to initialize
+        # Force to enable color
         self.enable_color = True
 
 

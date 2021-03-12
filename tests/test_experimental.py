@@ -15,7 +15,7 @@ import argparse
 from knack.arguments import ArgumentsContext
 from knack.commands import CLICommandsLoader, CommandGroup
 
-from tests.util import DummyCLI, redirect_io, remove_space
+from tests.util import DummyCLI, redirect_io, assert_in_multi_line
 
 
 def example_handler(arg1, arg2=None, arg3=None):
@@ -64,7 +64,7 @@ class TestCommandExperimental(unittest.TestCase):
         self.cli_ctx.invoke('grp1 cmd1 -b b'.split())
         actual = self.io.getvalue()
         expected = "Command group 'grp1' is experimental and under development."
-        self.assertIn(remove_space(expected), remove_space(actual))
+        self.assertIn(expected, actual)
 
     @redirect_io
     def test_experimental_command_group_help(self):
@@ -83,7 +83,7 @@ Commands:
     cmd1 [Experimental] : Short summary here.
 
 """.format(self.cli_ctx.name)
-        self.assertEqual(expected, actual)
+        assert_in_multi_line(expected, actual)
 
     @redirect_io
     def test_experimental_command_plain_execute(self):
@@ -91,7 +91,7 @@ Commands:
         self.cli_ctx.invoke('cmd1 -b b'.split())
         actual = self.io.getvalue()
         expected = "This command is experimental and under development."
-        self.assertIn(remove_space(expected), remove_space(actual))
+        self.assertIn(expected, actual)
 
 
 class TestCommandGroupExperimental(unittest.TestCase):
@@ -136,7 +136,7 @@ Commands:
     cmd1 : Short summary here.
 
 """.format(self.cli_ctx.name)
-        self.assertIn(remove_space(expected), remove_space(actual))
+        assert_in_multi_line(expected, actual)
 
     @redirect_io
     def test_experimental_command_implicitly(self):
@@ -150,7 +150,7 @@ Command
         Long summary here. Still long summary.
         Command group 'group1' is experimental and under development.
 """.format(self.cli_ctx.name)
-        self.assertIn(remove_space(expected), remove_space(actual))
+        assert_in_multi_line(expected, actual)
 
 
 class TestArgumentExperimental(unittest.TestCase):
@@ -193,7 +193,7 @@ Arguments
     --arg1 [Experimental] [Required] : Arg1.
         Argument '--arg1' is experimental and under development.
 """.format(self.cli_ctx.name)
-        self.assertIn(remove_space(expected), remove_space(actual))
+        assert_in_multi_line(expected, actual)
 
     @redirect_io
     def test_experimental_arguments_execute(self):

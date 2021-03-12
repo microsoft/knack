@@ -21,10 +21,6 @@ from .help import CLIHelp
 
 logger = get_logger(__name__)
 
-# Temporarily force color to be enabled even when out_file is not stdout.
-# This is only intended for testing purpose.
-_KNACK_TEST_FORCE_ENABLE_COLOR = False
-
 
 class CLI(object):  # pylint: disable=too-many-instance-attributes
     """ The main driver for the CLI """
@@ -209,7 +205,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         exit_code = 0
         try:
             out_file = out_file or self.out_file
-            if out_file is sys.stdout and self._should_init_colorama or _KNACK_TEST_FORCE_ENABLE_COLOR:
+            if out_file is sys.stdout and self._should_init_colorama:
                 self.init_debug_log.append("Init colorama.")
                 import colorama
                 colorama.init()
@@ -253,7 +249,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         finally:
             self.raise_event(EVENT_CLI_POST_EXECUTE)
 
-            if self._should_init_colorama or _KNACK_TEST_FORCE_ENABLE_COLOR:
+            if self._should_init_colorama:
                 import colorama
                 colorama.deinit()
 
