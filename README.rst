@@ -7,8 +7,8 @@ Knack
 .. image:: https://img.shields.io/pypi/pyversions/knack.svg
     :target: https://pypi.python.org/pypi/knack
 
-.. image:: https://travis-ci.org/Microsoft/knack.svg?branch=master
-    :target: https://travis-ci.org/Microsoft/knack
+.. image:: https://dev.azure.com/azure-sdk/public/_apis/build/status/cli/microsoft.knack?branchName=dev
+    :target: https://dev.azure.com/azure-sdk/public/_build/latest?definitionId=1643&branchName=dev
 
 
 ------------
@@ -34,7 +34,7 @@ Installation is easy via pip:
 Knack can be installed as a non-privileged user to your home directory by adding "--user" as below:
 
 .. code-block:: bash
-    
+
     pip install knack --user
 
 ------------
@@ -88,13 +88,13 @@ Usage
     # "abcdefghijklmnopqrstuvwxyz"
 
 
-More samples and snippets are available at `examples <https://github.com/Microsoft/knack/tree/master/examples>`__.
+More samples and snippets are available at `examples <https://github.com/Microsoft/knack/tree/dev/examples>`__.
 
 
 Documentation
 =============
 
-Documentation is available at `docs <https://github.com/Microsoft/knack/tree/master/docs>`__.
+Documentation is available at `docs <https://github.com/Microsoft/knack/tree/dev/docs>`__.
 
 Developer Setup
 ===============
@@ -148,4 +148,3 @@ License
 =======
 
 Knack is licensed under `MIT <LICENSE>`__.
-
