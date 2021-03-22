@@ -15,7 +15,7 @@ import argparse
 from knack.arguments import ArgumentsContext
 from knack.commands import CLICommandsLoader, CommandGroup
 
-from tests.util import DummyCLI, redirect_io, disable_color
+from tests.util import DummyCLI, redirect_io, assert_in_multi_line, disable_color
 
 
 def example_handler(arg1, arg2=None, arg3=None):
@@ -75,7 +75,7 @@ Commands:
     cmd1 [Preview] : Short summary here.
 
 """.format(self.cli_ctx.name)
-        self.assertEqual(expected, actual)
+        assert_in_multi_line(expected, actual)
 
     @redirect_io
     def test_preview_command_plain_execute(self):
@@ -170,7 +170,7 @@ Commands:
     cmd1 : Short summary here.
 
 """.format(self.cli_ctx.name)
-        self.assertEqual(expected, actual)
+        assert_in_multi_line(expected, actual)
 
     @redirect_io
     @disable_color
@@ -202,7 +202,7 @@ Command
         Command group 'group1' is in preview. It may be changed/removed in a future
         release.
 """.format(self.cli_ctx.name)
-        self.assertIn(expected, actual)
+        assert_in_multi_line(expected, actual)
 
 
 class TestArgumentPreview(unittest.TestCase):
@@ -245,7 +245,7 @@ Arguments
     --arg1 [Preview] [Required] : Arg1.
         Argument '--arg1' is in preview. It may be changed/removed in a future release.
 """.format(self.cli_ctx.name)
-        self.assertIn(expected, actual)
+        assert_in_multi_line(expected, actual)
 
     @redirect_io
     @disable_color
