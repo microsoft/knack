@@ -9,6 +9,7 @@ Release History
 * Refine code style to comply with Python 3 (#232, #233)
 * CI: Support Python 3.9 (#229)
 * Logging: `CLILogging.configure` returns as early as possible (#228)
+* Init colorama only in Windows legacy terminal (#238)
 
 0.8.0rc2
 ++++++++
