@@ -125,6 +125,24 @@ def sample_json_handler():
     return result
 
 
+def sample_logger_handler():
+    """
+    Print logs to stderr.
+    """
+    print("""This is a demo for logging. The logging level can be controlled with:
+  --only-show-errors: Show ERROR logs and above
+  <default>:          Show WARNING logs and above
+  --verbose:          Show INFO logs and above
+  --debug:            Show DEBUG logs and above""")
+    from knack.log import get_logger
+    logger = get_logger(__name__)
+    logger.debug("This is a debug log entry.")
+    logger.info("This is a info log entry.")
+    logger.warning("This is a warning log entry.")
+    logger.error("This is a error log entry.")
+    logger.critical("This is a critical log entry.")
+
+
 def hello_command_handler(greetings=None):
     """
     Say "Hello World!" and my warm greetings
@@ -160,6 +178,7 @@ class MyCommandsLoader(CLICommandsLoader):
         with CommandGroup(self, '', '__main__#{}') as g:
             g.command('hello', 'hello_command_handler', confirmation=True)
             g.command('sample-json', 'sample_json_handler')
+            g.command('sample-logger', 'sample_logger_handler')
         with CommandGroup(self, 'abc', '__main__#{}') as g:
             g.command('list', 'abc_list_command_handler')
             g.command('show', 'abc_show_command_handler')
