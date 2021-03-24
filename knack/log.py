@@ -59,10 +59,7 @@ class _CustomStreamHandler(logging.StreamHandler):
     def format(self, record):
         msg = logging.StreamHandler.format(self, record)
         if self.enable_color:
-            try:
-                msg = self.wrap_with_color(record.levelname, msg)
-            except KeyError:
-                pass
+            msg = self.wrap_with_color(record.levelname, msg)
         return msg
 
 
