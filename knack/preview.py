@@ -3,10 +3,11 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from .util import StatusTag, status_tag_messages
+from .util import StatusTag, status_tag_messages, color_map
 
 _PREVIEW_TAG = '[Preview]'
 _preview_kwarg = 'preview_info'
+_config_key = 'preview'
 
 
 def resolve_preview_info(cli_ctx, name):
@@ -50,13 +51,13 @@ class PreviewItem(StatusTag):
         """
 
         def _default_get_message(self):
-            return status_tag_messages['preview'].format("This " + self.object_type)
+            return status_tag_messages[_config_key].format("This " + self.object_type)
 
         super().__init__(
             cli_ctx=cli_ctx,
             object_type=object_type,
             target=target,
-            color='cyan',
+            color=color_map[_config_key],
             tag_func=tag_func or (lambda _: _PREVIEW_TAG),
             message_func=message_func or _default_get_message
         )
@@ -67,7 +68,7 @@ class ImplicitPreviewItem(PreviewItem):
     def __init__(self, **kwargs):
 
         def get_implicit_preview_message(self):
-            return status_tag_messages['preview'].format("Command group '{}'".format(self.target))
+            return status_tag_messages[_config_key].format("Command group '{}'".format(self.target))
 
         kwargs.update({
             'tag_func': lambda _: '',

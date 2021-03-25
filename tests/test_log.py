@@ -9,7 +9,6 @@ try:
 except ImportError:
     from unittest import mock
 import logging
-import colorama
 
 from knack.events import EVENT_PARSER_GLOBAL_CREATE, EVENT_INVOKER_PRE_CMD_TBL_CREATE
 from knack.log import CLILogging, get_logger, CLI_LOGGER_NAME, _CustomStreamHandler
@@ -165,15 +164,19 @@ class TestCLILogging(unittest.TestCase):
 
 
 class TestCustomStreamHandler(unittest.TestCase):
-    expectation = {logging.CRITICAL: colorama.Fore.LIGHTRED_EX, logging.ERROR: colorama.Fore.LIGHTRED_EX,
-                   logging.WARNING: colorama.Fore.YELLOW, logging.INFO: colorama.Fore.GREEN,
-                   logging.DEBUG: colorama.Fore.CYAN}
+    expectation = {
+        'critical': '\x1b[41m',  # Background Red
+        'error': '\x1b[91m',  # Bright Foreground Red
+        'warning': '\x1b[33m',  # Foreground Yellow
+        'info': '\x1b[32m',  # Foreground Green
+        'debug': '\x1b[36m',  # Foreground Cyan
+    }
 
     def test_get_color_wrapper(self):
         for level, prefix in self.expectation.items():
-            message = _CustomStreamHandler.get_color_wrapper(level)('test')
+            message = _CustomStreamHandler.wrap_with_color(level, 'test')
             self.assertTrue(message.startswith(prefix))
-            self.assertTrue(message.endswith(colorama.Style.RESET_ALL))
+            self.assertTrue(message.endswith('\x1b[0m'))
 
 
 if __name__ == '__main__':
