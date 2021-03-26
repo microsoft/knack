@@ -9,7 +9,7 @@ from io import StringIO
 from knack.parser import CLICommandParser
 from knack.commands import CLICommand
 from knack.arguments import enum_choice_list
-from tests.util import MockContext
+from tests.util import MockContext, redirect_io
 
 
 class TestParser(unittest.TestCase):
@@ -83,7 +83,7 @@ class TestParser(unittest.TestCase):
         parser.parse_args('test command -req yep'.split())
         self.assertTrue(CLICommandParser.error.called)
 
-    def test_case_insensitive_enum_choices(self):
+    def _enum_parser(self):
         from enum import Enum
 
         class TestEnum(Enum):  # pylint: disable=too-few-public-methods
@@ -102,7 +102,10 @@ class TestParser(unittest.TestCase):
 
         parser = CLICommandParser()
         parser.load_command_table(self.mock_ctx.commands_loader)
+        return parser
 
+    def test_case_insensitive_enum_choices(self):
+        parser = self._enum_parser()
         args = parser.parse_args('test command --opt alL_cAps'.split())
         self.assertEqual(args.opt, 'ALL_CAPS')
 
@@ -111,6 +114,22 @@ class TestParser(unittest.TestCase):
 
         args = parser.parse_args('test command --opt sNake_CASE'.split())
         self.assertEqual(args.opt, 'snake_case')
+
+    @redirect_io
+    def test_check_value_invalid_command(self):
+        parser = self._enum_parser()
+        with self.assertRaises(SystemExit) as cm:
+            parser.parse_args('test command1'.split())  # 'command1' is invalid
+        actual = self.io.getvalue()
+        assert "is not in the" in actual and "command group" in actual
+
+    @redirect_io
+    def test_check_value_invalid_argument_value(self):
+        parser = self._enum_parser()
+        with self.assertRaises(SystemExit) as cm:
+            parser.parse_args('test command --opt foo'.split())  # 'foo' is invalid
+        actual = self.io.getvalue()
+        assert "is not a valid value for" in actual
 
     def test_cli_ctx_type_error(self):
         with self.assertRaises(TypeError):

@@ -59,6 +59,16 @@ type: group
 short-summary: An experimental command group
 """
 
+helps['demo'] = """
+type: group
+short-summary: A command group for demos.
+"""
+
+helps['demo arg'] = """
+type: group
+short-summary: A command showing how to use arguments.
+"""
+
 
 def abc_show_command_handler():
     """
@@ -151,6 +161,13 @@ def hello_command_handler(greetings=None):
     return ['Hello World!', greetings]
 
 
+def demo_arg_handler(move=None):
+    if move:
+        print("Your move was: {}".format(move))
+        return
+    print("Nothing to do.")
+
+
 WELCOME_MESSAGE = r"""
    _____ _      _____ 
   / ____| |    |_   _|
@@ -179,6 +196,7 @@ class MyCommandsLoader(CLICommandsLoader):
             g.command('hello', 'hello_command_handler', confirmation=True)
             g.command('sample-json', 'sample_json_handler')
             g.command('sample-logger', 'sample_logger_handler')
+
         with CommandGroup(self, 'abc', '__main__#{}') as g:
             g.command('list', 'abc_list_command_handler')
             g.command('show', 'abc_show_command_handler')
@@ -202,12 +220,20 @@ class MyCommandsLoader(CLICommandsLoader):
         # A deprecated command group
         with CommandGroup(self, 'dep', '__main__#{}', deprecate_info=g.deprecate(redirect='ga', hide='1.0.0')) as g:
             g.command('range', 'range_command_handler')
+
+        with CommandGroup(self, 'demo', '__main__#{}') as g:
+            g.command('arg', 'demo_arg_handler')
+
         return super(MyCommandsLoader, self).load_command_table(args)
 
     def load_arguments(self, command):
         with ArgumentsContext(self, 'ga range') as ac:
             ac.argument('start', type=int, is_preview=True)
             ac.argument('end', type=int, is_experimental=True)
+
+        with ArgumentsContext(self, 'demo arg') as ac:
+            ac.argument('move', choices=['rock', 'paper', 'scissors'])
+
         super(MyCommandsLoader, self).load_arguments(command)
 
 

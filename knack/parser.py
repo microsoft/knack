@@ -30,20 +30,6 @@ ARGPARSE_SUPPORTED_KWARGS = [
 ]
 
 
-def _get_action_name(argument):
-    # copied from argparse in order not to use a protected method
-    if argument is None:
-        return None
-    if argument.option_strings:
-        return '/'.join(argument.option_strings)
-    if argument.metavar not in (None, argparse.SUPPRESS):
-        return argument.metavar
-    if argument.dest not in (None, argparse.SUPPRESS):
-        return argument.dest
-
-    return None
-
-
 class CLICommandParser(argparse.ArgumentParser):
 
     @staticmethod
@@ -280,34 +266,24 @@ class CLICommandParser(argparse.ArgumentParser):
         import sys
 
         if action.choices is not None and value not in action.choices:
-            is_command = action.dest in ["_command", "_subcommand"]
-            candidates = action.choices
-            if is_command:
-                candidates = difflib.get_close_matches(value, action.choices, cutoff=0.7)
-
-            if candidates:
-                print_args = {
-                    's': 's' if len(candidates) > 1 else '',
-                    'verb': 'are' if len(candidates) > 1 else 'is',
-                    'value': value,
-                    'action': _get_action_name(action),
-                    'choices': ', '.join(map(repr, candidates))
-                }
-
-            if is_command:
-                # parser has no `command_source`, value is part of command itself
+            if action.dest in ["_command", "_subcommand"]:
+                # Command
                 error_msg = "{prog}: '{value}' is not in the '{prog}' command group. See '{prog} --help'.".format(
                     prog=self.prog, value=value)
                 logger.error(error_msg)
+                # Show suggestions
+                candidates = difflib.get_close_matches(value, action.choices, cutoff=0.7)
                 if candidates:
-                    suggestion_msg = "\nThe most similar choice{s} to '{value}' {verb}:\n".format(**print_args)
+                    suggestion_msg = "\nThe most similar choices to '{value}':\n".format(value=value)
                     suggestion_msg += '\n'.join(['\t' + candidate for candidate in candidates])
                     print(suggestion_msg, file=sys.stderr)
             else:
-                error_msg = "{prog}: invalid choice '{value}'. See '{prog} --help'.".format(
-                    prog=self.prog, value=value)
+                # Argument
+                error_msg = "{prog}: '{value}' is not a valid value for '{name}'.".format(
+                    prog=self.prog, value=value,
+                    name=argparse._get_action_name(action))  # pylint: disable=protected-access
                 logger.error(error_msg)
-                suggestion_msg = "\nPossible choice{s} for argument '{action}' {verb}:\n".format(**print_args)
-                suggestion_msg += '\n'.join(['\t' + candidate for candidate in candidates])
+                # Show all allowed values
+                suggestion_msg = "Allowed values: " + ', '.join(action.choices)
                 print(suggestion_msg, file=sys.stderr)
             self.exit(2)
