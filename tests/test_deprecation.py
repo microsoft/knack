@@ -8,12 +8,11 @@ try:
     import mock
 except ImportError:
     from unittest import mock
-from threading import Lock
 
 from knack.arguments import ArgumentsContext
-from knack.commands import CLICommand, CLICommandsLoader, CommandGroup
+from knack.commands import CLICommandsLoader, CommandGroup
 
-from tests.util import DummyCLI, redirect_io, disable_color
+from tests.util import DummyCLI, redirect_io, assert_in_multi_line, disable_color
 
 
 def example_handler(arg1, arg2=None, arg3=None):
@@ -80,7 +79,7 @@ Commands:
     cmd4 [Deprecated] : Short summary here.
 
 """.format(self.cli_ctx.name)
-        self.assertEqual(expected, actual)
+        assert_in_multi_line(expected, actual)
 
     @redirect_io
     def test_deprecate_command_help_hidden(self):
@@ -100,7 +99,7 @@ Arguments
     --arg -a           : Allowed values: 1, 2, 3.
     --arg3
 """.format(self.cli_ctx.name)
-        self.assertIn(expected, actual)
+        assert_in_multi_line(expected, actual)
 
     @redirect_io
     def test_deprecate_command_plain_execute(self):
@@ -211,7 +210,7 @@ Commands:
     cmd1 : Short summary here.
 
 """.format(self.cli_ctx.name)
-        self.assertEqual(expected, actual)
+        assert_in_multi_line(expected, actual)
 
     @redirect_io
     def test_deprecate_command_group_help_hidden(self):
@@ -229,7 +228,7 @@ Commands:
     cmd1 : Short summary here.
 
 """.format(self.cli_ctx.name)
-        self.assertIn(expected, actual)
+        assert_in_multi_line(expected, actual)
 
     @redirect_io
     def test_deprecate_command_group_help_expiring(self):
@@ -243,7 +242,7 @@ Group
         This command group has been deprecated and will be removed in version '1.0.0'. Use
         'alt-group4' instead.
 """.format(self.cli_ctx.name)
-        self.assertIn(expected, actual)
+        assert_in_multi_line(expected, actual)
 
     @redirect_io
     @disable_color
@@ -282,7 +281,7 @@ Command
         This command is implicitly deprecated because command group 'group1' is deprecated and
         will be removed in a future release. Use 'alt-group1' instead.
 """.format(self.cli_ctx.name)
-        self.assertIn(expected, actual)
+        assert_in_multi_line(expected, actual)
 
 
 class TestArgumentDeprecation(unittest.TestCase):
@@ -352,7 +351,7 @@ Arguments
     --opt4
     --opt5
 """.format(self.cli_ctx.name)
-        self.assertTrue(actual.startswith(expected))
+        assert_in_multi_line(expected, actual)
 
     @redirect_io
     def test_deprecate_arguments_execute(self):

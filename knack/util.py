@@ -12,22 +12,37 @@ from enum import Enum
 NO_COLOR_VARIABLE_NAME = 'KNACK_NO_COLOR'
 
 # Override these values to customize the status message.
-# The message should contain a placeholder indicating the subject (like 'This command group', 'Commend group xxx').
+# The message should contain a placeholder indicating the subject (like 'This command group', 'Command group xxx').
 # (A dict is used to avoid the "from A import B" pitfall that creates a copy of the imported B.)
 status_tag_messages = {
     'preview': "{} is in preview. It may be changed/removed in a future release.",
     'experimental': "{} is experimental and under development."
 }
 
+# https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
+color_map = {
+    'reset': '\x1b[0m',  # Default
+    'preview': '\x1b[36m',  # Foreground Cyan
+    'experimental': '\x1b[36m',  # Foreground Cyan
+    'deprecation': '\x1b[33m',   # Foreground Yellow
+    'critical': '\x1b[41m',  # Background Red
+    'error': '\x1b[91m',  # Bright Foreground Red
+    'warning': '\x1b[33m',  # Foreground Yellow
+    'info': '\x1b[32m',  # Foreground Green
+    'debug': '\x1b[36m',  # Foreground Cyan
+}
+
 
 class CommandResultItem(object):  # pylint: disable=too-few-public-methods
     def __init__(self, result, table_transformer=None, is_query_active=False,
-                 exit_code=0, error=None):
+                 exit_code=0, error=None, raw_result=None):
         self.result = result
         self.error = error
         self.exit_code = exit_code
         self.table_transformer = table_transformer
         self.is_query_active = is_query_active
+        # The result before applying query
+        self.raw_result = raw_result
 
 
 class CLIError(Exception):
@@ -48,18 +63,16 @@ class CtxTypeError(TypeError):
 class ColorizedString(object):
 
     def __init__(self, message, color):
-        import colorama
         self._message = message
-        self._color = getattr(colorama.Fore, color.upper(), None)
+        self._color = color
 
     def __len__(self):
         return len(self._message)
 
     def __str__(self):
-        import colorama
         if not self._color:
             return self._message
-        return self._color + self._message + colorama.Fore.RESET
+        return self._color + self._message + color_map['reset']
 
 
 class StatusTag(object):
@@ -142,3 +155,24 @@ def todict(obj, post_processor=None):  # pylint: disable=too-many-return-stateme
                   if not callable(v) and not k.startswith('_')}
         return post_processor(obj, result) if post_processor else result
     return obj
+
+
+def is_modern_terminal():
+    """Detect whether the current terminal is a modern terminal that supports Unicode and
+    Console Virtual Terminal Sequences.
+
+    Currently, these terminals can be detected:
+      - VS Code terminal
+      - PyCharm
+      - Windows Terminal
+    """
+    # VS Code: https://github.com/microsoft/vscode/pull/30346
+    if os.environ.get('TERM_PROGRAM', '').lower() == 'vscode':
+        return True
+    # PyCharm: https://youtrack.jetbrains.com/issue/PY-4853
+    if 'PYCHARM_HOSTED' in os.environ:
+        return True
+    # Windows Terminal: https://github.com/microsoft/terminal/issues/1040
+    if 'WT_SESSION' in os.environ:
+        return True
+    return False

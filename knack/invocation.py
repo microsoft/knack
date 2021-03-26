@@ -230,4 +230,5 @@ class CommandInvoker(object):
         return CommandResultItem(event_data['result'],
                                  exit_code=0,
                                  table_transformer=cmd_tbl[parsed_args.command].table_transformer,
-                                 is_query_active=self.data['query_active'])
+                                 is_query_active=self.data['query_active'],
+                                 raw_result=cmd_result)

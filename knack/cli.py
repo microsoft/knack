@@ -11,7 +11,7 @@ from .invocation import CommandInvoker
 from .completion import CLICompletion
 from .output import OutputProducer
 from .log import CLILogging, get_logger
-from .util import CLIError
+from .util import CLIError, is_modern_terminal
 from .config import CLIConfig
 from .query import CLIQuery
 from .events import EVENT_CLI_PRE_EXECUTE, EVENT_CLI_SUCCESSFUL_EXECUTE, EVENT_CLI_POST_EXECUTE
@@ -20,10 +20,6 @@ from .commands import CLICommandsLoader
 from .help import CLIHelp
 
 logger = get_logger(__name__)
-
-# Temporarily force color to be enabled even when out_file is not stdout.
-# This is only intended for testing purpose.
-_KNACK_TEST_FORCE_ENABLE_COLOR = False
 
 
 class CLI(object):  # pylint: disable=too-many-instance-attributes
@@ -101,6 +97,8 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
 
         self.only_show_errors = self.config.getboolean('core', 'only_show_errors', fallback=False)
         self.enable_color = self._should_enable_color()
+        # Init colorama only in Windows legacy terminal
+        self._should_init_colorama = self.enable_color and os.name == 'nt' and not is_modern_terminal()
 
     @staticmethod
     def _should_show_version(args):
@@ -207,7 +205,8 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         exit_code = 0
         try:
             out_file = out_file or self.out_file
-            if out_file is sys.stdout and self.enable_color or _KNACK_TEST_FORCE_ENABLE_COLOR:
+            if out_file is sys.stdout and self._should_init_colorama:
+                self.init_debug_log.append("Init colorama.")
                 import colorama
                 colorama.init()
                 # point out_file to the new sys.stdout which is overwritten by colorama
@@ -236,7 +235,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
                 if cmd_result and cmd_result.result is not None:
                     formatter = self.output.get_formatter(output_type)
                     self.output.out(cmd_result, formatter=formatter, out_file=out_file)
-                self.raise_event(EVENT_CLI_SUCCESSFUL_EXECUTE, result=cmd_result.result)
+                self.raise_event(EVENT_CLI_SUCCESSFUL_EXECUTE, result=cmd_result)
         except KeyboardInterrupt as ex:
             exit_code = 1
             self.result = CommandResultItem(None, error=ex, exit_code=exit_code)
@@ -250,7 +249,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         finally:
             self.raise_event(EVENT_CLI_POST_EXECUTE)
 
-            if self.enable_color or _KNACK_TEST_FORCE_ENABLE_COLOR:
+            if self._should_init_colorama:
                 import colorama
                 colorama.deinit()
 
@@ -274,14 +273,13 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
             self.init_debug_log.append("Color is disabled by config.")
             return False
 
-        if 'PYCHARM_HOSTED' in os.environ:
-            if sys.stdout == sys.__stdout__ and sys.stderr == sys.__stderr__:
-                self.init_debug_log.append("Enable color in PyCharm.")
-                return True
-        else:
-            if sys.stdout.isatty() and sys.stderr.isatty() and self.out_file is sys.stdout:
-                self.init_debug_log.append("Enable color in terminal.")
-                return True
+        if sys.stdout.isatty() and sys.stderr.isatty() and self.out_file is sys.stdout:
+            self.init_debug_log.append("Enable color in terminal.")
+            return True
+
+        if 'PYCHARM_HOSTED' in os.environ and sys.stdout == sys.__stdout__ and sys.stderr == sys.__stderr__:
+            self.init_debug_log.append("Enable color in PyCharm.")
+            return True
 
         self.init_debug_log.append("Cannot enable color.")
         return False

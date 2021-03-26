@@ -3,9 +3,10 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from .util import StatusTag
+from .util import StatusTag, color_map
 
 DEFAULT_DEPRECATED_TAG = '[Deprecated]'
+_config_key = 'deprecation'
 
 
 def resolve_deprecate_info(cli_ctx, name):
@@ -88,7 +89,7 @@ class Deprecated(StatusTag):
             cli_ctx=cli_ctx,
             object_type=object_type,
             target=target,
-            color='yellow',
+            color=color_map[_config_key],
             tag_func=tag_func or (lambda _: DEFAULT_DEPRECATED_TAG),
             message_func=message_func or _default_get_message
         )

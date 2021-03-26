@@ -3,10 +3,11 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from .util import StatusTag, status_tag_messages
+from .util import StatusTag, status_tag_messages, color_map
 
 _EXPERIMENTAL_TAG = '[Experimental]'
 _experimental_kwarg = 'experimental_info'
+_config_key = 'experimental'
 
 
 def resolve_experimental_info(cli_ctx, name):
@@ -50,13 +51,13 @@ class ExperimentalItem(StatusTag):
         """
 
         def _default_get_message(self):
-            return status_tag_messages['experimental'].format("This " + self.object_type)
+            return status_tag_messages[_config_key].format("This " + self.object_type)
 
         super().__init__(
             cli_ctx=cli_ctx,
             object_type=object_type,
             target=target,
-            color='cyan',
+            color=color_map[_config_key],
             tag_func=tag_func or (lambda _: _EXPERIMENTAL_TAG),
             message_func=message_func or _default_get_message
         )
@@ -67,7 +68,7 @@ class ImplicitExperimentalItem(ExperimentalItem):
     def __init__(self, **kwargs):
 
         def get_implicit_experimental_message(self):
-            return status_tag_messages['experimental'].format("Command group '{}'".format(self.target))
+            return status_tag_messages[_config_key].format("Command group '{}'".format(self.target))
 
         kwargs.update({
             'tag_func': lambda _: '',
