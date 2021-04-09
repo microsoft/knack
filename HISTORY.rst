@@ -3,6 +3,11 @@
 Release History
 ===============
 
+0.8.1
++++++
+
+* Add error message for invalid argument value (#244)
+
 0.8.0
 +++++
 
