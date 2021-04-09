@@ -266,19 +266,24 @@ class CLICommandParser(argparse.ArgumentParser):
         import sys
 
         if action.choices is not None and value not in action.choices:
-            # parser has no `command_source`, value is part of command itself
-            error_msg = "{prog}: '{value}' is not in the '{prog}' command group. See '{prog} --help'.".format(
-                prog=self.prog, value=value)
-            logger.error(error_msg)
-            candidates = difflib.get_close_matches(value, action.choices, cutoff=0.7)
-            if candidates:
-                print_args = {
-                    's': 's' if len(candidates) > 1 else '',
-                    'verb': 'are' if len(candidates) > 1 else 'is',
-                    'value': value
-                }
-                suggestion_msg = "\nThe most similar choice{s} to '{value}' {verb}:\n".format(**print_args)
-                suggestion_msg += '\n'.join(['\t' + candidate for candidate in candidates])
+            if action.dest in ["_command", "_subcommand"]:
+                # Command
+                error_msg = "{prog}: '{value}' is not in the '{prog}' command group. See '{prog} --help'.".format(
+                    prog=self.prog, value=value)
+                logger.error(error_msg)
+                # Show suggestions
+                candidates = difflib.get_close_matches(value, action.choices, cutoff=0.7)
+                if candidates:
+                    suggestion_msg = "\nThe most similar choices to '{value}':\n".format(value=value)
+                    suggestion_msg += '\n'.join(['\t' + candidate for candidate in candidates])
+                    print(suggestion_msg, file=sys.stderr)
+            else:
+                # Argument
+                error_msg = "{prog}: '{value}' is not a valid value for '{name}'.".format(
+                    prog=self.prog, value=value,
+                    name=argparse._get_action_name(action))  # pylint: disable=protected-access
+                logger.error(error_msg)
+                # Show all allowed values
+                suggestion_msg = "Allowed values: " + ', '.join(action.choices)
                 print(suggestion_msg, file=sys.stderr)
-
             self.exit(2)
