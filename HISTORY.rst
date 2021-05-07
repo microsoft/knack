@@ -3,6 +3,11 @@
 Release History
 ===============
 
+0.8.2
++++++
+
+* Always use UTF-8 for log file encoding (#247)
+
 0.8.1
 +++++
 
