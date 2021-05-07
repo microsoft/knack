@@ -16,6 +16,8 @@ CLI_LOGGER_NAME = 'cli'
 # without --debug flag.
 cli_logger_names = [CLI_LOGGER_NAME]
 
+LOG_FILE_ENCODING = 'utf-8'
+
 
 class CliLogLevel(IntEnum):
     CRITICAL = 0
@@ -163,7 +165,8 @@ class CLILogging:  # pylint: disable=too-many-instance-attributes
         ensure_dir(self.log_dir)
         log_file_path = os.path.join(self.log_dir, self.logfile_name)
         from logging.handlers import RotatingFileHandler
-        logfile_handler = RotatingFileHandler(log_file_path, maxBytes=10 * 1024 * 1024, backupCount=5)
+        logfile_handler = RotatingFileHandler(log_file_path, maxBytes=10 * 1024 * 1024, backupCount=5,
+                                              encoding=LOG_FILE_ENCODING)
         lfmt = logging.Formatter('%(process)d : %(asctime)s : %(levelname)s : %(name)s : %(message)s')
         logfile_handler.setFormatter(lfmt)
         logfile_handler.setLevel(logging.DEBUG)
