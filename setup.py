@@ -8,7 +8,7 @@
 from codecs import open
 from setuptools import setup, find_packages
 
-VERSION = '0.8.1'
+VERSION = '0.8.2'
 
 DEPENDENCIES = [
     'argcomplete',
