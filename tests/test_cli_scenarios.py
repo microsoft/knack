@@ -6,11 +6,7 @@
 import os
 from collections import OrderedDict
 import unittest
-try:
-    import mock
-except ImportError:
-    from unittest import mock
-import mock
+from unittest import mock
 
 from io import StringIO
 

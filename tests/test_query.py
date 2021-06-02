@@ -4,7 +4,7 @@
 # --------------------------------------------------------------------------------------------
 
 import unittest
-import mock
+from unittest import mock
 
 from knack.events import EVENT_PARSER_GLOBAL_CREATE
 from knack.query import CLIQuery

@@ -3,10 +3,7 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 import logging
 import os
 import re
