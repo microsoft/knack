@@ -7,7 +7,7 @@
 # --------------------------------------------------------------------------------------------
 
 import unittest
-import mock
+from unittest import mock
 from collections import OrderedDict
 from io import StringIO
 

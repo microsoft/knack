@@ -4,10 +4,7 @@
 # --------------------------------------------------------------------------------------------
 
 import unittest
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 import logging
 
 from knack.events import EVENT_PARSER_GLOBAL_CREATE, EVENT_INVOKER_PRE_CMD_TBL_CREATE

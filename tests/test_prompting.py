@@ -5,10 +5,7 @@
 
 import sys
 import unittest
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 from io import StringIO
 
 from knack.prompting import (verify_is_a_tty, NoTTYException, _INVALID_PASSWORD_MSG, prompt,

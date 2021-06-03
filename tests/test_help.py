@@ -5,8 +5,8 @@
 
 import sys
 import unittest
+from unittest import mock
 
-import mock
 from knack.arguments import ArgumentsContext
 from knack.commands import CLICommandsLoader, CommandGroup
 from knack.events import EVENT_PARSER_GLOBAL_CREATE

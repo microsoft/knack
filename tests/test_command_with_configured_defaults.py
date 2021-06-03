@@ -6,10 +6,7 @@ import os
 import logging
 import sys
 import unittest
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 
 from knack.arguments import ArgumentsContext
 from knack.commands import CLICommandsLoader, CommandGroup
