@@ -362,7 +362,7 @@ class HelpParameter(HelpObject):  # pylint: disable=too-many-instance-attributes
 
     def update_from_data(self, data):
         if self.name != data.get('name'):
-            raise HelpAuthoringException(u"mismatched name {} vs. {}"
+            raise HelpAuthoringException("mismatched name {} vs. {}"
                                          .format(self.name,
                                                  data.get('name')))
 
@@ -394,7 +394,7 @@ class CLIHelp(object):
         _print_indent('Command' if help_file.type == 'command' else 'Group', indent)
 
         indent += 1
-        LINE_FORMAT = u'{cli}{name}{separator}{summary}'
+        LINE_FORMAT = '{cli}{name}{separator}{summary}'
         line = LINE_FORMAT.format(
             cli=cli_name,
             name=' ' + help_file.command if help_file.command else '',
@@ -421,7 +421,7 @@ class CLIHelp(object):
 
     def _print_groups(self, help_file):
 
-        LINE_FORMAT = u'{name}{padding}{tags}{separator}{summary}'
+        LINE_FORMAT = '{name}{padding}{tags}{separator}{summary}'
         indent = 1
 
         self.max_line_len = 0
@@ -496,13 +496,13 @@ class CLIHelp(object):
 
     @staticmethod
     def _get_choices_defaults_sources_str(p):
-        choice_str = u'  Allowed values: {}.'.format(', '.join(sorted([str(x) for x in p.choices]))) \
+        choice_str = '  Allowed values: {}.'.format(', '.join(sorted([str(x) for x in p.choices]))) \
             if p.choices else ''
-        default_str = u'  Default: {}.'.format(p.default) \
+        default_str = '  Default: {}.'.format(p.default) \
             if p.default and p.default != argparse.SUPPRESS else ''
-        value_sources_str = u'  Values from: {}.'.format(', '.join(p.value_sources)) \
+        value_sources_str = '  Values from: {}.'.format(', '.join(p.value_sources)) \
             if p.value_sources else ''
-        return u'{}{}{}'.format(choice_str, default_str, value_sources_str)
+        return '{}{}{}'.format(choice_str, default_str, value_sources_str)
 
     @staticmethod
     def print_description_list(help_files):
@@ -510,11 +510,11 @@ class CLIHelp(object):
         max_length = max(len(f.name) for f in help_files) if help_files else 0
         for help_file in sorted(help_files, key=lambda h: h.name):
             column_indent = max_length - len(help_file.name)
-            _print_indent(u'{}{}{}'.format(help_file.name,
-                                           ' ' * column_indent,
-                                           FIRST_LINE_PREFIX + help_file.short_summary
-                                           if help_file.short_summary
-                                           else ''),
+            _print_indent('{}{}{}'.format(help_file.name,
+                                          ' ' * column_indent,
+                                          FIRST_LINE_PREFIX + help_file.short_summary
+                                          if help_file.short_summary
+                                          else ''),
                           indent,
                           _get_hanging_indent(max_length, indent))
 
@@ -524,14 +524,14 @@ class CLIHelp(object):
         _print_indent('Examples', indent)
         for e in help_file.examples:
             indent = 1
-            _print_indent(u'{0}'.format(e.name), indent)
+            _print_indent('{0}'.format(e.name), indent)
             indent = 2
-            _print_indent(u'{0}'.format(e.text), indent)
+            _print_indent('{0}'.format(e.text), indent)
             print('')
 
     def _print_arguments(self, help_file):  # pylint: disable=too-many-statements
 
-        LINE_FORMAT = u'{name}{padding}{tags}{separator}{short_summary}'
+        LINE_FORMAT = '{name}{padding}{tags}{separator}{short_summary}'
         indent = 1
         self.max_line_len = 0
 
@@ -644,9 +644,9 @@ class CLIHelp(object):
         group_registry = ArgumentGroupRegistry([p.group_name for p in help_file.parameters if p.group_name])
 
         def _get_parameter_key(parameter):
-            return u'{}{}{}'.format(group_registry.get_group_priority(parameter.group_name),
-                                    str(not parameter.required),
-                                    parameter.name)
+            return '{}{}{}'.format(group_registry.get_group_priority(parameter.group_name),
+                                   str(not parameter.required),
+                                   parameter.name)
 
         parameter_layouts = _layout_items(help_file.parameters)
         _print_items(parameter_layouts)

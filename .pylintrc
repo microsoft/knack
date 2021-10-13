@@ -10,7 +10,8 @@
 # R0401 cyclic-import
 # R0205 useless-object-inheritance
 # R1717 consider-using-dict-comprehension
-disable=W0511,C0111,C0103,C0415,I0011,R0913,R0903,R0401,R0205,R1717,useless-suppression
+disable=W0511,C0111,C0103,C0415,I0011,R0913,R0903,R0401,R0205,R1717,useless-suppression,
+    consider-using-f-string
 
 [FORMAT]
 max-line-length=120
@@ -23,4 +24,3 @@ max-branches=20
 
 [SIMILARITIES]
 min-similarity-lines=10
-

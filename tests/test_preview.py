@@ -61,7 +61,7 @@ class TestCommandPreview(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.cli_ctx.invoke('-h'.split())
         actual = self.io.getvalue()
-        expected = u"""
+        expected = """
 Group
     {}
 
