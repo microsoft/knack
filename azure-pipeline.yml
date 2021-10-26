@@ -53,7 +53,7 @@ jobs:
   - job: BuildPythonWheel
     condition: succeeded()
     pool:
-      image: 'ubuntu-20.04'
+      vmImage: 'ubuntu-20.04'
     steps:
       - task: UsePythonVersion@0
         displayName: Use Python 3.9
