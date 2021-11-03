@@ -180,9 +180,9 @@ class CLICommandsLoader(object):
         self.skip_applicability = False
         self.excluded_command_handler_args = excluded_command_handler_args
         # A command table is a dictionary of name -> CLICommand instances
-        self.command_table = dict()
+        self.command_table = {}
         # A command group table is a dictionary of names -> CommandGroup instances
-        self.command_group_table = dict()
+        self.command_group_table = {}
         # An argument registry stores all arguments for commands
         self.argument_registry = ArgumentRegistry()
         self.extra_argument_registry = defaultdict(lambda: {})

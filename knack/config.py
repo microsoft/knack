@@ -10,6 +10,8 @@ from .util import ensure_dir
 
 _UNSET = object()
 
+CONFIG_FILE_ENCODING = 'utf-8'
+
 
 def get_config_parser():
     return configparser.ConfigParser()  # keep this for backward compatibility
@@ -190,7 +192,7 @@ class _ConfigFile(object):
         self.config_comment = config_comment
         self.config_parser = configparser.ConfigParser()
         if os.path.exists(config_path):
-            self.config_parser.read(config_path)
+            self.config_parser.read(config_path, encoding=CONFIG_FILE_ENCODING)
 
     def items(self, section):
         return self.config_parser.items(section) if self.config_parser else []
@@ -220,7 +222,7 @@ class _ConfigFile(object):
 
     def set(self, config):
         ensure_dir(self.config_dir)
-        with open(self.config_path, 'w') as configfile:
+        with open(self.config_path, 'w', encoding=CONFIG_FILE_ENCODING) as configfile:
             if self.config_comment:
                 configfile.write(self.config_comment + '\n')
             config.write(configfile)

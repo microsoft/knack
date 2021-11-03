@@ -80,7 +80,8 @@ class CLICommandParser(argparse.ArgumentParser):
             if args[arg].startswith('@'):
                 try:
                     logger.debug('Attempting to read file %s', args[arg][1:])
-                    with open(args[arg][1:], 'r') as f:
+                    # Use the default system encoding: https://docs.python.org/3/library/functions.html#open
+                    with open(args[arg][1:], 'r') as f:  # pylint: disable=unspecified-encoding
                         content = f.read()
                     args[arg] = content
                 except IOError:

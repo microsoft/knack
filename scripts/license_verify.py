@@ -37,7 +37,7 @@ def get_files_without_header():
         for a_file in files:
             if a_file.endswith('.py'):
                 cur_file_path = os.path.join(current_dir, a_file)
-                with open(cur_file_path, 'r') as f:
+                with open(cur_file_path, 'r', encoding='utf-8') as f:
                     file_text = f.read()
 
                 if len(file_text) > 0 and not contains_header(file_text):
