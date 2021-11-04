@@ -5,21 +5,24 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from codecs import open
-from setuptools import setup, find_packages
+import sys
+from setuptools import setup
 
 VERSION = '0.8.2'
 
 DEPENDENCIES = [
     'argcomplete',
-    'colorama',
     'jmespath',
     'pygments',
     'pyyaml',
     'tabulate'
 ]
 
-with open('README.rst', 'r', encoding='utf-8') as f:
+# On Windows, colorama is required for legacy terminals.
+if sys.platform == 'win32':
+    DEPENDENCIES.append('colorama')
+
+with open('README.rst', 'r') as f:
     README = f.read()
 
 setup(

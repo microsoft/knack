@@ -98,7 +98,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         self.only_show_errors = self.config.getboolean('core', 'only_show_errors', fallback=False)
         self.enable_color = self._should_enable_color()
         # Init colorama only in Windows legacy terminal
-        self._should_init_colorama = self.enable_color and os.name == 'nt' and not is_modern_terminal()
+        self._should_init_colorama = self.enable_color and sys.platform == 'win32' and not is_modern_terminal()
 
     @staticmethod
     def _should_show_version(args):
