@@ -3,6 +3,12 @@
 Release History
 ===============
 
+0.8.3
++++++
+
+* Support Python 3.10 (#250)
+* Only install colorama on Windows (#249)
+
 0.8.2
 +++++
 
