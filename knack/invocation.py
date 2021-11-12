@@ -4,20 +4,20 @@
 # --------------------------------------------------------------------------------------------
 
 import sys
-
 from collections import defaultdict
 
-from .deprecation import ImplicitDeprecated, resolve_deprecate_info
-from .preview import ImplicitPreviewItem, resolve_preview_info
-from .experimental import ImplicitExperimentalItem, resolve_experimental_info
-from .util import CLIError, CtxTypeError, CommandResultItem, todict
-from .parser import CLICommandParser
 from .commands import CLICommandsLoader
+from .deprecation import ImplicitDeprecated, resolve_deprecate_info
 from .events import (EVENT_INVOKER_PRE_CMD_TBL_CREATE, EVENT_INVOKER_POST_CMD_TBL_CREATE,
                      EVENT_INVOKER_CMD_TBL_LOADED, EVENT_INVOKER_PRE_PARSE_ARGS,
                      EVENT_INVOKER_POST_PARSE_ARGS, EVENT_INVOKER_TRANSFORM_RESULT,
                      EVENT_INVOKER_FILTER_RESULT)
+from .experimental import ImplicitExperimentalItem, resolve_experimental_info
 from .help import CLIHelp
+from .log import CLILogging
+from .parser import CLICommandParser
+from .preview import ImplicitPreviewItem, resolve_preview_info
+from .util import CLIError, CtxTypeError, CommandResultItem, todict
 
 
 class CommandInvoker(object):
@@ -137,7 +137,8 @@ class CommandInvoker(object):
         self.parser.load_command_table(self.commands_loader)
         self.cli_ctx.raise_event(EVENT_INVOKER_CMD_TBL_LOADED, parser=self.parser)
 
-        arg_check = [a for a in args if a not in ['--verbose', '--debug', '--only-show-errors']]
+        arg_check = [a for a in args if a not in
+                     (CLILogging.DEBUG_FLAG, CLILogging.VERBOSE_FLAG, CLILogging.ONLY_SHOW_ERRORS_FLAG)]
         if not arg_check:
             self.cli_ctx.completion.enable_autocomplete(self.parser)
             subparser = self.parser.subparsers[tuple()]
