@@ -3,6 +3,11 @@
 Release History
 ===============
 
+0.9.1
++++++
+
+* Use proper PEP 508 environment marker to install colorama on Windows only (#257)
+
 0.9.0
 +++++
 

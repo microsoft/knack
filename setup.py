@@ -8,19 +8,17 @@
 import sys
 from setuptools import setup
 
-VERSION = '0.9.0'
+VERSION = '0.9.1'
 
 DEPENDENCIES = [
     'argcomplete',
     'jmespath',
     'pygments',
     'pyyaml',
-    'tabulate'
+    'tabulate',
+    # On Windows, colorama is required for legacy terminals.
+    'colorama; sys_platform == "win32"'
 ]
-
-# On Windows, colorama is required for legacy terminals.
-if sys.platform == 'win32':
-    DEPENDENCIES.append('colorama')
 
 with open('README.rst', 'r') as f:
     README = f.read()
