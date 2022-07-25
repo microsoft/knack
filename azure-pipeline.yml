@@ -35,6 +35,9 @@ jobs:
         Python310:
           python.version: '3.10'
           tox_env: 'py310'
+        Python311:
+          python.version: '3.11-dev'
+          tox_env: 'py311'
     steps:
       - task: UsePythonVersion@0
         displayName: 'Use Python $(python.version)'
