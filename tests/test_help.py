@@ -203,7 +203,7 @@ class TestHelp(unittest.TestCase):
 
     @redirect_io
     def test_help_long_and_short_description_from_docstring(self):
-        """ Ensure the first sentence of a docstring is parsed as the short summary and subsequent text is interpretted
+        """ Ensure the first sentence of a docstring is parsed as the short summary and subsequent text is interpreted
         as the long summary. """
 
         with self.assertRaises(SystemExit):

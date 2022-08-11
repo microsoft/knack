@@ -409,7 +409,7 @@ Arguments
 
     @redirect_io
     def test_deprecate_options_execute_hidden_non_deprecated(self):
-        """ Ensure hidden non-deprecated optionss can be used without warning. """
+        """ Ensure hidden non-deprecated options can be used without warning. """
         self.cli_ctx.invoke('arg-test --arg1 foo --opt1 bar --opt3 bar'.split())
         actual = self.io.getvalue()
         expected = "Option '--alt3' has been deprecated and will be removed in a future release. Use '--opt3' instead."
