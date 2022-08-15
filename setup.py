@@ -15,9 +15,7 @@ DEPENDENCIES = [
     'jmespath',
     'pygments',
     'pyyaml',
-    'tabulate',
-    # On Windows, colorama is required for legacy terminals.
-    'colorama; sys_platform == "win32"'
+    'tabulate'
 ]
 
 with open('README.rst', 'r') as f:
