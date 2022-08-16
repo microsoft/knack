@@ -36,7 +36,7 @@ kernel32.SetConsoleMode.argtypes = (HANDLE, DWORD)
 
 
 def _get_conout_mode():
-    with open("CONOUT$", "w") as conout:
+    with open("CONOUT$", "w") as conout:  # pylint: disable=unspecified-encoding
         mode = DWORD()
         conout_handle = get_osfhandle(conout.fileno())
         kernel32.GetConsoleMode(conout_handle, byref(mode))
@@ -44,7 +44,7 @@ def _get_conout_mode():
 
 
 def _set_conout_mode(mode):
-    with open("CONOUT$", "w") as conout:
+    with open("CONOUT$", "w") as conout:  # pylint: disable=unspecified-encoding
         conout_handle = get_osfhandle(conout.fileno())
         kernel32.SetConsoleMode(conout_handle, mode)
 
