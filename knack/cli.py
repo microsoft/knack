@@ -97,8 +97,8 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
 
         self.only_show_errors = self.config.getboolean('core', 'only_show_errors', fallback=False)
         self.enable_color = self._should_enable_color()
-        # Init colorama only in Windows legacy terminal
-        self._should_init_colorama = self.enable_color and sys.platform == 'win32' and not is_modern_terminal()
+        # Enable VT mode only in Windows legacy terminal
+        self._should_enable_vt_mode = self.enable_color and sys.platform == 'win32' and not is_modern_terminal()
 
     @staticmethod
     def _should_show_version(args):
@@ -205,12 +205,14 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         exit_code = 0
         try:
             out_file = out_file or self.out_file
-            if out_file is sys.stdout and self._should_init_colorama:
-                self.init_debug_log.append("Init colorama.")
-                import colorama
-                colorama.init()
-                # point out_file to the new sys.stdout which is overwritten by colorama
-                out_file = sys.stdout
+
+            # Enable VT mode if necessary
+            if out_file is sys.stdout and self._should_enable_vt_mode:
+                self.init_debug_log.append("Enable VT mode.")
+                from ._win_vt import enable_vt_mode
+                if not enable_vt_mode():
+                    # Disable color if we can't enable it
+                    self.enable_color = False
 
             args = self.completion.get_completion_args() or args
 
@@ -249,10 +251,6 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         finally:
             self.raise_event(EVENT_CLI_POST_EXECUTE)
 
-            if self._should_init_colorama:
-                import colorama
-                colorama.deinit()
-
         return exit_code
 
     def _should_enable_color(self):
@@ -262,7 +260,6 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         #      - Otherwise, if the downstream command doesn't support color, Knack will fail with
         #      BrokenPipeError: [Errno 32] Broken pipe, like `az --version | head --lines=1`
         #      https://github.com/Azure/azure-cli/issues/13413
-        #      - May also hit https://github.com/tartley/colorama/issues/200
         #   3. stderr is a tty.
         #      - Otherwise, the output in stderr won't have LEVEL tag
         #   4. out_file is stdout
