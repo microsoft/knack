@@ -3,6 +3,12 @@
 Release History
 ===============
 
+0.10.0
+++++++
+
+* Enable Virtual Terminal mode on legacy Windows terminal to support ANSI escape sequences (#265)
+* Drop Python 3.6 support (#259)
+
 0.9.1
 +++++
 
