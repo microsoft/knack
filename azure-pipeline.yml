@@ -17,7 +17,7 @@ jobs:
     timeoutInMinutes: 20
 
     pool:
-      vmImage: 'ubuntu-20.04'
+      name: 'pool-ubuntu-2004'
     strategy:
       matrix:
         Python37:
@@ -50,7 +50,7 @@ jobs:
   - job: BuildPythonWheel
     condition: succeeded()
     pool:
-      vmImage: 'ubuntu-20.04'
+      name: 'pool-ubuntu-2004'
     steps:
       - task: UsePythonVersion@0
         displayName: Use Python 3.10
