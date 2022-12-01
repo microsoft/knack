@@ -28,7 +28,7 @@ setup(
     version=VERSION,
     description='A Command-Line Interface framework',
     long_description=README,
-    license='MIT License',
+    license='MIT',
     author='Microsoft Corporation',
     author_email='azpycli@microsoft.com',
     url='https://github.com/microsoft/knack',
