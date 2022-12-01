@@ -3,6 +3,11 @@
 Release History
 ===============
 
+0.10.1
+++++++
+
+* Support bytearray serialization (#268)
+
 0.10.0
 ++++++
 
