@@ -279,7 +279,7 @@ Global Arguments
     --only-show-errors   : Only show errors, suppressing warnings.
     --output -o          : Output format.  Allowed values: json, jsonc, none, table, tsv, yaml,
                            yamlc.  Default: json.
-    --query              : JMESPath query string. See http://jmespath.org/ for more information and
+    --query              : JMESPath query string. See http://jmespath.site/main/ for more information and
                            examples.
     --verbose            : Increase logging verbosity. Use --debug for full debug logs.
 
@@ -314,7 +314,7 @@ Global Arguments
     --only-show-errors : Only show errors, suppressing warnings.
     --output -o        : Output format.  Allowed values: json, jsonc, none, table, tsv, yaml, yamlc.
                          Default: json.
-    --query            : JMESPath query string. See http://jmespath.org/ for more information and
+    --query            : JMESPath query string. See http://jmespath.site/main/ for more information and
                          examples.
     --verbose          : Increase logging verbosity. Use --debug for full debug logs.
 
@@ -431,7 +431,7 @@ Global Arguments
     --only-show-errors : Only show errors, suppressing warnings.
     --output -o        : Output format.  Allowed values: json, jsonc, none, table, tsv, yaml, yamlc.
                          Default: json.
-    --query            : JMESPath query string. See http://jmespath.org/ for more information and
+    --query            : JMESPath query string. See http://jmespath.site/main/ for more information and
                          examples.
     --verbose          : Increase logging verbosity. Use --debug for full debug logs.
 

@@ -12,7 +12,7 @@ VERSION = '0.10.1'
 
 DEPENDENCIES = [
     'argcomplete',
-    'jmespath',
+    'jmespath-community',
     'pygments',
     'pyyaml',
     'tabulate'
