@@ -19,9 +19,10 @@ class CLIQuery(object):
         In addition though, JMESPath can raise a KeyError.
         ValueErrors are caught by argparse so argument errors can be generated.
         """
+        from jmespath import Options
         from jmespath import compile as compile_jmespath
         try:
-            return compile_jmespath(raw_query)
+            return compile_jmespath(raw_query, Options(enable_legacy_literals=True))
         except KeyError as ex:
             # Raise a ValueError which argparse can handle
             raise ValueError from ex
@@ -30,7 +31,7 @@ class CLIQuery(object):
     def on_global_arguments(_, **kwargs):
         arg_group = kwargs.get('arg_group')
         arg_group.add_argument('--query', dest='_jmespath_query', metavar='JMESPATH',
-                               help='JMESPath query string. See http://jmespath.org/ for more'
+                               help='JMESPath query string. See http://jmespath.site/main/ for more'
                                     ' information and examples.',
                                type=CLIQuery.jmespath_type)
 
@@ -43,7 +44,9 @@ class CLIQuery(object):
             def filter_output(cli_ctx, **kwargs):
                 from jmespath import Options
                 kwargs['event_data']['result'] = query_expression.search(
-                    kwargs['event_data']['result'], Options(collections.OrderedDict))
+                    kwargs['event_data']['result'], Options(
+                        dict_cls=collections.OrderedDict,
+                        enable_legacy_literals=True))
                 cli_ctx.unregister_event(EVENT_INVOKER_FILTER_RESULT, filter_output)
             cli_ctx.register_event(EVENT_INVOKER_FILTER_RESULT, filter_output)
             cli_ctx.invocation.data['query_active'] = True

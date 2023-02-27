@@ -67,7 +67,8 @@ def format_table(obj):
         if obj.table_transformer and not obj.is_query_active:
             if isinstance(obj.table_transformer, str):
                 from jmespath import compile as compile_jmes, Options
-                result = compile_jmes(obj.table_transformer).search(result, Options(OrderedDict))
+                options = Options(dict_cls=OrderedDict, enable_legacy_literals=True)
+                result = compile_jmes(obj.table_transformer, options).search(result, options)
             else:
                 result = obj.table_transformer(result)
         result_list = result if isinstance(result, list) else [result]

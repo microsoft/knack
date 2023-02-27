@@ -16,7 +16,9 @@ class JMESPathCheck(object):  # pylint: disable=too-few-public-methods
     def __call__(self, execution_result):
         json_value = execution_result.get_output_in_json()
         actual_result = jmespath.search(self._query, json_value,
-                                        jmespath.Options(collections.OrderedDict))
+                                        jmespath.Options(
+                                            dict_cls=collections.OrderedDict,
+                                            enable_legacy_literals=True))
         if not actual_result == self._expected_result:
             if actual_result:
                 raise JMESPathCheckAssertionError(self._query, self._expected_result, actual_result,
@@ -32,7 +34,9 @@ class JMESPathCheckExists(object):  # pylint: disable=too-few-public-methods
     def __call__(self, execution_result):
         json_value = execution_result.get_output_in_json()
         actual_result = jmespath.search(self._query, json_value,
-                                        jmespath.Options(collections.OrderedDict))
+                                        jmespath.Options(
+                                            dict_cls=collections.OrderedDict,
+                                            enable_legacy_literals=True))
         if not actual_result:
             raise JMESPathCheckAssertionError(self._query, 'some value', actual_result,
                                               execution_result.output)
@@ -46,7 +50,9 @@ class JMESPathCheckGreaterThan(object):  # pylint: disable=too-few-public-method
     def __call__(self, execution_result):
         json_value = execution_result.get_output_in_json()
         actual_result = jmespath.search(self._query, json_value,
-                                        jmespath.Options(collections.OrderedDict))
+                                        jmespath.Options(
+                                            dict_cls=collections.OrderedDict,
+                                            enable_legacy_literals=True))
         if not actual_result > self._expected_result:
             expected_result_format = "> {}".format(self._expected_result)
 

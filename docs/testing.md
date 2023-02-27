@@ -71,7 +71,7 @@ class TestMyScenarios(ScenarioTest):
 ```
 Note:
 
-1. What is JMESPath? [JMESPath is a query language for JSON](http://jmespath.org/)
+1. What is JMESPath? [JMESPath is a query language for JSON](http://jmespath.site/main/)
 2. If a command is return value in JSON, multiple JMESPath based check can be added to the checks list to validate the result.
 3. In addition to the `JMESPatchCheck`, there are other checks list `NoneCheck` which validate the output is `None`. The check mechanism is extensible. Any callable accept `ExecutionResult` can act as a check.
 
