@@ -17,7 +17,7 @@ from .introspection import extract_args_from_signature, extract_full_summary_fro
 from .events import (EVENT_CMDLOADER_LOAD_COMMAND_TABLE, EVENT_CMDLOADER_LOAD_ARGUMENTS,
                      EVENT_COMMAND_CANCELLED)
 from .log import get_logger
-from .validators import DefaultInt, DefaultStr, DefaultBool
+from .validators import DefaultInt, DefaultStr
 
 logger = get_logger(__name__)
 
@@ -124,12 +124,15 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         # that coincides with the default
         if isinstance(arg_default, str):
             arg_default = DefaultStr(arg_default)
-        elif isinstance(arg_default, bool):
-            arg_default = DefaultBool(arg_default)
-        elif isinstance(arg_default, int):
+        elif type(arg_default) is int:
+            # use type here is because:
+            # 1) bool is subclass of int so isinstance(True, int) cannot distinguish between int and bool
+            # 2) bool is not extendable according to
+            #   https://stackoverflow.com/questions/2172189/why-i-cant-extend-bool-in-python,
+            #   so bool's is_default is ignored for now
             arg_default = DefaultInt(arg_default)
         # update the default
-        if arg_default is not None:
+        if arg_default:
             arg.type.settings['default'] = arg_default
 
     def execute(self, **kwargs):

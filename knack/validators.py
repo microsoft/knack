@@ -18,14 +18,3 @@ class DefaultInt(int):
         instance = int.__new__(cls, *args, **kwargs)
         instance.is_default = True
         return instance
-
-
-class DefaultBool:
-
-    def __new__(cls, default_value):
-        instance = bool(default_value)
-        return instance
-
-    def __getattr__(self, key, value):
-        if key == "is_default":
-            return True
