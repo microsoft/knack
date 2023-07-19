@@ -17,7 +17,7 @@ from .introspection import extract_args_from_signature, extract_full_summary_fro
 from .events import (EVENT_CMDLOADER_LOAD_COMMAND_TABLE, EVENT_CMDLOADER_LOAD_ARGUMENTS,
                      EVENT_COMMAND_CANCELLED)
 from .log import get_logger
-from .validators import DefaultInt, DefaultStr
+from .validators import DefaultInt, DefaultStr, DefaultBool
 
 logger = get_logger(__name__)
 
@@ -125,7 +125,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         if isinstance(arg_default, str):
             arg_default = DefaultStr(arg_default)
         elif isinstance(arg_default, bool):
-            pass
+            arg_default = DefaultBool(arg_default)
         elif isinstance(arg_default, int):
             arg_default = DefaultInt(arg_default)
         # update the default
