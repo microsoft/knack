@@ -124,6 +124,8 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         # that coincides with the default
         if isinstance(arg_default, str):
             arg_default = DefaultStr(arg_default)
+        elif isinstance(arg_default, bool):
+            pass
         elif isinstance(arg_default, int):
             arg_default = DefaultInt(arg_default)
         # update the default
