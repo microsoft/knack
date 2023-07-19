@@ -129,7 +129,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         elif isinstance(arg_default, int):
             arg_default = DefaultInt(arg_default)
         # update the default
-        if arg_default:
+        if arg_default is not None:
             arg.type.settings['default'] = arg_default
 
     def execute(self, **kwargs):
