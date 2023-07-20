@@ -125,10 +125,9 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         if isinstance(arg_default, str):
             arg_default = DefaultStr(arg_default)
         elif isinstance(arg_default, int) and not isinstance(arg_default, bool):
-            # adjust here is because:
-            # 1) bool is subclass of int so isinstance(True, int) cannot distinguish between int and bool
-            # 2) bool is not extendable according to https://stackoverflow.com/a/2172204/6140424,
-            #    so bool's is_default is ignored for now
+            # bool's is_default is ignored for now, because
+            # 1. bool is a subclass of int, so isinstance(True, int) cannot distinguish between int and bool
+            # 2. bool is not extendable according to https://stackoverflow.com/a/2172204/2199657
             arg_default = DefaultInt(arg_default)
         # update the default
         if arg_default:
