@@ -124,7 +124,7 @@ class CLICommand(object):  # pylint:disable=too-many-instance-attributes
         # that coincides with the default
         if isinstance(arg_default, str):
             arg_default = DefaultStr(arg_default)
-        elif type(arg_default) is int:
+        elif type(arg_default) is int:  # pylint: disable=unidiomatic-typecheck
             # use type here is because:
             # 1) bool is subclass of int so isinstance(True, int) cannot distinguish between int and bool
             # 2) bool is not extendable according to
