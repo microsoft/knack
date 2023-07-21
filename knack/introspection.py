@@ -67,45 +67,23 @@ def extract_args_from_signature(operation, excluded_params=None):
     """ Extracts basic argument data from an operation's signature and docstring
         excluded_params: List of params to ignore and not extract. By default we ignore ['self', 'kwargs'].
     """
-    args = []
-    try:
-        # only supported in python3 - falling back to argspec if not available
-        sig = inspect.signature(operation)
-        args = sig.parameters
-    except AttributeError:
-        sig = inspect.getargspec(operation)  # pylint: disable=deprecated-method, useless-suppression
-        args = sig.args
+    sig = inspect.signature(operation)
+    args = sig.parameters
 
     arg_docstring_help = option_descriptions(operation)
     excluded_params = excluded_params or ['self', 'kwargs']
 
     for arg_name in [a for a in args if a not in excluded_params]:
-        try:
-            # this works in python3
-            default = args[arg_name].default
-            required = default == inspect.Parameter.empty  # pylint: disable=no-member, useless-suppression
-        except TypeError:
-            arg_defaults = (dict(zip(sig.args[-len(sig.defaults):], sig.defaults))
-                            if sig.defaults
-                            else {})
-            default = arg_defaults.get(arg_name)
-            required = arg_name not in arg_defaults
-
+        default = args[arg_name].default
+        required = default == inspect.Parameter.empty
         action = 'store_' + str(not default).lower() if isinstance(default, bool) else None
-
-        try:
-            default = (default
-                       if default != inspect._empty  # pylint: disable=protected-access
-                       else None)
-        except AttributeError:
-            pass
-
+        command_argument_default = default if default != inspect.Parameter.empty else None
         options_list = ['--' + arg_name.replace('_', '-')]
         help_str = arg_docstring_help.get(arg_name)
 
         yield (arg_name, CLICommandArgument(arg_name,
                                             options_list=options_list,
                                             required=required,
-                                            default=default,
+                                            default=command_argument_default,
                                             help=help_str,
                                             action=action))

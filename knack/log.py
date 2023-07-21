@@ -180,7 +180,7 @@ class CLILogging:  # pylint: disable=too-many-instance-attributes
 
     @staticmethod
     def _get_log_dir(cli_ctx):
-        default_dir = (os.path.join(cli_ctx.config.config_dir, 'logs'))
+        default_dir = os.path.join(cli_ctx.config.config_dir, 'logs')
         return os.path.expanduser(cli_ctx.config.get('logging', 'log_dir', fallback=default_dir))
 
     def _get_console_log_levels(self):

@@ -20,9 +20,6 @@ jobs:
       name: 'pool-ubuntu-2004'
     strategy:
       matrix:
-        Python37:
-          python.version: '3.7'
-          tox_env: 'py37'
         Python38:
           python.version: '3.8'
           tox_env: 'py38'
@@ -32,6 +29,9 @@ jobs:
         Python310:
           python.version: '3.10'
           tox_env: 'py310'
+        Python311:
+          python.version: '3.11'
+          tox_env: 'py311'
     steps:
       - task: UsePythonVersion@0
         displayName: 'Use Python $(python.version)'
@@ -53,9 +53,8 @@ jobs:
       name: 'pool-ubuntu-2004'
     steps:
       - task: UsePythonVersion@0
-        displayName: Use Python 3.10
         inputs:
-          versionSpec: 3.10
+          versionSpec: 3.11
       - bash: |
           set -ev
 

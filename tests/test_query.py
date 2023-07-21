@@ -38,12 +38,12 @@ class TestQuery(unittest.TestCase):
     (We are not testing JMESPath itself here)
     '''
 
-    def test_query_valid_1(self):  # pylint: disable=no-self-use
+    def test_query_valid_1(self):
         query = 'length(@)'
         # Should not raise any exception as it is valid
         CLIQuery.jmespath_type(query)
 
-    def test_query_valid_2(self):  # pylint: disable=no-self-use
+    def test_query_valid_2(self):
         query = "[?propertyX.propertyY.propertyZ=='AValue'].[col1,col2]"
         # Should not raise any exception as it is valid
         CLIQuery.jmespath_type(query)
