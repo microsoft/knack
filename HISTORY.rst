@@ -3,6 +3,12 @@
 Release History
 ===============
 
+0.11.0
+++++++
+
+* Declare support for Python 3.11 and drop support for Python 3.7 (#275)
+* Stop converting argument's `bool` default value to `DefaultInt` (#273)
+
 0.10.1
 ++++++
 
