@@ -33,7 +33,7 @@ class IntegrationTestBase(unittest.TestCase):
     def cmd(self, command, checks=None, expect_failure=False):
         return ExecutionResult(self.cli, command, expect_failure=expect_failure).assert_with_checks(checks)
 
-    def create_random_name(self, prefix, length):  # pylint: disable=no-self-use
+    def create_random_name(self, prefix, length):
         return create_random_name(prefix=prefix, length=length)
 
     def create_temp_file(self, size_kb, full_random=False):
@@ -117,7 +117,7 @@ class ScenarioTest(IntegrationTestBase):  # pylint: disable=too-many-instance-at
 
         # set up cassette
         cm = self.vcr.use_cassette(self.recording_file)
-        self.cassette = cm.__enter__()
+        self.cassette = cm.__enter__()  # pylint: disable=unnecessary-dunder-call
         self.addCleanup(cm.__exit__)
 
         if not self.in_recording:

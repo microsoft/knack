@@ -5,10 +5,10 @@
 
 
 class RecordingProcessor(object):
-    def process_request(self, request):  # pylint: disable=no-self-use
+    def process_request(self, request):
         return request
 
-    def process_response(self, response):  # pylint: disable=no-self-use
+    def process_response(self, response):
         return response
 
     @classmethod

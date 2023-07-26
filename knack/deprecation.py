@@ -94,12 +94,10 @@ class Deprecated(StatusTag):
             message_func=message_func or _default_get_message
         )
 
-    # pylint: disable=no-self-use
     def _version_less_than_or_equal_to(self, v1, v2):
         """ Returns true if v1 <= v2. """
-        # pylint: disable=no-name-in-module, import-error
-        from distutils.version import LooseVersion
-        return LooseVersion(v1) <= LooseVersion(v2)
+        from packaging.version import parse
+        return parse(v1) <= parse(v2)
 
     def expired(self):
         if self.expiration:

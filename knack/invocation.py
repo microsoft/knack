@@ -54,7 +54,7 @@ class CommandInvoker(object):
                                  prog=self.cli_ctx.name, parents=[self._global_parser])
         self.commands_loader = commands_loader_cls(cli_ctx=self.cli_ctx)
 
-    def _filter_params(self, args):  # pylint: disable=no-self-use
+    def _filter_params(self, args):
         # Consider - we are using any args that start with an underscore (_) as 'private'
         # arguments and remove them from the arguments that we pass to the actual function.
         params = {key: value
@@ -88,7 +88,7 @@ class CommandInvoker(object):
 
         return ' '.join(nouns)
 
-    def _validate_cmd_level(self, ns, cmd_validator):  # pylint: disable=no-self-use
+    def _validate_cmd_level(self, ns, cmd_validator):
         if cmd_validator:
             cmd_validator(ns)
         try:
@@ -96,7 +96,7 @@ class CommandInvoker(object):
         except AttributeError:
             pass
 
-    def _validate_arg_level(self, ns, **_):  # pylint: disable=no-self-use
+    def _validate_arg_level(self, ns, **_):
         for validator in getattr(ns, '_argument_validators', []):
             validator(ns)
         try:

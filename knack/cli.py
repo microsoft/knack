@@ -104,7 +104,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
     def _should_show_version(args):
         return args and (args[0] == '--version' or args[0] == '-v')
 
-    def get_cli_version(self):  # pylint: disable=no-self-use
+    def get_cli_version(self):
         """ Get the CLI Version. Override this to define how to get the CLI version
 
         :return: The CLI version
@@ -112,7 +112,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         """
         return ''
 
-    def get_runtime_version(self):  # pylint: disable=no-self-use
+    def get_runtime_version(self):
         """ Get the runtime information.
 
         :return: Runtime information
@@ -169,7 +169,7 @@ class CLI(object):  # pylint: disable=too-many-instance-attributes
         for func in handlers:
             func(self, **kwargs)
 
-    def exception_handler(self, ex):  # pylint: disable=no-self-use
+    def exception_handler(self, ex):
         """ The default exception handler """
         if isinstance(ex, CLIError):
             logger.error(ex)

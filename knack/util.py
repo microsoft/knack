@@ -86,7 +86,6 @@ class StatusTag(object):
         self._get_tag = tag_func
         self._get_message = message_func
 
-    # pylint: disable=no-self-use
     def hidden(self):
         return False
 

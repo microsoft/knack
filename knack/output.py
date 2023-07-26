@@ -129,7 +129,7 @@ class OutputProducer(object):
         self.cli_ctx.register_event(EVENT_PARSER_GLOBAL_CREATE, OutputProducer.on_global_arguments)
         self.cli_ctx.register_event(EVENT_INVOKER_POST_PARSE_ARGS, OutputProducer.handle_output_argument)
 
-    def out(self, obj, formatter=None, out_file=None):  # pylint: disable=no-self-use
+    def out(self, obj, formatter=None, out_file=None):
         """ Produces the output using the command result.
             The method does not return a result as the output is written straight to the output file.
 
@@ -157,7 +157,7 @@ class OutputProducer(object):
             print(output.encode('ascii', 'ignore').decode('utf-8', 'ignore'),
                   file=out_file, end='')
 
-    def get_formatter(self, format_type):  # pylint: disable=no-self-use
+    def get_formatter(self, format_type):
         # remove color if stdout is not a tty
         if not self.cli_ctx.enable_color and format_type == 'jsonc':
             return OutputProducer._FORMAT_DICT['json']
