@@ -1,10 +1,10 @@
-argcomplete==3.1.1
-flake8==6.0.0
+argcomplete==3.4.0
+flake8==7.1.0
 jmespath==1.0.1
-packaging==23.1
-Pygments==2.15.1
-pylint==2.17.4
-pytest==7.4.0
+packaging==24.1
+Pygments==2.18.0
+pylint==3.2.5
+pytest==8.2.2
 PyYAML
 tabulate==0.9.0
-vcrpy==5.0.0
+vcrpy==6.0.1

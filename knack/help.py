@@ -464,8 +464,7 @@ class CLIHelp(object):
                     'line_len': line_len
                 }
                 layout['summary'] = layout['summary'].replace('\n', ' ')
-                if line_len > self.max_line_len:
-                    self.max_line_len = line_len
+                self.max_line_len = max(line_len, self.max_line_len)
                 layouts.append(layout)
             return layouts
 
@@ -586,8 +585,7 @@ class CLIHelp(object):
                     'group_name': c.group_name,
                     'line_len': line_len
                 }
-                if line_len > self.max_line_len:
-                    self.max_line_len = line_len
+                self.max_line_len = max(line_len, self.max_line_len)
                 layouts.append(layout)
             return layouts
 
