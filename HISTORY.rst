@@ -3,6 +3,11 @@
 Release History
 ===============
 
+0.12.0
+++++++
+
+* Declare support for Python 3.12 (#279)
+
 0.11.0
 ++++++
 
