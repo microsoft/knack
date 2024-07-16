@@ -25,9 +25,9 @@ logger = logging.getLogger('clicore.testsdk')
 
 
 class IntegrationTestBase(unittest.TestCase):
-    def __init__(self, cli, method_name):
+    def __init__(self, method_name):
         super().__init__(method_name)
-        self.cli = cli
+        self.cli = None
         self.diagnose = os.environ.get(ENV_TEST_DIAGNOSE, None) == 'True'
 
     def cmd(self, command, checks=None, expect_failure=False):
@@ -81,8 +81,8 @@ class LiveTest(IntegrationTestBase):
 
 class ScenarioTest(IntegrationTestBase):  # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, cli, method_name, filter_headers=None):
-        super().__init__(cli, method_name)
+    def __init__(self, method_name, filter_headers=None):
+        super().__init__(method_name)
         self.name_replacer = GeneralNameReplacer()
         self.recording_processors = [LargeRequestBodyProcessor(),
                                      LargeResponseBodyProcessor(),
