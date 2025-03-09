@@ -20,9 +20,6 @@ jobs:
       name: 'pool-ubuntu-2004'
     strategy:
       matrix:
-        Python38:
-          python.version: '3.8'
-          tox_env: 'py38'
         Python39:
           python.version: '3.9'
           tox_env: 'py39'
