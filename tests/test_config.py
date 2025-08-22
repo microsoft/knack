@@ -253,7 +253,7 @@ class TestCLIConfig(unittest.TestCase):
         file_mode = os.stat(self.cli_config.config_path).st_mode
         self.assertTrue(bool(file_mode & stat.S_IRUSR))
         self.assertTrue(bool(file_mode & stat.S_IWUSR))
-        # only S_IRUSR and S_IWUSR are supported on Windows: https://docs.python.org/3.8/library/os.html#os.chmod
+        # only S_IRUSR and S_IWUSR are supported on Windows: https://docs.python.org/3.12/library/os.html#os.chmod
         if os.name != 'nt':
             self.assertFalse(bool(file_mode & stat.S_IXUSR))
             self.assertFalse(bool(file_mode & stat.S_IRGRP))
