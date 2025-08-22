@@ -32,6 +32,9 @@ jobs:
         Python312:
           python.version: '3.12'
           tox_env: 'py312'
+        Python313:
+          python.version: '3.13'
+          tox_env: 'py313'
     steps:
       - task: UsePythonVersion@0
         displayName: 'Use Python $(python.version)'
@@ -54,7 +57,7 @@ jobs:
     steps:
       - task: UsePythonVersion@0
         inputs:
-          versionSpec: 3.12
+          versionSpec: 3.13
       - bash: |
           set -ev
 
