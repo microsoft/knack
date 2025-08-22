@@ -17,7 +17,7 @@ jobs:
     timeoutInMinutes: 20
 
     pool:
-      name: 'pool-ubuntu-2004'
+      name: 'pool-ubuntu-latest-multi-core'
     strategy:
       matrix:
         Python39:
@@ -50,7 +50,7 @@ jobs:
   - job: BuildPythonWheel
     condition: succeeded()
     pool:
-      name: 'pool-ubuntu-2004'
+      name: 'pool-ubuntu-latest-multi-core'
     steps:
       - task: UsePythonVersion@0
         inputs:
