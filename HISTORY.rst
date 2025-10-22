@@ -3,6 +3,12 @@
 Release History
 ===============
 
+0.13.0
+++++++
+
+* Declare support for Python 3.13 (#290)
+* Drop Python 3.8 support (#289)
+
 0.12.0
 ++++++
 
