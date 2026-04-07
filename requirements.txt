@@ -2,7 +2,7 @@ argcomplete==3.4.0
 flake8==7.1.0
 jmespath==1.0.1
 packaging==24.1
-Pygments==2.18.0
+Pygments==2.20.0
 pylint==3.2.5
 pytest==8.2.2
 PyYAML
