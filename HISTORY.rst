@@ -3,6 +3,11 @@
 Release History
 ===============
 
+0.14.0
+++++++
+
+* Declare support for Python 3.14 and drop support for Python 3.9 (#296)
+
 0.13.0
 ++++++
 
