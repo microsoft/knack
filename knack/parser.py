@@ -43,6 +43,18 @@ class CLICommandParser(argparse.ArgumentParser):
     def _add_argument(obj, arg):
         """ Only pass valid argparse kwargs to argparse.ArgumentParser.add_argument """
         argparse_options = {name: value for name, value in arg.options.items() if name in ARGPARSE_SUPPORTED_KWARGS}
+
+        # Python 3.14+ validates help strings at add_argument() time by running
+        # `help_string % params` (see https://github.com/python/cpython/pull/124899).
+        # Any bare '%' in help text causes ValueError/TypeError/KeyError since '%' is
+        # the Python old-style string formatting operator. CLI authors are not expected
+        # to escape '%' in help strings (no such requirement exists in docs), so we
+        # transparently escape '%' to '%%' before argparse validation and restore it
+        # afterward so users see the original unescaped text in help output.
+        help_string = argparse_options.get('help')
+        if help_string and '%' in help_string:
+            argparse_options['help'] = help_string.replace('%', '%%')
+
         if arg.options_list:
             scrubbed_options_list = []
             for item in arg.options_list:
@@ -61,13 +73,22 @@ class CLICommandParser(argparse.ArgumentParser):
                     setattr(option, 'deprecate_info', item)
                     item = option
                 scrubbed_options_list.append(item)
-            return obj.add_argument(*scrubbed_options_list, **argparse_options)
+            param = obj.add_argument(*scrubbed_options_list, **argparse_options)
+        else:
+            if 'required' in argparse_options:
+                del argparse_options['required']
+            if 'metavar' not in argparse_options:
+                argparse_options['metavar'] = '<{}>'.format(argparse_options['dest'].upper())
+            param = obj.add_argument(**argparse_options)
 
-        if 'required' in argparse_options:
-            del argparse_options['required']
-        if 'metavar' not in argparse_options:
-            argparse_options['metavar'] = '<{}>'.format(argparse_options['dest'].upper())
-        return obj.add_argument(**argparse_options)
+        # Restore the original unescaped help text so the CLI help renderer displays
+        # the correct single '%' characters to the user. Knack's help renderer reads
+        # action.help directly (not via argparse's _expand_help), so without this
+        # restore users would see '%%' literally in help output.
+        if help_string and '%' in help_string:
+            param.help = help_string
+
+        return param
 
     @staticmethod
     def _expand_prefixed_files(args):
