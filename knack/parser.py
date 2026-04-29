@@ -33,6 +33,50 @@ ARGPARSE_SUPPORTED_KWARGS = [
 class CLICommandParser(argparse.ArgumentParser):
 
     @staticmethod
+    def _sanitize_help_for_argparse(help_text):
+        """Escape literal '%' while preserving argparse mapping placeholders.
+
+        argparse interpolates help text with ``%`` formatting against a dict.
+        Keep valid ``%(name)s``-style placeholders as-is and escape everything
+        else so help text like date formats (for example, ``%Y-%m-%d``) doesn't
+        crash during parser construction.
+        """
+        if not isinstance(help_text, str) or '%' not in help_text:
+            return help_text
+
+        result = []
+        idx = 0
+        text_len = len(help_text)
+        while idx < text_len:
+            char = help_text[idx]
+            if char != '%':
+                result.append(char)
+                idx += 1
+                continue
+
+            # Keep already-escaped percent signs as-is.
+            if idx + 1 < text_len and help_text[idx + 1] == '%':
+                result.append('%%')
+                idx += 2
+                continue
+
+            # Preserve mapping placeholders, e.g. %(default)s.
+            if idx + 1 < text_len and help_text[idx + 1] == '(':
+                closing_paren = help_text.find(')', idx + 2)
+                if closing_paren != -1 and closing_paren + 1 < text_len:
+                    conversion_char = help_text[closing_paren + 1]
+                    if conversion_char.isalpha():
+                        result.append(help_text[idx:closing_paren + 2])
+                        idx = closing_paren + 2
+                        continue
+
+            # Any other '%' is literal and must be escaped for argparse.
+            result.append('%%')
+            idx += 1
+
+        return ''.join(result)
+
+    @staticmethod
     def create_global_parser(cli_ctx=None):
         global_parser = argparse.ArgumentParser(prog=cli_ctx.name, add_help=False)
         arg_group = global_parser.add_argument_group('global', 'Global Arguments')
@@ -43,6 +87,8 @@ class CLICommandParser(argparse.ArgumentParser):
     def _add_argument(obj, arg):
         """ Only pass valid argparse kwargs to argparse.ArgumentParser.add_argument """
         argparse_options = {name: value for name, value in arg.options.items() if name in ARGPARSE_SUPPORTED_KWARGS}
+        if 'help' in argparse_options:
+            argparse_options['help'] = CLICommandParser._sanitize_help_for_argparse(argparse_options['help'])
         if arg.options_list:
             scrubbed_options_list = []
             for item in arg.options_list:
