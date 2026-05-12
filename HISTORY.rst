@@ -7,6 +7,7 @@ Release History
 ++++++
 
 * Declare support for Python 3.14 and drop support for Python 3.9 (#296)
+* Fix help text rendering for Python 3.14 argparse strict validation (#300)
 
 0.13.0
 ++++++
