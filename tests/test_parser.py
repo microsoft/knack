@@ -194,7 +194,7 @@ class TestParser(unittest.TestCase):
 
     def test_help_string_preserves_argparse_placeholders(self):
         sanitized = CLICommandParser._sanitize_help_for_argparse('default is %(default)s (100% expected)')
-        self.assertEqual(sanitized, 'default is %(default)s (100%% expected)')
+        self.assertEqual(sanitized, 'default is %(default)s (100% expected)')
 
 
 class VerifyError(object):  # pylint: disable=too-few-public-methods
