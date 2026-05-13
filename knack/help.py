@@ -280,7 +280,7 @@ class CommandHelpFile(HelpFile):
                     'deprecate_info': getattr(action, 'deprecate_info', None),
                     'preview_info': getattr(action, 'preview_info', None),
                     'experimental_info': getattr(action, 'experimental_info', None),
-                    'description': action.help,
+                    'description': self._expand_action_help(action),
                     'choices': action.choices,
                     'required': False,
                     'default': None,
@@ -291,9 +291,28 @@ class CommandHelpFile(HelpFile):
         help_param = next(p for p in self.parameters if p.name == '--help -h')
         help_param.group_name = 'Global Arguments'
 
+    @staticmethod
+    def _expand_action_help(action):
+        """Expand argparse-style help placeholders for Knack-rendered help."""
+        if not isinstance(action.help, str) or '%' not in action.help:
+            return action.help
+
+        parser = getattr(action.container, '_parser', None)
+        prog = getattr(parser, 'prog', '')
+        params = dict(vars(action), prog=prog)
+        for key in list(params):
+            if params[key] is argparse.SUPPRESS:
+                del params[key]
+
+        try:
+            return action.help % params
+        except (KeyError, TypeError, ValueError):
+            # Keep help resilient even when token expansion cannot be resolved.
+            return action.help.replace('%%', '%')
+
     def _add_parameter_help(self, param):
         param_kwargs = {
-            'description': param.help,
+            'description': self._expand_action_help(param),
             'choices': param.choices,
             'required': param.required,
             'default': param.default,

@@ -180,6 +180,22 @@ class TestParser(unittest.TestCase):
 
         remove_test_file('test.json')
 
+    def test_help_string_with_literal_percent_does_not_crash(self):
+        def test_handler():
+            pass
+
+        command = CLICommand(self.mock_ctx, 'test command', test_handler)
+        command.add_argument('date_fmt', '--date-fmt', help='Expected format: %Y-%m-%d')
+        cmd_table = {'test command': command}
+        self.mock_ctx.commands_loader.command_table = cmd_table
+
+        parser = CLICommandParser()
+        parser.load_command_table(self.mock_ctx.commands_loader)
+
+    def test_help_string_preserves_argparse_placeholders(self):
+        sanitized = CLICommandParser._sanitize_help_for_argparse('default is %(default)s (100%% expected)')
+        self.assertEqual(sanitized, 'default is %(default)s (100%% expected)')
+
 
 class VerifyError(object):  # pylint: disable=too-few-public-methods
 

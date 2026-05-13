@@ -69,6 +69,9 @@ class TestHelp(unittest.TestCase):
                     g.command('n3', 'example_handler')
                     g.command('n4', 'example_handler')
                     g.command('n5', 'example_handler')
+                    g.command('n6', 'example_handler')
+                    g.command('n7', 'example_handler')
+                    g.command('n8', 'example_handler')
 
                 with CommandGroup(self, 'group alpha', '{}#{{}}'.format(__name__)) as g:
                     g.command('n1', 'example_handler')
@@ -89,6 +92,16 @@ class TestHelp(unittest.TestCase):
                         c.argument('arg1', options_list=['--foobar'])
                         c.argument('arg2', options_list=['--foobar2'], required=True)
                         c.argument('arg3', options_list=['--foobar3'], help='the foobar3')
+
+                with ArgumentsContext(self, 'n6') as c:
+                    c.argument('arg1', options_list=['--fmt'], default='my-default',
+                               help='default=%(default)s prog=%(prog)s')
+
+                with ArgumentsContext(self, 'n7') as c:
+                    c.argument('arg1', options_list=['--pct'], help='ratio 100%%')
+
+                with ArgumentsContext(self, 'n8') as c:
+                    c.argument('arg1', options_list=['--bad'], help='bad % token')
 
                 super().load_arguments(command)
 
@@ -399,6 +412,39 @@ Commands:
         actual = self.io.getvalue()
         expected = expected.format(self.cli_ctx.name)
         self.assertEqual(actual, expected)
+
+    @redirect_io
+    def test_help_argparse_default_and_prog_placeholders(self):
+        """Ensure argparse placeholders are expanded in help text."""
+
+        with self.assertRaises(SystemExit):
+            self.cli_ctx.invoke('n6 -h'.split())
+
+        actual = self.io.getvalue()
+        self.assertIn('Default=my-default prog=', actual)
+        self.assertNotIn('%(default)s', actual)
+        self.assertNotIn('%(prog)s', actual)
+
+    @redirect_io
+    def test_help_argparse_escaped_percent(self):
+        """Ensure escaped percent signs render as a single literal percent."""
+
+        with self.assertRaises(SystemExit):
+            self.cli_ctx.invoke('n7 -h'.split())
+
+        actual = self.io.getvalue()
+        self.assertIn('Ratio 100%.', actual)
+        self.assertNotIn('Ratio 100%%.', actual)
+
+    @redirect_io
+    def test_help_argparse_bad_percent_falls_back(self):
+        """Ensure malformed formatting falls back to the original help text."""
+
+        with self.assertRaises(SystemExit):
+            self.cli_ctx.invoke('n8 -h'.split())
+
+        actual = self.io.getvalue()
+        self.assertIn('Bad % token.', actual)
 
     @redirect_io
     @mock.patch('knack.cli.CLI.register_event')
