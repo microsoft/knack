@@ -8,6 +8,7 @@ import json
 import traceback
 from collections import OrderedDict
 from io import StringIO
+import sys
 
 from .events import EVENT_INVOKER_POST_PARSE_ARGS, EVENT_PARSER_GLOBAL_CREATE
 from .log import get_logger
@@ -28,6 +29,37 @@ class _ComplexEncoder(json.JSONEncoder):
         if isinstance(o, (bytes, bytearray)):
             return o.decode()
         return json.JSONEncoder.default(self, o)
+
+
+def format_cmd(obj):
+    result = obj.result
+    if 'value' not in result:
+        raise CLIError(f"result ({result}) does not contain key 'value'. "
+                       "Are you sure to use cmd output for the corresponding az command?")
+
+    value = result['value'][0]
+    if 'message' not in value:
+        raise CLIError(f"value ({value}) does not contain key 'message'. "
+                       "Are you sure to use cmd output for the corresponding az command?")
+
+    message = value['message']
+
+    stdout_begin = message.find("[stdout]\n")
+    stderr_begin = message.find("[stderr]\n")
+    if stdout_begin == -1 or stderr_begin == -1:
+        raise CLIError(f"message ({message}) does not contain 'stdout' or stderr. "
+                       "Are you sure to use cmd output for the corresponding az command?")
+
+    stdout_begin += len("[stdout]\n")
+    # We remove two to avoid the last \n.
+    stderr_output = message[stdout_begin:stderr_begin - 2]
+
+    stderr_begin += len("[stderr]\n")
+    stdout_output = message[stderr_begin:-2]
+
+    print(stderr_output, file=sys.stderr)
+
+    return stdout_output
 
 
 def format_json(obj):
@@ -99,6 +131,7 @@ class OutputProducer(object):
         'table': format_table,
         'tsv': format_tsv,
         'none': format_none,
+        'cmd': format_cmd,
     }
 
     @staticmethod
