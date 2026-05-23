@@ -31,9 +31,9 @@ def hello_command_handler(myarg=None, abc=None):
 class MyCommandsLoader(CLICommandsLoader):
 
     def load_command_table(self, args):
-        with CommandGroup(self, 'hello', '__main__#{}') as g:
+        with CommandGroup(self, 'hello', '{}#{{}}'.format(__name__)) as g:
             g.command('world', 'hello_command_handler', confirmation=True)
-        with CommandGroup(self, 'abc', '__main__#{}') as g:
+        with CommandGroup(self, 'abc', '{}#{{}}'.format(__name__)) as g:
             g.command('list', 'abc_list_command_handler')
             g.command('show', 'a_test_command_handler')
         return super(MyCommandsLoader, self).load_command_table(args)
@@ -61,8 +61,9 @@ from knack.testsdk import ScenarioTest, JMESPathCheck
 
 class TestMyScenarios(ScenarioTest):
 
-    def __init__(self, method_name):
-        super(TestMyScenarios, self).__init__(mycli, method_name)
+    def setUp(self):
+        super().setUp()
+        self.cli = mycli
 
     def test_hello_world_yes(self):
         self.cmd('hello world --yes', checks=[
