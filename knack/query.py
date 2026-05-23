@@ -42,9 +42,11 @@ class CLIQuery(object):
         if query_expression:
             def filter_output(cli_ctx, **kwargs):
                 from jmespath import Options
-                kwargs['event_data']['result'] = query_expression.search(
-                    kwargs['event_data']['result'], Options(collections.OrderedDict))
-                cli_ctx.unregister_event(EVENT_INVOKER_FILTER_RESULT, filter_output)
+                try:
+                    kwargs['event_data']['result'] = query_expression.search(
+                        kwargs['event_data']['result'], Options(collections.OrderedDict))
+                finally:
+                    cli_ctx.unregister_event(EVENT_INVOKER_FILTER_RESULT, filter_output)
             cli_ctx.register_event(EVENT_INVOKER_FILTER_RESULT, filter_output)
             cli_ctx.invocation.data['query_active'] = True
 
