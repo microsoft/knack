@@ -6,10 +6,11 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
+import json
 import unittest
 from unittest import mock
 from collections import OrderedDict
-from io import StringIO
+from io import BytesIO, StringIO, TextIOWrapper
 
 from knack.output import OutputProducer, format_json, format_json_color, format_yaml, format_yaml_color, \
     format_table, format_tsv
@@ -92,6 +93,41 @@ class TestOutput(unittest.TestCase):
   "contents": "生活很糟糕"
 }
 """))
+
+    def test_out_json_non_ASCII_unencodable(self):
+        """
+        When the destination stream cannot represent every character, only the characters that its
+        encoding genuinely cannot represent should be affected. Characters the encoding does support
+        must survive, and the unrepresentable ones should degrade to something visible.
+        """
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        # cp1252 represents æ, ø, å and the em dash, but not U+221E INFINITY.
+        out_file = TextIOWrapper(BytesIO(), encoding='cp1252')
+        output_producer.out(CommandResultItem({'contents': 'æ ø å — ∞'}),
+                            formatter=format_json, out_file=out_file)
+        out_file.flush()
+        written = out_file.buffer.getvalue().decode('cp1252')
+
+        self.assertEqual(normalize_newlines(written), normalize_newlines(
+            """{
+  "contents": "æ ø å — ?"
+}
+"""))
+
+    def test_out_json_non_ASCII_unencodable_stays_parseable(self):
+        """
+        The fallback must not turn valid JSON into something a parser rejects, including for
+        characters outside the Basic Multilingual Plane such as emoji.
+        """
+        output_producer = OutputProducer(cli_ctx=self.mock_ctx)
+        out_file = TextIOWrapper(BytesIO(), encoding='cp1252')
+        output_producer.out(CommandResultItem({'contents': 'æ ø å 😀'}),
+                            formatter=format_json, out_file=out_file)
+        out_file.flush()
+        written = out_file.buffer.getvalue().decode('cp1252')
+
+        # The characters cp1252 supports survive, and the document still parses.
+        self.assertEqual(json.loads(written)['contents'], 'æ ø å ?')
 
     # YAML output tests
 
