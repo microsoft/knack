@@ -152,9 +152,13 @@ class OutputProducer(object):
             else:
                 raise
         except UnicodeEncodeError:
-            logger.warning("Unable to encode the output with %s encoding. Unsupported characters are discarded.",
-                           out_file.encoding)
-            print(output.encode('ascii', 'ignore').decode('utf-8', 'ignore'),
+            # Retry with the stream's own encoding so that characters it *can* represent survive.
+            # Encoding to 'ascii' here would discard every non-ASCII character in the document,
+            # not just the ones the destination cannot represent.
+            encoding = out_file.encoding or 'ascii'
+            logger.warning("Unable to encode some characters with %s encoding. "
+                           "They are replaced with '?'.", encoding)
+            print(output.encode(encoding, 'replace').decode(encoding),
                   file=out_file, end='')
 
     def get_formatter(self, format_type):
