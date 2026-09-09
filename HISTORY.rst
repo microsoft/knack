@@ -3,6 +3,11 @@
 Release History
 ===============
 
+Unreleased
+++++++++++
+
+* Preserve default integer and string values in command output (#215)
+
 0.14.0
 ++++++
 

@@ -9,6 +9,8 @@ import re
 from datetime import date, time, datetime, timedelta
 from enum import Enum
 
+from .validators import DefaultInt, DefaultStr
+
 NO_COLOR_VARIABLE_NAME = 'KNACK_NO_COLOR'
 
 # Override these values to customize the status message.
@@ -135,6 +137,10 @@ def todict(obj, post_processor=None):  # pylint: disable=too-many-return-stateme
     Convert an object to a dictionary. Use 'post_processor(original_obj, dictionary)' to update the
     dictionary in the process
     """
+    if isinstance(obj, DefaultInt):
+        return int(obj)
+    if isinstance(obj, DefaultStr):
+        return str(obj)
     if isinstance(obj, dict):
         result = {k: todict(v, post_processor) for (k, v) in obj.items()}
         return post_processor(obj, result) if post_processor else result

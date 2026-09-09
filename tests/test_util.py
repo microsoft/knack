@@ -9,6 +9,7 @@ from datetime import date, time, datetime
 from unittest import mock
 
 from knack.util import todict, to_snake_case, is_modern_terminal
+from knack.validators import DefaultInt, DefaultStr
 
 
 class TestUtils(unittest.TestCase):
@@ -18,6 +19,15 @@ class TestUtils(unittest.TestCase):
         actual = todict(the_input)
         expected = None
         self.assertEqual(actual, expected)
+
+    def test_application_todict_default_scalars(self):
+        for value, expected in [(DefaultInt(100), 100), (DefaultStr('hello'), 'hello')]:
+            with self.subTest(value=value):
+                actual = todict(value)
+                self.assertEqual(actual, expected)
+                self.assertIs(type(actual), type(expected))
+                self.assertEqual(todict({'value': [value]}), {'value': [expected]})
+                self.assertTrue(value.is_default)
 
     def test_application_todict_dict_empty(self):
         the_input = {}
