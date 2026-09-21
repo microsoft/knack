@@ -177,14 +177,14 @@ class _TableOutput(object):  # pylint: disable=too-few-public-methods
     def _capitalize_first_char(x):
         return x[0].upper() + x[1:] if x else x
 
-    def _auto_table_item(self, item):
+    def _auto_table_item(self, item, preserve_none=False):
         new_entry = OrderedDict()
         try:
             keys = sorted(item) if self.should_sort_keys and isinstance(item, dict) else item.keys()
             for k in keys:
                 if k in _TableOutput.SKIP_KEYS:
                     continue
-                if item[k] is not None and not isinstance(item[k], (list, dict, set)):
+                if (preserve_none or item[k] is not None) and not isinstance(item[k], (list, dict, set)):
                     new_entry[_TableOutput._capitalize_first_char(k)] = item[k]
         except AttributeError:
             # handles odd cases where a string/bool/etc. is returned
@@ -198,9 +198,16 @@ class _TableOutput(object):  # pylint: disable=too-few-public-methods
     def _auto_table(self, result):
         if isinstance(result, list):
             new_result = []
+            visible_keys = set()
             for item in result:
-                new_result.append(self._auto_table_item(item))
-            return new_result
+                entry = self._auto_table_item(item, preserve_none=True)
+                new_result.append(entry)
+                visible_keys.update(k for k, value in entry.items()
+                                    if value is not None or not isinstance(item, dict))
+            # Keep each row's column order, including null placeholders, but
+            # omit dictionary columns that have no displayable value in any row.
+            return [OrderedDict((k, value) for k, value in entry.items() if k in visible_keys)
+                    for entry in new_result]
         return self._auto_table_item(result)
 
     def dump(self, data):
