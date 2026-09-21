@@ -147,6 +147,22 @@ contents: !!binary ""
 contents: こんにちは
 """))
 
+    def test_out_yaml_bytearray(self):
+        import json
+        import yaml
+
+        for data in (
+                {'contents': bytearray(b'certificate')},
+                {'contents': bytearray()},
+                {'items': [{'contents': bytearray('こんにちは', 'utf-8')}]},
+                OrderedDict([('contents', bytearray(b'certificate'))])):
+            with self.subTest(data=data):
+                self.io.seek(0)
+                self.io.truncate(0)
+                result = CommandResultItem(data)
+                OutputProducer(cli_ctx=self.mock_ctx).out(result, formatter=format_yaml, out_file=self.io)
+                self.assertEqual(yaml.safe_load(self.io.getvalue()), json.loads(format_json(result)))
+
     # TABLE output tests
 
     def test_out_table(self):
