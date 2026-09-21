@@ -242,6 +242,53 @@ qwerty  0b1f6472qwerty  True
 6.10
 """))
 
+    def test_out_table_null_preserves_query_column_order(self):
+        for first_value in (None, 'disk-1'):
+            with self.subTest(first_value=first_value):
+                rows = [OrderedDict([('Name', 'first'), ('Disk', first_value), ('Region', 'west')]),
+                        OrderedDict([('Name', 'second'), ('Disk', 'disk-2'), ('Region', 'east')])]
+                result = CommandResultItem(rows, is_query_active=True)
+                output = format_table(result)
+                self.assertEqual(output.splitlines()[0].split(), ['Name', 'Disk', 'Region'])
+                self.assertEqual(output.splitlines()[-1].split(), ['second', 'disk-2', 'east'])
+                self.assertEqual(rows[0]['Disk'], first_value)
+
+    def test_out_table_null_preserves_sorted_column_order(self):
+        rows = [{'name': 'first', 'disk': None, 'region': 'west'},
+                {'name': 'second', 'disk': 'disk-2', 'region': 'east'}]
+        output = format_table(CommandResultItem(rows))
+        self.assertEqual(output.splitlines()[0].split(), ['Disk', 'Name', 'Region'])
+        self.assertEqual(output.splitlines()[-1].split(), ['disk-2', 'second', 'east'])
+
+    def test_out_table_null_preserves_transformer_column_order(self):
+        rows = [{'name': 'first', 'disk': None, 'region': 'west'},
+                {'name': 'second', 'disk': 'disk-2', 'region': 'east'}]
+        result = CommandResultItem(rows, table_transformer='[].{Name:name, Disk:disk, Region:region}')
+        output = format_table(result)
+        self.assertEqual(output.splitlines()[0].split(), ['Name', 'Disk', 'Region'])
+        self.assertEqual(output.splitlines()[-1].split(), ['second', 'disk-2', 'east'])
+
+    def test_out_table_omits_empty_columns_but_keeps_false_and_zero(self):
+        rows = [OrderedDict([('Name', 'first'), ('Empty', None), ('Count', None),
+                             ('Active', None), ('Nested', {}), ('id', 'hidden')]),
+                OrderedDict([('Name', 'second'), ('Empty', None), ('Count', 0),
+                             ('Active', False), ('Nested', []), ('id', 'hidden')])]
+        output = format_table(CommandResultItem(rows, is_query_active=True))
+        self.assertEqual(output.splitlines()[0].split(), ['Name', 'Count', 'Active'])
+        self.assertEqual(output.splitlines()[-1].split(), ['second', '0', 'False'])
+
+    def test_out_table_null_compatibility(self):
+        cases = [({'name': 'single', 'empty': None}, ['Name']),
+                 ([{'name': 'first'}, {'name': 'second', 'late': 'value'}], ['Name', 'Late']),
+                 ([[None, 'first'], [None, 'second']], ['Column1', 'Column2']),
+                 ([None, 'second'], ['Result'])]
+        for rows, headers in cases:
+            with self.subTest(rows=rows):
+                output = format_table(CommandResultItem(rows, is_query_active=True))
+                self.assertEqual(output.splitlines()[0].split(), headers)
+        self.assertEqual(format_table(CommandResultItem([])), '\n')
+        self.assertEqual(format_table(CommandResultItem([{'empty': None}, {'empty': None}])), '\n')
+
     # TSV output tests
     def test_output_format_dict(self):
         obj = {}
