@@ -54,6 +54,50 @@ class TestExtractArgs(unittest.TestCase):
 
 class TestOptionDescriptions(unittest.TestCase):
 
+    def test_typed_and_multiline_parameter_help(self):
+        def operation(size_kb, items=None):
+            """Summary with a colon: details.
+
+            :param float size_kb: Size in kb: defaults to zero.
+                A continuation line.
+            :type size_kb: float
+            :param list[str] items: Items to include.
+            :return: A result.
+            """
+
+        self.assertEqual(extract_full_summary_from_signature(operation), 'Summary with a colon: details.')
+        self.assertEqual(option_descriptions(operation), {
+            'size_kb': 'Size in kb: defaults to zero. A continuation line.',
+            'items': 'Items to include.',
+        })
+        arguments = dict(extract_args_from_signature(operation))
+        self.assertEqual(arguments['size_kb'].options['help'],
+                         'Size in kb: defaults to zero. A continuation line.')
+
+    def test_parameter_declaration_whitespace(self):
+        def operation():
+            pass
+
+        for declaration in (':param arg: help', ':param int arg: help',
+                            ':param\tint\targ : help', ':param **kwargs: help',
+                            ':param *args: help'):
+            with self.subTest(declaration=declaration):
+                operation.__doc__ = 'Summary.\n\n    ' + declaration
+                self.assertEqual(extract_full_summary_from_signature(operation), 'Summary.')
+                self.assertEqual(list(option_descriptions(operation).values()), ['help'])
+
+    def test_malformed_parameter_declarations(self):
+        def operation():
+            pass
+
+        for declaration in (':parameter arg: help', ':paramarg: help', ':param : help',
+                            ':param' + ' ' * 5000 + 'missing delimiter'):
+            with self.subTest(declaration=declaration[:40]):
+                operation.__doc__ = 'Summary.\n' + declaration
+                self.assertEqual(extract_full_summary_from_signature(operation),
+                                 operation.__doc__.replace('\n', ' '))
+                self.assertEqual(option_descriptions(operation), {})
+
     def test_option_desc_simple(self):
         option_descs = option_descriptions(op1)
         self.assertIn('arg3', option_descs)

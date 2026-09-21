@@ -12,14 +12,18 @@ import re
 from .arguments import CLICommandArgument
 
 
+# Keep whitespace out of overlapping repetitions, and stop the parameter
+# declaration at its first colon without scanning into the next line.
+_PARAM_REGEX = re.compile(r':param\s+([^\s:][^:\r\n]*):(.*)')
+
+
 def extract_full_summary_from_signature(operation):
     """ Extract the summary from the docstring of the command. """
     lines = inspect.getdoc(operation)
-    regex = r'\s*(:param)\s+(.+?)\s*:(.*)'
     summary = ''
     if lines:
-        match = re.search(regex, lines)
-        summary = lines[:match.regs[0][0]] if match else lines
+        match = _PARAM_REGEX.search(lines)
+        summary = lines[:match.start()].rstrip() if match else lines
 
     summary = summary.replace('\n', ' ').replace('\r', '')
     return summary
@@ -39,15 +43,14 @@ def option_descriptions(operation):
     index = 0
     while index < len(lines):
         l = lines[index]
-        regex = r'\s*(:param)\s+(.+?)\s*:(.*)'
-        match = re.search(regex, l)
+        match = _PARAM_REGEX.search(l)
         if not match:
             index += 1
             continue
 
         # 'arg name' portion might have type info, we don't need it
-        arg_name = str.split(match.group(2))[-1]
-        arg_desc = match.group(3).strip()
+        arg_name = str.split(match.group(1))[-1]
+        arg_desc = match.group(2).strip()
         # look for more descriptions on subsequent lines
         index += 1
         while index < len(lines):
