@@ -227,11 +227,11 @@ class _ConfigFile(object):
                 configfile.write(self.config_comment + '\n')
             config.write(configfile)
         os.chmod(self.config_path, stat.S_IRUSR | stat.S_IWUSR)
-        self.config_parser.read(self.config_path)
+        self.config_parser.read(self.config_path, encoding=CONFIG_FILE_ENCODING)
 
     def set_value(self, section, option, value):
         config = configparser.ConfigParser()
-        config.read(self.config_path)
+        config.read(self.config_path, encoding=CONFIG_FILE_ENCODING)
         try:
             config.add_section(section)
         except configparser.DuplicateSectionError:
