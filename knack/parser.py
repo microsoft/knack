@@ -4,6 +4,7 @@
 # --------------------------------------------------------------------------------------------
 
 import argparse
+import re
 
 from .deprecation import Deprecated
 from .events import EVENT_PARSER_GLOBAL_CREATE
@@ -34,18 +35,13 @@ class CLICommandParser(argparse.ArgumentParser):
 
     @staticmethod
     def _sanitize_help_for_argparse(help_text):
-        """Escape literal '%' for argparse unless the author already escaped.
-
-        If a help string already contains ``%(...)`` placeholders or ``%%``,
-        keep it as-is and rely on argparse's native formatting behavior.
-        Otherwise, escape ``%`` so literal percent tokens don't break help
-        processing in newer Python versions.
-        """
+        """Escape literal '%' while preserving argparse placeholders and '%%'."""
         if not isinstance(help_text, str) or '%' not in help_text:
             return help_text
-        if '%(' in help_text or '%%' in help_text:
-            return help_text
-        return help_text.replace('%', '%%')
+        return re.sub(
+            r'%%|%\([^)]+\)[#0\- +]*\d*(?:\.\d+)?[hlL]?[diouxXeEfFgGcrsa]|%',
+            lambda match: '%%' if match.group() == '%' else match.group(),
+            help_text)
 
     @staticmethod
     def create_global_parser(cli_ctx=None):

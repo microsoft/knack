@@ -3,6 +3,7 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
+import argparse
 import unittest
 from io import StringIO
 
@@ -195,6 +196,21 @@ class TestParser(unittest.TestCase):
     def test_help_string_preserves_argparse_placeholders(self):
         sanitized = CLICommandParser._sanitize_help_for_argparse('default is %(default)s (100%% expected)')
         self.assertEqual(sanitized, 'default is %(default)s (100%% expected)')
+
+    def test_help_string_mixes_literal_and_formatted_percent(self):
+        cases = [
+            ('Default: %(default)s; date: %Y-%m-%d', 'Default: 7; date: %Y-%m-%d'),
+            ('100%% complete; date: %Y', '100% complete; date: %Y'),
+            ('Default: %(default)03d; 50% done', 'Default: 007; 50% done'),
+            ('%(prog)s: 100%%; trailing %', 'example: 100%; trailing %'),
+            ('Progress: 100%%%', 'Progress: 100%%'),
+        ]
+        for help_text, expected in cases:
+            with self.subTest(help_text=help_text):
+                parser = argparse.ArgumentParser(prog='example')
+                sanitized = CLICommandParser._sanitize_help_for_argparse(help_text)
+                parser.add_argument('--value', default=7, help=sanitized)
+                self.assertIn(expected, parser.format_help())
 
 
 class VerifyError(object):  # pylint: disable=too-few-public-methods
