@@ -128,6 +128,130 @@ class TestCommandRegistration(unittest.TestCase):
             self.assertTrue(contains_subset)
         self.assertEqual(command_metadata.arguments['resource_name'].options_list, ['--resource-name'])
 
+    def test_create_command_custom_loaders_are_lazy(self):
+        cl = CLICommandsLoader(self.mock_ctx)
+        calls = []
+
+        def arguments_loader():
+            calls.append('arguments')
+            return [('custom', CLICommandArgument('custom', help='Custom argument'))]
+
+        def description_loader():
+            calls.append('description')
+            return 'Custom description'
+
+        command = cl.create_command('custom', 'not_a_real_module#handler',
+                                    arguments_loader=arguments_loader,
+                                    description_loader=description_loader)
+        self.assertEqual(calls, [])
+        command.load_arguments()
+        self.assertEqual(list(command.arguments), ['custom'])
+        self.assertEqual(command.arguments['custom'].options['help'], 'Custom argument')
+        self.assertEqual(command.description(), 'Custom description')
+        self.assertEqual(calls, ['arguments', 'description'])
+
+    def test_register_command_group_custom_loaders_and_overrides(self):
+        cl = CLICommandsLoader(self.mock_ctx)
+
+        def group_arguments():
+            return [('group_arg', CLICommandArgument('group_arg'))]
+
+        def command_arguments():
+            return [('command_arg', CLICommandArgument('command_arg'))]
+
+        def group_description():
+            return 'Group description'
+
+        def command_description():
+            return 'Command description'
+
+        with CommandGroup(cl, 'test', '{}#{{}}'.format(__name__),
+                          arguments_loader=group_arguments,
+                          description_loader=group_description) as g:
+            g.command('inherited', 'unused_handler')
+            g.command('overridden', 'unused_handler', arguments_loader=command_arguments,
+                      description_loader=command_description)
+
+        for name, argument, description in [('inherited', 'group_arg', 'Group description'),
+                                            ('overridden', 'command_arg', 'Command description')]:
+            with self.subTest(name=name):
+                command_name = self._set_command_name('test ' + name)
+                cl.load_arguments(command_name)
+                command = cl.command_table[command_name]
+                self.assertEqual(list(command.arguments), [argument])
+                self.assertEqual(command.description(), description)
+
+    def test_create_command_custom_loaders_are_independent(self):
+        operation = '{}#{}.sample_command_handler'.format(__name__, type(self).__name__)
+        for custom in ['arguments', 'description']:
+            with self.subTest(custom=custom):
+                cl = CLICommandsLoader(self.mock_ctx)
+                kwargs = {custom + '_loader': lambda: [] if custom == 'arguments' else 'Custom description'}
+                command = cl.create_command('test', operation, **kwargs)
+                command.load_arguments()
+                if custom == 'arguments':
+                    self.assertEqual(command.arguments, {})
+                    self.assertEqual(command.description(), 'The operation to get a virtual machine.')
+                else:
+                    self.assertIn('group_name', command.arguments)
+                    self.assertEqual(command.description(), 'Custom description')
+
+    def test_create_command_default_loaders(self):
+        operation = '{}#{}.sample_command_handler'.format(__name__, type(self).__name__)
+        for kwargs in [{}, {'arguments_loader': None, 'description_loader': None}]:
+            with self.subTest(kwargs=kwargs):
+                command = CLICommandsLoader(self.mock_ctx).create_command('test', operation, **kwargs)
+                command.load_arguments()
+                self.assertEqual(set(command.arguments), {'group_name', 'resource_name', 'opt_param', 'expand'})
+                self.assertEqual(command.description(), 'The operation to get a virtual machine.')
+
+    def test_create_command_preserves_falsey_callable_for_custom_command(self):
+        class FalseyLoader:
+            def __bool__(self):
+                return False
+
+            def __call__(self):
+                return 'Custom value'
+
+        class CustomCommand:
+            def __init__(self, cli_ctx, name, handler, **kwargs):
+                self.arguments_loader = kwargs['arguments_loader']
+                self.description_loader = kwargs['description_loader']
+
+        arguments = FalseyLoader()
+        description = FalseyLoader()
+        command = CLICommandsLoader(self.mock_ctx, command_cls=CustomCommand).create_command(
+            'custom', 'unused#handler', arguments_loader=arguments, description_loader=description)
+        self.assertIs(command.arguments_loader, arguments)
+        self.assertIs(command.description_loader, description)
+        self.assertEqual(command.arguments_loader(), 'Custom value')
+        self.assertEqual(command.description_loader(), 'Custom value')
+
+    def test_command_none_resets_group_loaders_to_inferred_defaults(self):
+        cl = CLICommandsLoader(self.mock_ctx)
+        with CommandGroup(cl, 'test', '{}#{{}}'.format(__name__),
+                          arguments_loader=lambda: [], description_loader=lambda: 'Group description') as group:
+            group.command('reset', '{}.sample_command_handler'.format(type(self).__name__),
+                          arguments_loader=None, description_loader=None)
+        command_name = self._set_command_name('test reset')
+        cl.load_arguments(command_name)
+        command = cl.command_table[command_name]
+        self.assertIn('resource_name', command.arguments)
+        self.assertEqual(command.description(), 'The operation to get a virtual machine.')
+
+    def test_group_custom_arguments_receive_registered_overrides(self):
+        cl = CLICommandsLoader(self.mock_ctx)
+        with CommandGroup(cl, 'test', 'unused#{}', arguments_loader=lambda: [
+                ('custom', CLICommandArgument('custom', help='Original'))]) as group:
+            group.command('show', 'handler')
+        command_name = self._set_command_name('test show')
+        with ArgumentsContext(cl, 'test') as context:
+            context.argument('custom', options_list=['--configured'], help='Configured')
+        cl.load_arguments(command_name)
+        argument = cl.command_table[command_name].arguments['custom']
+        self.assertEqual(argument.options_list, ['--configured'])
+        self.assertEqual(argument.options['help'], 'Configured')
+
     def test_register_command_group_with_no_group_name(self):
         cl = CLICommandsLoader(self.mock_ctx)
         command_name = self._set_command_name('sample-command')

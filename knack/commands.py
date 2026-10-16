@@ -263,8 +263,10 @@ class CLICommandsLoader(object):
         def description_loader():
             return extract_full_summary_from_signature(CLICommandsLoader._get_op_handler(operation))
 
-        kwargs['arguments_loader'] = arguments_loader
-        kwargs['description_loader'] = description_loader
+        if kwargs.get('arguments_loader') is None:
+            kwargs['arguments_loader'] = arguments_loader
+        if kwargs.get('description_loader') is None:
+            kwargs['description_loader'] = description_loader
 
         cmd = self.command_cls(self.cli_ctx, name, _command_handler, **kwargs)
         return cmd

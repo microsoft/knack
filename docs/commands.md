@@ -32,6 +32,24 @@ mycli = CLI(cli_name='mycli', commands_loader_cls=MyCommandsLoader)
 exit_code = mycli.invoke(sys.argv[1:])
 ```
 
+You can specify `arguments_loader` and `description_loader` functions on a
+`CommandGroup` or an individual command. Command-level values override group
+values. An omitted command-level hook inherits the group value, if any; an absent
+hook after inheritance or an explicit command-level `None` selects the lazy
+handler-signature default. The argument hook returns `(name, CLICommandArgument)`
+pairs and the description hook returns the description text. Group-level hooks
+are defaults for each registered command, not a replacement for YAML group help.
+After loading arguments, `CLICommandsLoader.load_arguments` still applies
+registered `ArgumentsContext` overrides and extra arguments.
+
+Default selection does not truth-test a supplied hook. A custom command class
+receives a non-`None` value unchanged from `create_command`; group defaults are
+first deep-copied by `CommandGroup.command`. The stock `CLICommand` still
+truth-tests hooks before using them, so falsey callable objects are not executed
+by that class. Non-callable values such as `False` are not supported hooks or
+documented sentinels for disabling inference; use a function returning an empty
+argument list when that is intended.
+
 You can also provide your own command class to the CLICommandsLoader like so:
 
 ```Python
