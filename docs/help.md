@@ -38,7 +38,7 @@ helps['hello world'] = """
                   - mycli hello languages
                   - These indicate where values can be retrieved for input to this command
                 - name: --another-parameter
-                  short-summary: These parameter names must match what is shown in the command's CLI help output, including abbreviation.
+                  short-summary: Parameter names may use one exact option alias or all aliases in any order.
             examples:
                 - name: Document a parameter that doesn't exist
                   text: >
@@ -49,7 +49,11 @@ helps['hello world'] = """
             """
 </pre>
 
+For example, `--language -l`, `--language`, `-l`, and `-l --language` all identify the same parameter. Leading, trailing, and repeated separating whitespace is ignored for option aliases, whether one alias or the complete list is supplied. Partial option names, duplicate aliases, and subsets containing more than one but fewer than all aliases do not match. Positional parameter names must still match their displayed name exactly, including spaces. When both an exact displayed name and an alias entry are present, the exact entry takes precedence. The displayed aliases are unchanged.
+
 You can also document groups using the same format.
+
+Custom help constructors that create `HelpParameter` objects directly must explicitly pass `is_positional=False` for known optional arguments to enable alias matching. Omitting the flag leaves identity unknown and accepts only the exact displayed name, as does `is_positional=True` for positionals. Knack obtains this identity from argparse actions, not argument-group labels or dash-prefixed display names. Subclasses using `_add_parameter_help` inherit the optional identity even if they rebuild their parameter list.
 
 <pre>
 helps['hello'] = """
